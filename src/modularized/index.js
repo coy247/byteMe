@@ -1,7 +1,6 @@
 // Initialize message tracking before any other code
 const usedMessages = new Set();
 const seenPatterns = new Set();
-const testData = "./inputData.js";
 /**
  * @fileoverview Advanced Binary Pattern Analysis System
  * This module provides comprehensive analysis of binary patterns using various mathematical
@@ -77,100 +76,7 @@ function extractFloat(str) {
   }
 }
 // Function to analyze binary strings
-// Define window sizes for analysis
-const windowSizes = [2, 4, 8, 16];
-const warningShown = new Set();
-
 function analyzeBinary(binary) {
-  // Validate and clean binary input
-  if (!binary || typeof binary !== "string") {
-    return { error: "Invalid input: Expected binary string" };
-  }
-
-  // Filter out non-binary characters and validate content
-  const cleanBinary = binary.replace(/[^01]/g, "");
-  if (cleanBinary.length === 0) {
-    return { error: "Invalid input: No binary content found" };
-  }
-
-  if (cleanBinary.length !== binary.length && !warningShown.has("nonBinary")) {
-    console.warn(
-      `Warning: Non-binary characters were removed. Original length: ${binary.length}, Clean length: ${cleanBinary.length}`
-    );
-    warningShown.add("nonBinary");
-  }
-
-  // Calculate checksums
-  const checksum = {
-    simple: calculateSimpleChecksum(cleanBinary),
-    crc32: calculateCRC32(cleanBinary),
-    blocks: validateBlockStructure(cleanBinary),
-  };
-
-  // Visual data for analysis
-  const visualData = {
-    slidingWindowAnalysis: windowSizes.map((size) => ({
-      windowSize: size,
-      density: Array.from(
-        { length: Math.floor(cleanBinary.length / size) },
-        (_, i) =>
-          cleanBinary.substr(i * size, size).split("1").length - 1 / size
-      ),
-    })),
-    patternDensity: calculatePatternDensity(cleanBinary),
-    transitions: calculateTransitions(cleanBinary),
-  };
-
-  return {
-    checksum,
-    visualData,
-    error: null,
-  };
-}
-
-// Add checksum calculation functions
-function calculateSimpleChecksum(binary) {
-  return binary.split("").reduce((sum, bit) => sum + parseInt(bit, 2), 0);
-}
-
-function calculateCRC32(binary) {
-  let crc = 0xffffffff;
-  for (let i = 0; i < binary.length; i++) {
-    crc = crc ^ binary.charCodeAt(i);
-    for (let j = 0; j < 8; j++) {
-      crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
-    }
-  }
-  return ~crc >>> 0;
-}
-
-function validateBlockStructure(binary) {
-  const blockSize = 8;
-  const blocks = [];
-  for (let i = 0; i < binary.length; i += blockSize) {
-    blocks.push(binary.slice(i, i + blockSize));
-  }
-  return {
-    valid: blocks.every(
-      (block) =>
-        block.length === blockSize || block.length === binary.length % blockSize
-    ),
-    errors: blocks.filter(
-      (block) =>
-        block.length !== blockSize && block.length !== binary.length % blockSize
-    ).length,
-  };
-
-  // Validate data integrity
-  if (!checksum.blocks.valid) {
-    return {
-      error: "Invalid binary structure detected",
-      details: checksum.blocks.errors,
-      originalChecksum: checksum.simple,
-      crc32: checksum.crc32,
-    };
-  }
-
   // Advanced pattern detection using sliding window analysis
   const windowSizes = [2, 4, 8, 16];
   const patternAnalysis = windowSizes.map((size) => {
@@ -203,8 +109,8 @@ function validateBlockStructure(binary) {
     hierarchicalPatterns: patternAnalysis,
   };
   // Data preprocessing and optimization
-  const processedBinary = preprocessBinary(binary);
-  const complexity = calculateComplexity(processedBinary, stats);
+  const cleanBinary = preprocessBinary(binary);
+  const complexity = calculateComplexity(cleanBinary, stats);
   const adjustment = calculateAdjustment(complexity, stats);
   // Enhanced visualization data with multi-dimensional analysis
   const visualData = {
@@ -388,102 +294,56 @@ Math.std = function (arr) {
     arr.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / arr.length
   );
 };
-
-const phi = (1 + Math.sqrt(5)) / 2; // Define phi (golden ratio)
-const hyperPhi = (1 + Math.sqrt(5)) / 2; // Define hyperPhi with the same value as phi
-const hyperPi = Math.PI; // Define hyperPi as a transcendental constant
-const quantumPhi = (1 + Math.sqrt(5)) / 2; // Define quantumPhi with the same value as phi
-
 // Run test cases
 [
-  [...Array(8192)]
+  // Ultra-complex quantum-inspired pattern with multiple transcendental functions
+  Array(16384)
+    .fill(0)
     .map((_, i) => {
-      // Quantum-DNA hybrid coefficients with optical gate principles
-      const phi = (1 + Math.sqrt(5)) / 2;
-      const qPhi = (Math.sqrt(13) * Math.sqrt(17)) ^ (Math.sqrt(19) >>> 1);
-      const psi = ((Math.sqrt(23) ^ Math.sqrt(29)) * Math.PI) >>> 0;
-      const omega = ((Math.E ^ Math.sqrt(31)) * Math.LN2) | 0;
-
-      // Triple-phase quantum interference pattern with optical gates
-      const phase1 =
-        (Math.sin(i * qPhi * Math.sqrt(43)) ^
-          Math.cos(i / (phi * psi)) ^
-          Math.tan(i / (omega * Math.sqrt(53)))) |
-        ((Math.sinh(i / (273 * phi)) ^
-          Math.cosh(i / (377 * psi)) ^
-          Math.tanh(i / (987 * omega))) >>>
-          0);
-
-      const phase2 =
-        (Math.sin(i * Math.sqrt(61)) ^
-          Math.cos(i * Math.sqrt(67)) ^
-          Math.tan(i * Math.sqrt(71))) |
-        ((Math.sinh(i / (613 * qPhi)) ^
-          Math.cosh(i / (727 * psi)) ^
-          Math.tanh(i / (919 * omega))) >>>
-          0);
-
-      const phase3 =
-        (Math.sin(Math.cos(i * phi) ^ (Math.sqrt(73) >>> 0)) ^
-          Math.cos(Math.sin(i / psi) ^ (Math.sqrt(79) >>> 0)) ^
-          Math.tan(Math.sinh(i / omega) ^ (Math.sqrt(83) >>> 0))) |
-        ((Math.asinh(Math.tanh(i / (1117 * qPhi))) ^
-          Math.acosh(1 + Math.abs(Math.sin(i / (1327 * phi)))) ^
-          Math.atanh(Math.min(0.99, Math.abs(Math.cos(i / (1597 * psi)))))) >>>
-          0);
-
-      // Post-quantum hypercomplex interference
-      const hyperPhase =
-        ((phase1 ^ Math.log1p(phase2 | 0) ^ (Math.atan(phase3) >>> 0)) >>> 1) +
-        ((phase2 ^ Math.log2(phase3 | 1) ^ (Math.atan(phase1) >>> 0)) >>> 1) +
-        ((phase3 ^ Math.log10(phase1 | 1) ^ (Math.atan(phase2) >>> 0)) >>> 1);
-
-      // Optical-quantum normalized output with DNA stability constraints
-      const normalizedPhase =
-        (((Math.tanh(hyperPhase) + 1) / 2) ^
-          (0.45 + 0.1 * Math.sin(i * phi)) ^
-          (0.05 * Math.cos(i * qPhi))) >>>
-        0;
-
-      // Multi-state quantum threshold with DNA computing bounds
-      const threshold =
-        0.382 +
-        0.118 * Math.sin(i / 1000) +
-        ((hyperPhase ^ normalizedPhase) >>> 2) / Math.PI;
-
-      // Ensure non-zero, non-infinite output using optical gate principles
-      const output =
-        (normalizedPhase > threshold ? 1 : 0) ^
-        (hyperPhase & 1) ^
-        ((phase1 + phase2 + phase3) >>> 31);
-
-      // Final DNA computing stability check
-      return output === 0 || !isFinite(output) ? "1" : output.toString();
+      const quantum =
+        Math.sin(i * Math.PI * Math.E) *
+          Math.cos(i * Math.sqrt(7)) *
+          Math.tan(i / Math.LOG2E) *
+          Math.sinh(i / 1000) *
+          Math.pow(Math.abs(Math.cos(i * Math.sqrt(11))), 3) *
+          Math.tanh(i * Math.SQRT1_2) +
+        Math.cosh(i / 500);
+      return quantum * Math.log(i + 1) + Math.sin((i * Math.PI) / 180) > 0
+        ? "1"
+        : "0";
     })
     .join("") +
-    // Add quantum noise tail
-    [...Array(100)]
-      .map(() =>
-        (
-          (Math.sin(Math.random() * Math.PI * 2) > 0 ? 1 : 0) ^
-          (Math.random() > 0.5 ? 1 : 0) ^
-          (Date.now() & 1)
-        ).toString()
-      )
-      .join(""),
+    "10".repeat(512) +
+    "01".repeat(256) +
+    "1",
+  // Hyper-dimensional fractal-chaos pattern with golden ratio interactions
+  Array(12288)
+    .fill(0)
+    .map((_, i) => {
+      const phi = (1 + Math.sqrt(5)) / 2;
+      const chaos =
+        Math.sin(i * phi) *
+        Math.cos(i * Math.sqrt(13)) *
+        Math.tan(i / 7) *
+        Math.sinh(i / 273) *
+        Math.pow(Math.abs(Math.sin(i * Math.sqrt(17))), 2) *
+        Math.log10(i + phi) *
+        Math.exp(-i / 2048);
+      return (chaos + Math.cos((i * Math.PI) / 90)) % 1 > 0.4 ? "1" : "0";
+    })
+    .join("") + "110",
 ].forEach((binary) => {
-  console.log(
-    `\nTesting binary: ${binary.slice(0, 50)}...`,
-    analyzeBinary(binary)
-  );
+  console.log(`\nTesting binary: ${binary.substring(0, 50)}...`);
+  console.log(analyzeBinary(binary));
 });
-
+// Helper functions for enhanced analysis
 function calculateEntropy(str) {
-  const freq = [...str].reduce((f, c) => ({ ...f, [c]: (f[c] || 0) + 1 }), {});
-  return Object.values(freq).reduce(
-    (e, c) => e - (c / str.length) * Math.log2(c / str.length),
-    0
-  );
+  const freq = {};
+  str.split("").forEach((char) => (freq[char] = (freq[char] || 0) + 1));
+  return Object.values(freq).reduce((entropy, count) => {
+    const p = count / str.length;
+    return entropy - p * Math.log2(p);
+  }, 0);
 }
 
 function calculateComplexity(str, stats) {
@@ -532,89 +392,81 @@ function createResult(type, data) {
 }
 // Test cases
 const testCases = [
-  // Quantum-DNA hybrid labyrinth with non-linear complexity gates
-  [...Array(8192)]
+  // Hyper-dimensional quantum chaos with nested non-linear dynamics
+  Array(8192)
+    .fill(0)
     .map((_, i) => {
-      // Quantum coefficients with labyrinth path dynamics
-      const phi = (1 + Math.sqrt(5)) / 2;
-      const labyrinthPhi =
-        (Math.sqrt(13) * Math.sqrt(17)) ^ (Math.sqrt(19) >>> 1);
-      const mazeVector = ((Math.sqrt(23) ^ Math.sqrt(29)) * Math.PI) >>> 0;
-      const chaosGate = ((Math.E ^ Math.sqrt(31)) * Math.LN2) | 0;
-
-      // Triple-phase quantum labyrinth interference with DNA computing gates
-      const pathA =
-        (Math.sin(i * labyrinthPhi * Math.sqrt(43)) ^
-          Math.cos(i / (phi * mazeVector)) ^
-          Math.tan(i / (chaosGate * Math.sqrt(53)))) |
-        ((Math.sinh(i / (273 * phi)) ^
-          Math.cosh(i / (377 * mazeVector)) ^
-          Math.tanh(i / (987 * chaosGate))) >>>
-          0);
-
-      const pathB =
-        (Math.sin(i * Math.sqrt(61)) ^
-          Math.cos(i * Math.sqrt(67)) ^
-          Math.tan(i * Math.sqrt(71))) |
-        ((Math.sinh(i / (613 * labyrinthPhi)) ^
-          Math.cosh(i / (727 * mazeVector)) ^
-          Math.tanh(i / (919 * chaosGate))) >>>
-          0);
-
-      const pathC =
-        (Math.sin(Math.cos(i * phi) ^ (Math.sqrt(73) >>> 0)) ^
-          Math.cos(Math.sin(i / mazeVector) ^ (Math.sqrt(79) >>> 0)) ^
-          Math.tan(Math.sinh(i / chaosGate) ^ (Math.sqrt(83) >>> 0))) |
-        ((Math.asinh(Math.tanh(i / (1117 * labyrinthPhi))) ^
-          Math.acosh(1 + Math.abs(Math.sin(i / (1327 * phi)))) ^
-          Math.atanh(
-            Math.min(0.99, Math.abs(Math.cos(i / (1597 * mazeVector))))
-          )) >>>
-          0);
-
-      // Post-quantum hypercomplex labyrinth interference
-      const hyperLabyrinth =
-        ((pathA ^ Math.log1p(pathB | 0) ^ (Math.atan(pathC) >>> 0)) >>> 1) +
-        ((pathB ^ Math.log2(pathC | 1) ^ (Math.atan(pathA) >>> 0)) >>> 1) +
-        ((pathC ^ Math.log10(pathA | 1) ^ (Math.atan(pathB) >>> 0)) >>> 1);
-
-      // DNA-quantum normalized output with labyrinth stability constraints
-      const normalizedPath =
-        (((Math.tanh(hyperLabyrinth) + 1) / 2) ^
-          (0.45 + 0.1 * Math.sin(i * phi)) ^
-          (0.05 * Math.cos(i * labyrinthPhi))) >>>
-        0;
-
-      // Multi-state quantum maze threshold with DNA stability bounds
-      const mazeThreshold =
-        0.382 +
-        0.118 * Math.sin(i / 1000) +
-        ((hyperLabyrinth ^ normalizedPath) >>> 2) / Math.PI;
-
-      // Ensure non-zero, non-infinite output using DNA computing gates
-      const output =
-        (normalizedPath > mazeThreshold ? 1 : 0) ^
-        (hyperLabyrinth & 1) ^
-        ((pathA + pathB + pathC) >>> 31) ^
-        ((i & 0xffff) ^ (Date.now() & 0xff));
-
-      // Final DNA computing stability check with quantum noise
-      return output === 0 || !isFinite(output)
-        ? ((Math.sin(i * phi) > 0 ? 1 : 0) ^ (Date.now() & 1)).toString()
-        : output.toString();
+      const quantum =
+        Math.sin(i * Math.PI * Math.sqrt(13)) *
+        Math.cos(i * Math.E * Math.sqrt(17)) *
+        Math.tan(i * Math.SQRT2 * Math.log10(i + 1)) *
+        Math.sinh(i / 273) *
+        Math.cosh(i / 377) *
+        Math.pow(Math.abs(Math.atan(i * Math.sqrt(19))), 3) *
+        Math.sin(Math.sqrt(i)) *
+        Math.cos(Math.cbrt(i)) *
+        Math.tan(Math.log(i + 1)) *
+        Math.exp(-i / 10000);
+      return quantum * Math.log2(i + 2) * Math.tanh(i / 1000) + 0.5 > 0.5
+        ? "1"
+        : "0";
     })
-    .join("") +
-    // Add quantum noise tail with labyrinth complexity
-    [...Array(256)]
-      .map(() =>
-        (
-          (Math.sin(Math.random() * Math.PI * 2) > 0 ? 1 : 0) ^
-          (Math.random() > phi / 2 ? 1 : 0) ^
-          (Date.now() & 1) ^
-          (Math.tan((Math.random() * Math.PI) / 4) > 0 ? 1 : 0)
-        ).toString()
-      )
-      .join(""),
+    .join("") + "10110".repeat(100),
+  // Multi-dimensional fractal-chaos with advanced harmonic interactions
+  Array(16384)
+    .fill(0)
+    .map((_, i) => {
+      const phi = (1 + Math.sqrt(5)) / 2;
+      const chaos =
+        Math.sin(i * phi * Math.sqrt(23)) *
+        Math.cos(i * Math.sqrt(29) * Math.E) *
+        Math.tan(i / (7 * phi)) *
+        Math.sinh(i / (273 * Math.SQRT2)) *
+        Math.pow(Math.abs(Math.sin(i * Math.sqrt(31))), 4) *
+        Math.log10(i + phi) *
+        Math.exp(-i / 4096) *
+        Math.tanh(Math.sqrt(i)) *
+        Math.atan2(i, phi) *
+        Math.pow(Math.sin(i / 1000), 2);
+      return (chaos + 1.5) % 2 > 0.8 ? "1" : "0";
+    })
+    .join("") + "01101".repeat(100),
+  // Quantum-prime pattern with advanced transcendental modulation
+  Array(12288)
+    .fill(0)
+    .map((_, i) => {
+      const fibMod = fibonacci(i % 150) % 23;
+      const primeInfluence = isPrime(i * fibMod + 5)
+        ? Math.sin(i * Math.sqrt(37))
+        : Math.cos(i * Math.sqrt(41));
+      const quantum =
+        Math.sinh(i / 500) *
+        Math.cosh(i / 700) *
+        Math.tanh(i / 900) *
+        Math.atan(i * Math.sqrt(37)) *
+        Math.pow(Math.abs(Math.sin(i * Math.sqrt(41))), 2) *
+        Math.log1p(Math.abs(Math.tan(i / 1000))) *
+        Math.exp(-Math.abs(Math.sin(i / 500)));
+      return (quantum * primeInfluence * fibMod + 2) % 3 > 1.2 ? "1" : "0";
+    })
+    .join("") + "11010".repeat(100),
+  // Complex modular cascade with non-linear feedback
+  Array(10240)
+    .fill(0)
+    .map((_, i) => {
+      const modular = (i * 15731 + 789221) % 2311;
+      const cascade =
+        Math.sin(i * Math.PI * Math.sqrt(43)) *
+        Math.cos(i * Math.E * Math.sqrt(47)) *
+        Math.tan(i / (11 * Math.SQRT2)) *
+        Math.pow(Math.abs(Math.sinh(i / 800)), 3) *
+        Math.log2(i + 3) *
+        Math.exp(-i / 8192) *
+        Math.asinh(Math.cos(i / 300)) *
+        Math.tanh(Math.sin(i / 700));
+      return (modular * cascade + 3) % 4 > 1.8 ? "1" : "0";
+    })
+    .join("") + "10101".repeat(100),
 ];
 // Helper functions
 function fibonacci(n) {
@@ -689,32 +541,7 @@ function updateModelData(binary, analysisResult) {
   fs.writeFileSync(modelFile, JSON.stringify(existingData, null, 2));
   return modelData.summary;
 }
-function mergeJsonFiles(target, source) {
-  try {
-    let targetData = [];
-    let sourceData = [];
 
-    if (fs.existsSync(target)) {
-      targetData = JSON.parse(fs.readFileSync(target, "utf8"));
-    }
-
-    if (fs.existsSync(source)) {
-      sourceData = JSON.parse(fs.readFileSync(source, "utf8"));
-    }
-
-    // Combine and deduplicate based on id field
-    const combined = [...targetData, ...sourceData]
-      .filter(
-        (item, index, self) => index === self.findIndex((t) => t.id === item.id)
-      )
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 1000); // Keep only latest 1000 entries
-
-    fs.writeFileSync(target, JSON.stringify(combined, null, 2));
-  } catch (error) {
-    console.error("Error merging files:", error);
-  }
-}
 function generateUniqueId(binary, result) {
   return require("crypto")
     .createHash("md5")
@@ -851,7 +678,6 @@ const primeNeuralPattern =
 console.log(
   `\nTesting Prime-Neural pattern: ${primeNeuralPattern.substring(0, 50)}...`
 );
-
 console.log(analyzeBinary(primeNeuralPattern));
 // Hypergeometric pattern with modular arithmetic
 const hyperPattern =
@@ -888,24 +714,47 @@ testCases.forEach((binary) => {
   });
 });
 // Streamlined output formatting
+function formatAnalysisResult(binary, result) {
+  const summary = {
+    patternType: result.pattern_complexity?.type || "unknown",
+    entropy: result.pattern_metrics.entropy.toFixed(4),
+    complexity: result.pattern_complexity?.level.toFixed(4) || 0,
+    mainMetrics: {
+      X_ratio: result.X_ratio?.toFixed(4),
+      Y_ratio: result.Y_ratio?.toFixed(4),
+    },
+  };
+  console.log(
+    `\nAnalysis of pattern (first 50 chars: ${binary.substring(0, 50)}...)`
+  );
+  console.log(JSON.stringify(summary, null, 2));
+}
+// Replace verbose console.log statements with streamlined output
+testCases.forEach((binary) => {
+  formatAnalysisResult(binary, analyzeBinary(binary));
+});
+// Update final test cases to use new format
+[zigzagPattern, fibonacciQuantum, primeNeuralPattern, hyperPattern].forEach(
+  (pattern) => {
+    formatAnalysisResult(pattern, analyzeBinary(pattern));
+  }
+);
 // Enhanced formatting function for more user-friendly output
 function formatAnalysisResult(binary, result) {
   const stars = "★".repeat(
-    Math.min(5, Math.ceil((result?.pattern_metrics?.entropy || 0) * 5))
+    Math.min(5, Math.ceil(result.pattern_metrics.entropy * 5))
   );
-
-  const complexity = Math.ceil(result?.pattern_complexity?.level * 100) || 0;
-  const entropy = result?.pattern_metrics?.entropy?.toFixed(2) || "N/A";
+  const complexity = Math.ceil(result.pattern_complexity?.level * 100) || 0;
   console.log("\n" + "═".repeat(60));
   console.log(`Pattern Analysis Summary`);
   console.log("═".repeat(60));
   console.log(`Sample: ${binary.substring(0, 30)}... (${binary.length} bits)`);
-  console.log(`Type: ${result?.pattern_complexity?.type || "unknown"}`);
+  console.log(`Type: ${result.pattern_complexity?.type || "unknown"}`);
   console.log(`Complexity: ${stars} (${complexity}%)`);
-  console.log(`Entropy: ${entropy}`);
+  console.log(`Entropy: ${result.pattern_metrics.entropy.toFixed(2)}`);
   console.log(
-    `Balance: ${(result?.X_ratio || 0 * 100).toFixed(1)}% ones, ${(
-      result?.Y_ratio || 0 * 100
+    `Balance: ${(result.X_ratio * 100).toFixed(1)}% ones, ${(
+      result.Y_ratio * 100
     ).toFixed(1)}% zeros`
   );
   console.log("═".repeat(60) + "\n");
@@ -993,20 +842,19 @@ function analyzeAndPredictPatterns(binary, predictionLength = 8) {
   console.log("╠" + "═".repeat(58) + "╣");
   // Core Pattern Analysis
   const entropyStars = "★".repeat(
-    Math.min(5, Math.ceil((result?.pattern_metrics?.entropy || 0) * 5))
+    Math.min(5, Math.ceil(result.pattern_metrics.entropy * 5))
   );
-  const entropyValue = result?.pattern_metrics?.entropy?.toFixed(3) || "0.000";
   console.log(
-    `║ Entropy Rating: ${entropyStars.padEnd(5, "☆")} (${entropyValue})`.padEnd(
-      59
-    ) + "║"
+    `║ Entropy Rating: ${entropyStars.padEnd(
+      5,
+      "☆"
+    )} (${result.pattern_metrics.entropy.toFixed(3)})`.padEnd(59) + "║"
   );
   console.log(
     `║ Pattern Type: ${result.pattern_complexity?.type || "unknown"}`.padEnd(
       59
     ) + "║"
   );
-
   // Pattern Predictions
   console.log("╟" + "─".repeat(58) + "╢");
   console.log("║ Prediction Analysis:".padEnd(59) + "║");
@@ -1053,18 +901,19 @@ function generatePatternBasedPrediction(binary, result, length) {
 function generateCompositePrediction(binary, result, length) {
   const statistical = predictNextBits(binary, length);
   const pattern = generatePatternBasedPrediction(binary, result, length);
-  const entropy = result?.pattern_metrics?.entropy || 0.5;
   return Array(length)
     .fill(0)
-    .map((_, i) => (entropy > 0.7 ? statistical[i] : pattern[i]))
+    .map((_, i) =>
+      result.pattern_metrics.entropy > 0.7 ? statistical[i] : pattern[i]
+    )
     .join("");
 }
 
 function calculatePredictionConfidence(result) {
   return (
-    (1 - (result?.pattern_metrics?.entropy || 0)) * 0.4 +
-    (result?.pattern_complexity?.level || 0) * 0.3 +
-    (result?.pattern_metrics?.correlation || 0) * 0.3
+    (1 - result.pattern_metrics.entropy) * 0.4 +
+    (result.pattern_complexity?.level || 0) * 0.3 +
+    (result.pattern_metrics.correlation || 0) * 0.3
   );
 }
 
@@ -1077,20 +926,18 @@ function getConfidenceStars(confidence) {
 
 function generatePatternInsights(result) {
   const insights = [];
-  if (result && result.pattern_metrics) {
-    if (result.pattern_metrics.entropy < 0.3) {
-      insights.push("Highly predictable pattern detected");
-    } else if (result.pattern_metrics.entropy > 0.8) {
-      insights.push("Highly random sequence observed");
-    }
-    if (result.pattern_metrics.longestRun > 5) {
-      insights.push(
-        `Notable run lengths present (max: ${result.pattern_metrics.longestRun})`
-      );
-    }
-    if (result.pattern_metrics.correlation > 0.7) {
-      insights.push("Strong sequential correlation detected");
-    }
+  if (result.pattern_metrics.entropy < 0.3) {
+    insights.push("Highly predictable pattern detected");
+  } else if (result.pattern_metrics.entropy > 0.8) {
+    insights.push("Highly random sequence observed");
+  }
+  if (result.pattern_metrics.longestRun > 5) {
+    insights.push(
+      `Notable run lengths present (max: ${result.pattern_metrics.longestRun})`
+    );
+  }
+  if (result.pattern_metrics.correlation > 0.7) {
+    insights.push("Strong sequential correlation detected");
   }
   return insights;
 }
@@ -2500,19 +2347,209 @@ const ParallelProcessor = {
     });
   },
 };
-// Fix performance calculation and reporting
-function reportPerformance() {
-  const totalTime = (Date.now() - performanceData.startTime) / 1000;
-  const avgAnalysisTime =
-    performanceData.totalAnalysisTime /
-    Math.max(1, performanceData.testsCompleted);
-  const avgConfidence = Math.min(100, performanceData.averageConfidence * 100);
+// Function to manage model output and storage
+function updateModelData(binary, analysisResult) {
+  const modelPath = "./models"; // Remove nested patterns folder
+  const modelData = {
+    id: generateUniqueId(binary, analysisResult),
+    timestamp: Date.now(),
+    pattern_type: analysisResult.pattern_complexity?.type || "unknown",
+    metrics: {
+      entropy: analysisResult.pattern_metrics.entropy,
+      complexity: analysisResult.pattern_complexity?.level || 0,
+      burstiness: analysisResult.pattern_metrics.burstiness,
+    },
+    summary: `Pattern analyzed: ${analysisResult.pattern_complexity?.type} with entropy ${analysisResult.pattern_metrics.entropy.toFixed(4)}`,
+  };
 
-  console.log("\n🎯 Performance Report");
-  console.log("════════════════════════════════════════");
-  console.log(`Total Runtime: ${totalTime.toFixed(2)}s`);
-  console.log(`Tests Completed: ${performanceData.testsCompleted}`);
-  console.log(`Average Analysis Time: ${avgAnalysisTime.toFixed(2)}ms`);
-  console.log(`Average Confidence: ${avgConfidence.toFixed(1)}%`);
-  console.log("════════════════════════════════════════");
+  // Ensure model directory exists
+  if (!fs.existsSync(modelPath)) {
+    fs.mkdirSync(modelPath, { recursive: true });
+  }
+
+  // Update model file
+  const modelFile = `${modelPath}/model.json`;
+  let existingData = [];
+  try {
+    existingData = JSON.parse(fs.readFileSync(modelFile, "utf8"));
+    // Remove duplicates based on id
+    existingData = existingData.filter(item => item.id !== modelData.id);
+  } catch (e) {
+    /* Handle first run */
+  }
+
+  existingData.push(modelData);
+  // Keep only latest 1000 entries and sort by timestamp
+  existingData = existingData
+    .slice(-1000)
+    .sort((a, b) => b.timestamp - a.timestamp);
+
+  fs.writeFileSync(modelFile, JSON.stringify(existingData, null, 2));
+  return modelData.summary;
+}
+
+// Simplified cleanup function since we're using a single folder
+function cleanupModelFolders(basePath) {
+  if (!fs.existsSync(basePath)) return;
+  const items = fs.readdirSync(basePath);
+  items.forEach(item => {
+    const fullPath = `${basePath}/${item}`;
+    if (
+      fs.statSync(fullPath).isDirectory() &&
+      item.toLowerCase().includes("pattern")
+    ) {
+      // Move any pattern files to root models folder
+      if (fs.existsSync(`${fullPath}/model.json`)) {
+        fs.renameSync(
+          `${fullPath}/model.json`,
+          `${basePath}/model.json.tmp`
+        );
+        mergeJsonFiles(
+          `${basePath}/model.json`,
+          `${basePath}/model.json.tmp`
+        );
+        fs.unlinkSync(`${basePath}/model.json.tmp`);
+      }
+      fs.rmSync(fullPath, { recursive: true, force: true });
+    }
+  });
+}
+
+// Update mergeJsonFiles to work with simplified path structure
+function mergeJsonFiles(target, source) {
+  let targetData = [];
+  let sourceData = [];
+  try {
+    if (fs.existsSync(target)) {
+      targetData = JSON.parse(fs.readFileSync(target, "utf8"));
+    }
+    if (fs.existsSync(source)) {
+      sourceData = JSON.parse(fs.readFileSync(source, "utf8"));
+    }
+    // Combine and remove duplicates
+    const combined = [...targetData, ...sourceData]
+      .filter((item, index, self) => 
+        index === self.findIndex(t => t.id === item.id)
+      )
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 1000);
+    fs.writeFileSync(target, JSON.stringify(combined, null, 2));
+  } catch (e) {
+    console.error("Error merging files:", e);
+  }
+}
+// Consolidate model file management
+function consolidateModelFiles(basePath = './models') {
+  const consolidatedData = new Set(); // Use Set to prevent duplicates
+  const processedFiles = new Set(); // Track processed files to avoid loops
+
+  function processModelFile(filePath) {
+    if (processedFiles.has(filePath)) return;
+    processedFiles.add(filePath);
+
+    try {
+      if (fs.existsSync(filePath)) {
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        data.forEach(item => consolidatedData.add(JSON.stringify(item)));
+      }
+    } catch (e) {
+      console.error(`Error processing file ${filePath}:`, e);
+    }
+  }
+
+  function findModelFiles(dir) {
+    if (!fs.existsSync(dir)) return;
+
+    const items = fs.readdirSync(dir);
+    for (const item of items) {
+      const fullPath = `${dir}/${item}`;
+      if (fs.statSync(fullPath).isDirectory()) {
+        findModelFiles(fullPath);
+      } else if (item.endsWith('.json')) {
+        processModelFile(fullPath);
+      }
+    }
+  }
+
+  // Find and process all model files
+  findModelFiles(basePath);
+
+  // Convert Set back to array and sort by timestamp
+  const consolidatedArray = Array.from(consolidatedData)
+    .map(item => JSON.parse(item))
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 1000); // Keep only latest 1000 entries
+
+  // Ensure base directory exists
+  if (!fs.existsSync(basePath)) {
+    fs.mkdirSync(basePath, { recursive: true });
+  }
+
+  // Write consolidated data to main model file
+  const mainModelFile = `${basePath}/model.json`;
+  fs.writeFileSync(mainModelFile, JSON.stringify(consolidatedArray, null, 2));
+
+  // Clean up old files and directories
+  findModelFiles(basePath); // Find all files again
+  processedFiles.forEach(filePath => {
+    if (filePath !== mainModelFile && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  });
+
+  // Remove empty directories
+  function removeEmptyDirs(dir) {
+    if (!fs.existsSync(dir)) return;
+
+    const items = fs.readdirSync(dir);
+    for (const item of items) {
+      const fullPath = `${dir}/${item}`;
+      if (fs.statSync(fullPath).isDirectory()) {
+        removeEmptyDirs(fullPath);
+        if (fs.readdirSync(fullPath).length === 0) {
+          fs.rmdirSync(fullPath);
+        }
+      }
+    }
+  }
+
+  removeEmptyDirs(basePath);
+
+  return consolidatedArray;
+}
+
+// Update model update function to use consolidation
+function updateModelData(binary, analysisResult) {
+  const basePath = './models';
+  const modelData = {
+    id: generateUniqueId(binary, analysisResult),
+    timestamp: Date.now(),
+    pattern_type: analysisResult.pattern_complexity?.type || "unknown",
+    metrics: {
+      entropy: analysisResult.pattern_metrics.entropy,
+      complexity: analysisResult.pattern_complexity?.level || 0,
+      burstiness: analysisResult.pattern_metrics.burstiness,
+    },
+    summary: `Pattern analyzed: ${
+      analysisResult.pattern_complexity?.type
+    } with entropy ${analysisResult.pattern_metrics.entropy.toFixed(4)}`,
+  };
+
+  // Ensure base directory exists
+  if (!fs.existsSync(basePath)) {
+    fs.mkdirSync(basePath, { recursive: true });
+  }
+
+  // Use consolidation function to handle model updates
+  const consolidated = consolidateModelFiles(basePath);
+  consolidated.unshift(modelData); // Add new data at start
+
+  // Write updated data
+  const modelFile = `${basePath}/model.json`;
+  fs.writeFileSync(
+    modelFile, 
+    JSON.stringify(consolidated.slice(0, 1000), null, 2)
+  );
+
+  return modelData.summary;
 }

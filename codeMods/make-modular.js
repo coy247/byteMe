@@ -1,85 +1,50 @@
-const createUtilityFunctions = (j) => ({
-  extractNumber: j.functionDeclaration(
-    j.identifier("extractNumber"),
-    [j.identifier("str"), j.identifier("radix")],
-    j.blockStatement([
-      j.ifStatement(
-        j.binaryExpression(
-          "===",
-          j.unaryExpression("typeof", j.identifier("str")),
-          j.literal("string")
-        ),
-        j.blockStatement([
-          j.returnStatement(
-            j.callExpression(j.identifier("parseInt"), [
-              j.identifier("str"),
-              j.identifier("radix"),
-            ])
-          ),
-        ]),
-        j.blockStatement([
-          j.returnStatement(j.identifier("NaN"))
-        ])
-      )
-    ])
-  ),
+const j = require('jscodeshift');
 
-  extractFloat: j.functionDeclaration(
-    j.identifier("extractFloat"),
-    [j.identifier("str")],
-    j.blockStatement([
-      j.tryStatement(
-        j.blockStatement([
-          j.returnStatement(
-            j.callExpression(j.identifier("parseFloat"), [j.identifier("str")])
-          ),
-        ]),
-        j.catchClause(
-          j.identifier("error"),
-          null,
-          j.blockStatement([
-            j.returnStatement(j.identifier("NaN"))
-          ])
-        )
-      )
-    ])
-  )
-});
+function organizeIntoModules(fileInfo, api) {
+  const root = j(fileInfo.source);
+  const modules = new Map();
 
-export default function transformer(fileInfo, api) {
-  const j = api.jscodeshift;
-  const source = j(fileInfo.source);
+  // Find all function declarations and class declarations
+  root
+    .find(j.FunctionDeclaration)
+    .concat(root.find(j.ClassDeclaration))
+    .forEach(path => {
+      const name = path.node.id.name;
+      const dependencies = findDependencies(path);
 
-  // Get utility functions
-  const utilityFunctions = createUtilityFunctions(j);
-
-  // Replace parseInt calls
-  source
-    .find(j.CallExpression, { callee: { name: 'parseInt' } })
-    .replaceWith(path => {
-      const args = path.value.arguments;
-      return j.callExpression(
-        j.identifier("extractNumber"),
-        args.length > 1 ? args : [args[0], j.literal(10)]
-      );
+      modules.set(name, {
+        type: path.node.type,
+        code: j(path).toSource(),
+        dependencies
+      });
     });
 
-  // Replace parseFloat calls
-  source
-    .find(j.CallExpression, { callee: { name: 'parseFloat' } })
-    .replaceWith(path => {
-      return j.callExpression(
-        j.identifier("extractFloat"),
-        [path.value.arguments[0]]
-      );
-    });
+  // Helper function to find dependencies
+  function findDependencies(path) {
+    const dependencies = new Set();
 
-  // Add utility functions to the beginning of the file
-  const program = source.find(j.Program);
-  if (program.length > 0) {
-    const utilityFunctionsList = Object.values(utilityFunctions);
-    program.get(0).node.body.unshift(...utilityFunctionsList);
+    j(path)
+      .find(j.Identifier)
+      .forEach(id => {
+        if (modules.has(id.node.name) && id.node.name !== path.node.id.name) {
+          dependencies.add(id.node.name);
+        }
+      });
+
+    return Array.from(dependencies);
   }
 
-  return source.toSource();
-};
+  // Generate modular output
+  const output = Array.from(modules.entries()).map(([name, info]) => {
+    return `// Module: ${name}
+// Dependencies: ${info.dependencies.join(', ')}
+${info.code}
+export { ${name} };
+`;
+  }).join('\n\n');
+
+  return output;
+}
+
+module.exports = organizeIntoModules;
+

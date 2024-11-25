@@ -4,6 +4,8 @@
   "description": "A Playful Binary String Pattern Analyzer",
   "main": "index.js",
   "scripts": {
+    "start": "node '/Volumes/TOSHIBA EXT/Sites/2024/scienceResearch/byteMe/src/modularized/index.js'",
+    "debug": "node --inspect-brk '/Volumes/TOSHIBA EXT/Sites/2024/scienceResearch/byteMe/src/modularized/index.js'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
