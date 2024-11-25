@@ -3092,3 +3092,615 @@ if (require.main === module) {
     console.log("\n🔍 Enter another pattern (or 'exit' to quit):");
   });
 }
+// Add stack size safety checks to prevent recursion issues
+function safeAnalyze(binary, context = {}, depth = 0) {
+  // Prevent stack overflow with depth checking
+  if (depth > 100) {
+    console.warn("Warning: Maximum analysis depth reached");
+    return {
+      error: "Analysis depth exceeded",
+      partial: true,
+      metrics: {
+        entropy: calculateEntropy(binary.slice(0, 1000)),
+        complexity: { level: 0, type: "unknown" },
+      },
+    };
+  }
+
+  // Add try-catch wrapper around analysis
+  try {
+    return analyzeBinary(binary, context, depth + 1);
+  } catch (error) {
+    if (error instanceof RangeError) {
+      console.error("Stack size exceeded, falling back to basic analysis");
+      return {
+        error: "Stack size exceeded",
+        fallback: true,
+        basic: {
+          length: binary.length,
+          type: "basic",
+          patterns: binary.length > 100 ? binary.slice(0, 100) + "..." : binary,
+        },
+      };
+    }
+    throw error;
+  }
+}
+
+// Enhanced analyzeBinary with safety checks and optimization
+const safeAnalyzeBinary = (function () {
+  const originalAnalyzeBinary = analyzeBinary;
+  const maxDepth = 100;
+  const maxSampleSize = 1000;
+
+  return function (binary, context = {}, depth = 0) {
+    if (depth > maxDepth) {
+      return {
+        error: "Analysis depth exceeded",
+        partial: true,
+        metrics: {
+          entropy: calculateEntropy(binary.slice(0, maxSampleSize)),
+          complexity: { level: 0, type: "unknown" },
+        },
+      };
+    }
+
+    try {
+      return originalAnalyzeBinary(binary, context);
+    } catch (error) {
+      console.error("Analysis error:", error.message);
+      return {
+        error: error.message,
+        fallback: true,
+        basic: {
+          length: binary.length,
+          type: "basic",
+          sample:
+            binary.length > maxSampleSize
+              ? binary.slice(0, maxSampleSize) + "..."
+              : binary,
+        },
+      };
+    }
+  };
+})();
+
+// Use the safe version for all analysis
+analyzeBinary = safeAnalyzeBinary;
+// ASCII art for app name
+function displayAppBanner() {
+  console.log(`
+ ███████╗ ██╗   ██╗ ████████╗ ███████╗ ███╗   ███╗ ███████╗ ██╗
+ ██╔══██║ ╚██╗ ██╔╝    ██╔══╝ ██╔════╝ ████╗ ████║ ██╔════╝ ██║
+ ███████║  ╚████╔╝     ██║    █████╗   ██╔████╔██║ █████╗   ██║
+ ██╔══██║   ╚██╔╝      ██║    ██╔══╝   ██║╚██╔╝██║ ██╔══╝   ╚═╝
+ ███████║    ██║       ██║    ███████╗ ██║ ╚═╝ ██║ ███████╗ ██╗
+ ╚══════╝    ╚═╝       ╚═╝    ╚══════╝ ╚═╝     ╚═╝ ╚══════╝ ╚═╝
+
+ ╔══════════════════════════════════════════════════════════╗
+ ║         Wacky Data For Wacky People v0.1.0              ║
+ ╚══════════════════════════════════════════════════════════╝
+`);
+}
+
+// Display banner at startup
+displayAppBanner();
+
+// Fun splash screen animations
+function randomColor() {
+  const colors = ["red", "green", "blue", "magenta", "cyan", "yellow"];
+  return `\x1b[${31 + Math.floor(Math.random() * 6)}m`;
+}
+
+function clearScreen() {
+  process.stdout.write("\x1Bc");
+}
+
+function fakeBootSequence() {
+  const fakeApps = [
+    "Loading Windows 95...",
+    "Starting Netscape Navigator...",
+    "Initializing WordPerfect...",
+    "Booting DOS 6.22...",
+    "Starting Internet Explorer 6...",
+    "Loading RealPlayer...",
+    "Starting WinAmp...",
+    "Initializing MySpace...",
+  ];
+
+  return new Promise((resolve) => {
+    let i = 0;
+    const interval = setInterval(() => {
+      clearScreen();
+      console.log(`\n${randomColor()}${fakeApps[i]}\x1b[0m`);
+      i++;
+      if (i >= fakeApps.length) {
+        clearInterval(interval);
+        setTimeout(() => {
+          clearScreen();
+          console.log("\n\nJust kidding! 😜\n");
+          setTimeout(() => {
+            clearScreen();
+            displayAppBanner();
+            resolve();
+          }, 1500);
+        }, 1000);
+      }
+    }, 800);
+  });
+}
+
+// Create startup sequence manager
+const StartupManager = {
+  isRunning: false,
+
+  async runStartupSequence() {
+    if (this.isRunning) return;
+    this.isRunning = true;
+
+    try {
+      await fakeBootSequence();
+      const intro = generateUniqueIntro();
+      await intro();
+    } finally {
+      this.isRunning = false;
+    }
+  },
+};
+
+// Run the startup sequence only if this is the main module
+if (require.main === module) {
+  StartupManager.runStartupSequence().catch(console.error);
+}
+
+// Ensure intro messages remain unique across app loads
+function generateUniqueIntro() {
+  // Use timestamp as seed for variety
+  const seed = Date.now() % 10000;
+
+  // Base components for mixing
+  const intros = [
+    ["Booting", "Loading", "Initializing", "Starting", "Activating"],
+    ["quantum", "turbo", "hyper", "mega", "ultra"],
+    ["flux", "drive", "core", "matrix", "engine"],
+  ];
+
+  // Dynamic generation based on seed
+  const getComponent = (arr, seed) => arr[seed % arr.length];
+
+  // Generate fake processes
+  const processes = [
+    `${getComponent(intros[0], seed)} ${getComponent(
+      intros[1],
+      seed + 1
+    )} ${getComponent(intros[2], seed + 2)}...`,
+    `Optimizing memory flux capacitors...`,
+    `Calculating optimal joke timing...`,
+    `Tuning humor algorithms...`,
+  ];
+
+  // Add some randomness to timing
+  const delay = (ms) =>
+    new Promise((resolve) => setTimeout(resolve, ms + (seed % 200)));
+
+  return async function playIntro() {
+    clearScreen();
+    for (const process of processes) {
+      await delay(600);
+      console.log(`${randomColor()}${process}\x1b[0m`);
+    }
+    await delay(800);
+    clearScreen();
+    displayAppBanner();
+  };
+}
+
+// Initialize and run unique intro
+(async () => {
+  const intro = generateUniqueIntro();
+  await intro();
+})();
+
+// Move startup sequence to the beginning of the file execution
+(async () => {
+  await StartupManager.runStartupSequence();
+
+  // Continue with the rest of the application initialization
+  if (require.main === module) {
+    try {
+      await runEnhancedTests();
+    } catch (error) {
+      console.error("Error running tests:", error);
+      process.exit(1);
+    }
+  }
+})();
+// Ensure splash screen runs first
+if (require.main === module) {
+  // Cancel any existing test runs or analysis
+  for (const t of testCases) {
+    clearTimeout(t);
+    clearInterval(t);
+  }
+
+  // Clear console and show splash immediately
+  clearScreen();
+
+  // Only proceed with analysis after splash is complete
+  (async () => {
+    await StartupManager.runStartupSequence();
+    console.log("\nStarting analysis...\n");
+
+    // Now run the tests and analysis
+    try {
+      await runEnhancedTests();
+    } catch (error) {
+      console.error("Error running tests:", error);
+      process.exit(1);
+    }
+  })();
+}
+// Ensure all analysis functions are wrapped in a main function
+async function initializeAnalysis() {
+  // Use the existing test cases from the earlier part of the file
+  const testCases = [
+    Array(16384)
+      .fill(0)
+      .map((_, i) => {
+        const quantum =
+          Math.sin(i * Math.PI * Math.E) *
+            Math.cos(i * Math.sqrt(7)) *
+            Math.tan(i / Math.LOG2E) *
+            Math.sinh(i / 1000) *
+            Math.pow(Math.abs(Math.cos(i * Math.sqrt(11))), 3) *
+            Math.tanh(i * Math.SQRT1_2) +
+          Math.cosh(i / 500);
+        return quantum * Math.log(i + 1) + Math.sin((i * Math.PI) / 180) > 0
+          ? "1"
+          : "0";
+      })
+      .join("") +
+      "10".repeat(512) +
+      "01".repeat(256) +
+      "1",
+    zigzagPattern,
+    fibonacciQuantum,
+    primeNeuralPattern,
+    hyperPattern,
+  ];
+
+  // Use the existing dialogue pool
+  const dialoguePool = enhancedDialoguePool;
+
+  // Run analysis on test cases
+  for (const binary of testCases) {
+    await analyzeBinary(binary);
+  }
+}
+
+// Only run splash screen and initialize after it completes
+if (require.main === module) {
+  (async () => {
+    try {
+      // Clear console and show splash first
+      clearScreen();
+
+      // Run startup sequence
+      await StartupManager.runStartupSequence();
+
+      console.log("\nInitializing analysis systems...\n");
+
+      // Only start analysis after splash completes
+      await initializeAnalysis();
+    } catch (error) {
+      console.error("Error during initialization:", error);
+      process.exit(1);
+    }
+  })();
+}
+
+// Export the initialized system
+module.exports = {
+  analyzeBinary,
+  predictNextBits,
+  improveConfidenceLevel,
+  // ... other exports
+};
+// Move all initialization code into main async function
+async function main() {
+  // Show splash screen first
+  clearScreen();
+  await StartupManager.runStartupSequence();
+
+  console.log("\nStarting ByteMe Analysis System...");
+
+  // Then initialize everything else
+  await initializeAnalysis();
+}
+
+// Only run main() if this is the main module
+if (require.main === module) {
+  // Ensure nothing else runs before splash
+  setImmediate(main);
+}
+// Single entry point for the application
+async function startApplication() {
+  try {
+    // Clear any running processes
+    process.removeAllListeners();
+
+    // Clear all intervals and timeouts
+    const intervals = setInterval(() => {}, 0);
+    for (let i = 0; i <= intervals; i++) {
+      clearInterval(i);
+      clearTimeout(i);
+    }
+
+    // Cancel any existing test case timers
+    if (Array.isArray(testCases)) {
+      testCases.forEach((testCase) => {
+        if (testCase?.timeout) clearTimeout(testCase.timeout);
+        if (testCase?.interval) clearInterval(testCase.interval);
+      });
+    }
+
+    // Clear console first
+    clearScreen();
+
+    // Show splash screen
+    await StartupManager.runStartupSequence();
+
+    // Initialize analysis system
+    await main();
+  } catch (error) {
+    console.error("Error starting application:", error);
+    process.exit(1);
+  }
+}
+
+// Clear all previous module exports
+module.exports = {};
+
+// Single entry point for the application
+async function startApplication() {
+  try {
+    // Clear console and show splash first
+    clearScreen();
+
+    // Run startup sequence with loading animation
+    console.log("Starting ByteMe Analysis System...");
+    await StartupManager.runStartupSequence();
+
+    // Initialize the analysis system
+    await initializeAnalysis();
+
+    // Run enhanced tests
+    await runEnhancedTests();
+  } catch (error) {
+    console.error("Error during startup:", error);
+    process.exit(1);
+  }
+}
+
+// Only start if this is the main module
+if (require.main === module) {
+  // Prevent any other code from running before splash
+  process.nextTick(() => {
+    // Ensure clean startup
+    clearScreen();
+    // Start the application
+    startApplication().catch(console.error);
+  });
+}
+
+// Export after initialization
+module.exports = {
+  analyzeBinary,
+  predictNextBits,
+  improveConfidenceLevel,
+  startApplication,
+  // ... other exports
+};
+// Efficient model data deduplication and management with hash-based verification
+function cleanModelData() {
+  const modelPath = "./models/model.json";
+
+  if (!fs.existsSync(modelPath)) return;
+
+  try {
+    // Read existing data
+    const data = JSON.parse(fs.readFileSync(modelPath, "utf8"));
+
+    // Group entries by entropy rounded to 4 decimal places and pattern type
+    const groups = new Map();
+
+    data.forEach((entry) => {
+      if (!entry.metrics?.entropy || !entry.pattern_type) return;
+
+      const roundedEntropy = Number(entry.metrics.entropy.toFixed(4));
+      const key = `${entry.pattern_type}-${roundedEntropy}`;
+
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key).push(entry);
+    });
+
+    // Combine similar entries within each group
+    const combinedEntries = [];
+    groups.forEach((entries) => {
+      if (entries.length === 0) return;
+
+      // Sort entries by timestamp (newest first)
+      entries.sort((a, b) => b.timestamp - a.timestamp);
+
+      // Use the newest entry as base
+      const baseEntry = entries[0];
+
+      if (entries.length === 1) {
+        combinedEntries.push(baseEntry);
+        return;
+      }
+
+      // Combine metrics by averaging
+      const combinedMetrics = {
+        entropy: baseEntry.metrics.entropy,
+        complexity: 0,
+        burstiness: 0,
+      };
+
+      let totalWeight = 0;
+      entries.forEach((entry, index) => {
+        // More recent entries get higher weight
+        const weight = Math.pow(0.8, index);
+        totalWeight += weight;
+        combinedMetrics.complexity += entry.metrics.complexity * weight;
+        combinedMetrics.burstiness += entry.metrics.burstiness * weight;
+      });
+
+      combinedMetrics.complexity /= totalWeight;
+      combinedMetrics.burstiness /= totalWeight;
+
+      // Create combined entry
+      const combinedEntry = {
+        ...baseEntry,
+        metrics: combinedMetrics,
+        summary: `Pattern analyzed: ${
+          baseEntry.pattern_type
+        } with entropy ${combinedMetrics.entropy.toFixed(4)}`,
+        combined_count: entries.length,
+      };
+
+      combinedEntries.push(combinedEntry);
+    });
+
+    // Sort by entropy (descending) and timestamp
+    const cleanedData = combinedEntries.sort((a, b) => {
+      const entropyDiff = b.metrics.entropy - a.metrics.entropy;
+      return entropyDiff !== 0 ? entropyDiff : b.timestamp - a.timestamp;
+    });
+
+    // Write back cleaned data atomically
+    const tempPath = `${modelPath}.tmp`;
+    fs.writeFileSync(tempPath, JSON.stringify(cleanedData, null, 2));
+    fs.renameSync(tempPath, modelPath);
+
+    console.log(
+      `Cleaned model data: ${cleanedData.length} combined entries from ${data.length} original entries`
+    );
+    return cleanedData.length;
+  } catch (error) {
+    console.error("Error cleaning model data:", error);
+    return 0;
+  }
+}
+
+// Run cleanup periodically with exponential backoff
+let cleanupInterval = 60000; // Start with 1 minute
+const maxInterval = 300000; // Max 5 minutes
+
+function scheduleCleanup() {
+  setTimeout(() => {
+    const startTime = Date.now();
+    const entriesCount = cleanModelData();
+    const duration = Date.now() - startTime;
+
+    // Adjust interval based on processing time and entries count
+    if (duration > 1000 || entriesCount > 1000) {
+      cleanupInterval = Math.min(cleanupInterval * 1.5, maxInterval);
+    } else {
+      cleanupInterval = Math.max(60000, cleanupInterval * 0.8);
+    }
+
+    scheduleCleanup();
+  }, cleanupInterval);
+}
+
+// Start cleanup scheduling
+scheduleCleanup();
+
+// Run cleanup periodically
+setInterval(cleanModelData, 60000); // Every minute
+
+// Run cleanup on startup
+cleanModelData();
+// Main application startup sequence
+if (require.main === module) {
+  (async () => {
+    // Clean up JSON file before anything else runs
+    const modelPath = "./models/model.json";
+
+    if (fs.existsSync(modelPath)) {
+      try {
+        const data = JSON.parse(fs.readFileSync(modelPath, "utf8"));
+
+        // Group entries by entropy (rounded to 4 decimals) and pattern type
+        const groups = data.reduce((acc, entry) => {
+          const key = `${entry.pattern_type}-${Number(
+            entry.metrics.entropy.toFixed(4)
+          )}`;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(entry);
+          return acc;
+        }, {});
+
+        // Combine similar entries
+        const combinedEntries = Object.values(groups).map((entries) => {
+          // Sort by timestamp descending
+          entries.sort((a, b) => b.timestamp - a.timestamp);
+
+          // Use newest entry as base
+          const base = entries[0];
+
+          if (entries.length === 1) return base;
+
+          // Calculate weighted averages for metrics
+          const totalWeight = entries.reduce(
+            (sum, _, i) => sum + Math.pow(0.8, i),
+            0
+          );
+          const metrics = entries.reduce(
+            (acc, entry, i) => {
+              const weight = Math.pow(0.8, i) / totalWeight;
+              return {
+                entropy: base.metrics.entropy, // Keep base entropy
+                complexity: acc.complexity + entry.metrics.complexity * weight,
+                burstiness: acc.burstiness + entry.metrics.burstiness * weight,
+              };
+            },
+            { complexity: 0, burstiness: 0, entropy: base.metrics.entropy }
+          );
+
+          return {
+            ...base,
+            metrics,
+            combined_count: entries.length,
+          };
+        });
+
+        // Sort by pattern type and entropy
+        const sortedEntries = combinedEntries.sort((a, b) => {
+          if (a.pattern_type !== b.pattern_type) {
+            return a.pattern_type.localeCompare(b.pattern_type);
+          }
+          return b.metrics.entropy - a.metrics.entropy;
+        });
+
+        // Write back cleaned data
+        fs.writeFileSync(modelPath, JSON.stringify(sortedEntries, null, 2));
+        console.log(
+          `Cleaned ${data.length} entries down to ${sortedEntries.length} unique patterns`
+        );
+      } catch (error) {
+        console.error("Error cleaning model data:", error);
+      }
+    }
+
+    // Continue with normal startup
+    clearScreen();
+    await StartupManager.runStartupSequence();
+    await initializeAnalysis();
+  })();
+}
