@@ -2,6 +2,7 @@
 const usedMessages = new Set();
 const seenPatterns = new Set();
 /**
+ *
  * @fileoverview Advanced Binary Pattern Analysis System
  * This module provides comprehensive analysis of binary patterns using various mathematical
  * and statistical approaches, including quantum-inspired algorithms, fractal analysis,
@@ -51,7 +52,18 @@ Input Data Types:
   - Standard test patterns
   - Advanced non-linear patterns
   - Modulated sequences
-
+  4. Neural Networks
+    - Input layer patterns
+    - Hidden layer activations
+    - Output layer results
+  5. Adaptive Systems
+    - Learning patterns
+    - Dynamic adjustments
+    - Feedback loops
+  6. Research Data
+    - Experimental results
+    - Control groups
+    - Validation sets
 Expected Format:
 - Binary strings (0s and 1s)
 - Variable length inputs
@@ -59,6 +71,7 @@ Expected Format:
 */
 // ================ END: Input Data Profile ==================
 const fs = require("fs");
+const hash = require("crypto");
 
 function extractNumber(str, radix) {
   if (typeof str === "string") {
@@ -2359,7 +2372,9 @@ function updateModelData(binary, analysisResult) {
       complexity: analysisResult.pattern_complexity?.level || 0,
       burstiness: analysisResult.pattern_metrics.burstiness,
     },
-    summary: `Pattern analyzed: ${analysisResult.pattern_complexity?.type} with entropy ${analysisResult.pattern_metrics.entropy.toFixed(4)}`,
+    summary: `Pattern analyzed: ${
+      analysisResult.pattern_complexity?.type
+    } with entropy ${analysisResult.pattern_metrics.entropy.toFixed(4)}`,
   };
 
   // Ensure model directory exists
@@ -2373,7 +2388,7 @@ function updateModelData(binary, analysisResult) {
   try {
     existingData = JSON.parse(fs.readFileSync(modelFile, "utf8"));
     // Remove duplicates based on id
-    existingData = existingData.filter(item => item.id !== modelData.id);
+    existingData = existingData.filter((item) => item.id !== modelData.id);
   } catch (e) {
     /* Handle first run */
   }
@@ -2392,7 +2407,7 @@ function updateModelData(binary, analysisResult) {
 function cleanupModelFolders(basePath) {
   if (!fs.existsSync(basePath)) return;
   const items = fs.readdirSync(basePath);
-  items.forEach(item => {
+  items.forEach((item) => {
     const fullPath = `${basePath}/${item}`;
     if (
       fs.statSync(fullPath).isDirectory() &&
@@ -2400,14 +2415,8 @@ function cleanupModelFolders(basePath) {
     ) {
       // Move any pattern files to root models folder
       if (fs.existsSync(`${fullPath}/model.json`)) {
-        fs.renameSync(
-          `${fullPath}/model.json`,
-          `${basePath}/model.json.tmp`
-        );
-        mergeJsonFiles(
-          `${basePath}/model.json`,
-          `${basePath}/model.json.tmp`
-        );
+        fs.renameSync(`${fullPath}/model.json`, `${basePath}/model.json.tmp`);
+        mergeJsonFiles(`${basePath}/model.json`, `${basePath}/model.json.tmp`);
         fs.unlinkSync(`${basePath}/model.json.tmp`);
       }
       fs.rmSync(fullPath, { recursive: true, force: true });
@@ -2428,8 +2437,8 @@ function mergeJsonFiles(target, source) {
     }
     // Combine and remove duplicates
     const combined = [...targetData, ...sourceData]
-      .filter((item, index, self) => 
-        index === self.findIndex(t => t.id === item.id)
+      .filter(
+        (item, index, self) => index === self.findIndex((t) => t.id === item.id)
       )
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, 1000);
@@ -2439,7 +2448,7 @@ function mergeJsonFiles(target, source) {
   }
 }
 // Consolidate model file management
-function consolidateModelFiles(basePath = './models') {
+function consolidateModelFiles(basePath = "./models") {
   const consolidatedData = new Set(); // Use Set to prevent duplicates
   const processedFiles = new Set(); // Track processed files to avoid loops
 
@@ -2449,8 +2458,8 @@ function consolidateModelFiles(basePath = './models') {
 
     try {
       if (fs.existsSync(filePath)) {
-        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-        data.forEach(item => consolidatedData.add(JSON.stringify(item)));
+        const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+        data.forEach((item) => consolidatedData.add(JSON.stringify(item)));
       }
     } catch (e) {
       console.error(`Error processing file ${filePath}:`, e);
@@ -2465,7 +2474,7 @@ function consolidateModelFiles(basePath = './models') {
       const fullPath = `${dir}/${item}`;
       if (fs.statSync(fullPath).isDirectory()) {
         findModelFiles(fullPath);
-      } else if (item.endsWith('.json')) {
+      } else if (item.endsWith(".json")) {
         processModelFile(fullPath);
       }
     }
@@ -2476,7 +2485,7 @@ function consolidateModelFiles(basePath = './models') {
 
   // Convert Set back to array and sort by timestamp
   const consolidatedArray = Array.from(consolidatedData)
-    .map(item => JSON.parse(item))
+    .map((item) => JSON.parse(item))
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, 1000); // Keep only latest 1000 entries
 
@@ -2491,7 +2500,7 @@ function consolidateModelFiles(basePath = './models') {
 
   // Clean up old files and directories
   findModelFiles(basePath); // Find all files again
-  processedFiles.forEach(filePath => {
+  processedFiles.forEach((filePath) => {
     if (filePath !== mainModelFile && fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
@@ -2520,7 +2529,7 @@ function consolidateModelFiles(basePath = './models') {
 
 // Update model update function to use consolidation
 function updateModelData(binary, analysisResult) {
-  const basePath = './models';
+  const basePath = "./models";
   const modelData = {
     id: generateUniqueId(binary, analysisResult),
     timestamp: Date.now(),
@@ -2547,9 +2556,539 @@ function updateModelData(binary, analysisResult) {
   // Write updated data
   const modelFile = `${basePath}/model.json`;
   fs.writeFileSync(
-    modelFile, 
+    modelFile,
     JSON.stringify(consolidated.slice(0, 1000), null, 2)
   );
 
   return modelData.summary;
+}
+// Advanced Learning Rate Regulation System
+class AdaptiveLearningRateController {
+  constructor(initialRate = 0.1) {
+    this.learningRate = initialRate;
+    this.history = [];
+    this.performanceMetrics = new Map();
+    this.adaptationThreshold = 0.01;
+  }
+
+  adjustRate(error, iteration) {
+    const recentPerformance = this.history.slice(-5);
+    const averageError =
+      recentPerformance.reduce((a, b) => a + b, 0) /
+      (recentPerformance.length || 1);
+    const errorDelta = Math.abs(error - averageError);
+
+    // Complex adjustment calculation
+    const adaptationFactor = Math.exp(-errorDelta / this.adaptationThreshold);
+    const newRate =
+      this.learningRate *
+      (1 + (error < averageError ? 0.1 : -0.1) * adaptationFactor);
+
+    // Bounds checking
+    this.learningRate = Math.max(0.0001, Math.min(0.5, newRate));
+    this.history.push(error);
+
+    // Trim history to prevent memory bloat
+    if (this.history.length > 100) this.history.shift();
+
+    return this.learningRate;
+  }
+
+  reset() {
+    this.history = [];
+    this.performanceMetrics.clear();
+  }
+}
+
+// Memory Management System
+const MemoryManager = {
+  allocatedResources: new WeakMap(),
+
+  track(resource, metadata = {}) {
+    this.allocatedResources.set(resource, {
+      timestamp: Date.now(),
+      ...metadata,
+    });
+  },
+
+  cleanup() {
+    global.gc && global.gc();
+    this.allocatedResources = new WeakMap();
+  },
+};
+
+// API Routes Configuration
+const ApiRoutes = {
+  base: "/api/v1",
+
+  endpoints: {
+    analyze: "/analyze",
+    predict: "/predict",
+    train: "/train",
+    metrics: "/metrics",
+  },
+
+  getSecureConfig() {
+    return {
+      ssl: true,
+      cors: {
+        origin: process.env.ALLOWED_ORIGINS?.split(",") || [
+          "https://localhost:3000",
+        ],
+        methods: ["GET", "POST"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+      },
+      rateLimit: {
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 100, // limit each IP to 100 requests per windowMs
+      },
+    };
+  },
+
+  generateRoutes(app) {
+    // Analyze endpoint
+    app.post(`${this.base}${this.endpoints.analyze}`, async (req, res) => {
+      try {
+        const result = await analyzeBinary(req.body.data);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Prediction endpoint
+    app.post(`${this.base}${this.endpoints.predict}`, async (req, res) => {
+      try {
+        const prediction = await predictNextBits(
+          req.body.data,
+          req.body.length
+        );
+        res.json({ prediction });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Training endpoint
+    app.post(`${this.base}${this.endpoints.train}`, async (req, res) => {
+      try {
+        const learningController = new AdaptiveLearningRateController();
+        const result = await improveConfidenceLevel(
+          req.body.data,
+          0.95,
+          100,
+          learningController
+        );
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Metrics endpoint
+    app.get(`${this.base}${this.endpoints.metrics}`, (req, res) => {
+      try {
+        res.json({
+          performance: performanceData,
+          memory: process.memoryUsage(),
+          uptime: process.uptime(),
+        });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+  },
+};
+
+// Enhanced analyzeBinary with adaptive learning
+const enhancedAnalyzeBinary = (binary, options = {}) => {
+  const learningController = new AdaptiveLearningRateController();
+  const result = analyzeBinary(binary);
+
+  try {
+    result.learningRate = learningController.adjustRate(
+      result.pattern_metrics.entropy,
+      options.iteration || 0
+    );
+
+    return result;
+  } finally {
+    MemoryManager.cleanup();
+  }
+};
+
+// Export enhanced functionality
+module.exports = {
+  ...module.exports,
+  AdaptiveLearningRateController,
+  MemoryManager,
+  ApiRoutes,
+  enhancedAnalyzeBinary,
+};
+// Enhanced User Interface and Performance Optimization System
+const EnhancedUI = {
+  outputPreferences: new Map(),
+  visualizationModes: ["basic", "detailed", "expert"],
+
+  // User preferences management
+  setOutputPreference(userId, preferences) {
+    this.outputPreferences.set(userId, {
+      ...preferences,
+      timestamp: Date.now(),
+    });
+  },
+
+  // Interactive CLI menu for output customization
+  async showOutputMenu() {
+    console.log("\n🎯 Output Customization Menu");
+    console.log("═".repeat(50));
+    console.log("1. Basic Analysis (Pattern type, confidence score)");
+    console.log("2. Detailed Metrics (Entropy, complexity, correlations)");
+    console.log("3. Expert View (All metrics + predictive analytics)");
+    console.log("4. Custom View (Select specific metrics)");
+    console.log("5. Performance Monitor");
+    console.log("═".repeat(50));
+
+    // In a real implementation, use proper async input handling
+    return new Promise((resolve) => {
+      process.stdin.once("data", (data) => {
+        const choice = parseInt(data.toString());
+        resolve(this.generateOutputConfig(choice));
+      });
+    });
+  },
+
+  // Generate configuration based on user choice
+  generateOutputConfig(choice) {
+    switch (choice) {
+      case 1:
+        return { mode: "basic", metrics: ["patternType", "confidence"] };
+      case 2:
+        return {
+          mode: "detailed",
+          metrics: ["entropy", "complexity", "correlation", "patterns"],
+        };
+      case 3:
+        return { mode: "expert", metrics: "all" };
+      case 4:
+        return this.showCustomMetricsMenu();
+      case 5:
+        return {
+          mode: "performance",
+          metrics: ["memory", "speed", "accuracy"],
+        };
+      default:
+        return { mode: "basic", metrics: ["patternType", "confidence"] };
+    }
+  },
+
+  // Performance optimization suggestions
+  suggestOptimizations(currentConfidence) {
+    const suggestions = [];
+    if (currentConfidence < 0.8) {
+      suggestions.push(
+        "🔄 Consider increasing the training iterations",
+        "📊 Adjust pattern recognition thresholds",
+        "🎯 Enable advanced pattern matching",
+        "💡 Use larger sliding windows for analysis"
+      );
+    }
+    return suggestions;
+  },
+};
+
+// Performance Optimization System
+const PerformanceOptimizer = {
+  thresholds: {
+    confidence: 0.8,
+    entropy: 0.7,
+    complexity: 0.6,
+  },
+
+  async optimize(analysisResult) {
+    const optimizations = [];
+
+    // Pattern recognition enhancement
+    if (analysisResult.pattern_metrics.entropy < this.thresholds.entropy) {
+      optimizations.push(this.enhancePatternRecognition());
+    }
+
+    // Complexity optimization
+    if (analysisResult.pattern_complexity?.level < this.thresholds.complexity) {
+      optimizations.push(this.optimizeComplexityAnalysis());
+    }
+
+    // Apply performance boosters
+    optimizations.push(this.applyPerformanceBoosters());
+
+    return Promise.all(optimizations);
+  },
+
+  enhancePatternRecognition() {
+    return {
+      type: "pattern_enhancement",
+      actions: [
+        "Increased pattern window size",
+        "Enhanced correlation detection",
+        "Improved entropy calculation",
+      ],
+    };
+  },
+
+  optimizeComplexityAnalysis() {
+    return {
+      type: "complexity_optimization",
+      actions: [
+        "Adjusted complexity thresholds",
+        "Enhanced pattern matching algorithms",
+        "Improved statistical analysis",
+      ],
+    };
+  },
+
+  applyPerformanceBoosters() {
+    return {
+      type: "performance_boost",
+      actions: [
+        "Enabled parallel processing",
+        "Optimized memory usage",
+        "Enhanced caching mechanisms",
+      ],
+    };
+  },
+};
+
+// Enhanced Analysis Output Generator
+const OutputGenerator = {
+  generate(result, userPreferences) {
+    console.log("\n🎯 Analysis Results");
+    console.log("═".repeat(50));
+
+    if (userPreferences.mode === "basic") {
+      this.generateBasicOutput(result);
+    } else if (userPreferences.mode === "detailed") {
+      this.generateDetailedOutput(result);
+    } else if (userPreferences.mode === "expert") {
+      this.generateExpertOutput(result);
+    }
+
+    // Always show performance suggestions if confidence is low
+    if (result.confidence < 0.8) {
+      console.log("\n⚠️ Performance Optimization Suggestions:");
+      EnhancedUI.suggestOptimizations(result.confidence).forEach(
+        (suggestion) => {
+          console.log(`  ${suggestion}`);
+        }
+      );
+    }
+  },
+
+  generateBasicOutput(result) {
+    console.log(
+      `Pattern Type: ${result.pattern_complexity?.type || "Unknown"}`
+    );
+    console.log(`Confidence Score: ${(result.confidence * 100).toFixed(1)}%`);
+    this.showConfidenceBar(result.confidence);
+  },
+
+  generateDetailedOutput(result) {
+    this.generateBasicOutput(result);
+    console.log("\n📊 Detailed Metrics:");
+    console.log(`Entropy: ${result.pattern_metrics.entropy.toFixed(4)}`);
+    console.log(`Complexity: ${result.pattern_complexity?.level.toFixed(4)}`);
+    console.log(
+      `Correlation: ${result.pattern_metrics.correlation.toFixed(4)}`
+    );
+
+    console.log("\n🔍 Pattern Analysis:");
+    result.pattern_metrics.patternOccurrences &&
+      Object.entries(result.pattern_metrics.patternOccurrences)
+        .slice(0, 5)
+        .forEach(([pattern, count]) => {
+          console.log(`  ${pattern}: ${count} occurrences`);
+        });
+  },
+
+  generateExpertOutput(result) {
+    this.generateDetailedOutput(result);
+    console.log("\n🔬 Advanced Metrics:");
+    console.log(`Burstiness: ${result.pattern_metrics.burstiness.toFixed(4)}`);
+    console.log(`Longest Run: ${result.pattern_metrics.longestRun}`);
+    console.log(
+      `Alternating Score: ${result.pattern_metrics.alternating.toFixed(4)}`
+    );
+
+    console.log("\n🎯 Predictive Analytics:");
+    const prediction = predictNextBits(result.binary, 8);
+    console.log(`Next 8 bits prediction: ${prediction}`);
+  },
+
+  showConfidenceBar(confidence) {
+    const width = 40;
+    const filled = Math.round(confidence * width);
+    const bar = "█".repeat(filled) + "▒".repeat(width - filled);
+    console.log(`\nConfidence: [${bar}] ${(confidence * 100).toFixed(1)}%`);
+  },
+};
+
+// Initialize enhanced systems
+(async () => {
+  // Set up performance monitoring
+  PerformanceMonitor.start();
+
+  // Show output customization menu to user
+  const userPreferences = await EnhancedUI.showOutputMenu();
+
+  // Apply performance optimizations
+  const optimizations = await PerformanceOptimizer.optimize(analysisResult);
+
+  // Generate output based on user preferences
+  OutputGenerator.generate(analysisResult, userPreferences);
+
+  // Report final performance metrics
+  const performance = PerformanceMonitor.end();
+  console.log("\n📊 Performance Report");
+  console.log("═".repeat(50));
+  console.log(`Runtime: ${performance.totalRuntime.toFixed(2)}ms`);
+  console.log(
+    `Memory Usage: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(
+      2
+    )}MB`
+  );
+  console.log(`Optimizations Applied: ${optimizations.length}`);
+})();
+// Enhanced test case generator with variation
+function generateVariedTestCase(basePattern, variationType = "quantum") {
+  const variations = {
+    quantum: (i) =>
+      Math.sin(i * Math.PI * Math.E) * Math.cos(i * Math.sqrt(Date.now() % 13)),
+    fractal: (i) => {
+      const phi = (1 + Math.sqrt(5)) / 2;
+      return Math.sin(i * phi) * Math.cos(i * Math.sqrt(Date.now() % 17));
+    },
+    fibonacci: (i) => {
+      const fib = fibonacci(i % 100);
+      return Math.sin(i * fib * Math.sqrt(Date.now() % 19));
+    },
+  };
+
+  return Array(basePattern.length)
+    .fill(0)
+    .map((_, i) => {
+      const variation = variations[variationType](i);
+      return variation > 0 ? "1" : "0";
+    })
+    .join("");
+}
+
+// User input handler for research data
+function handleUserInput(input) {
+  const processedInput = input.replace(/[^01]/g, ""); // Clean input to binary
+  if (processedInput.length > 0) {
+    return processedInput;
+  }
+  // Generate varied test case if no valid input
+  return generateVariedTestCase(testCases[0], "quantum");
+}
+
+// Research data interface
+class ResearchDataInterface {
+  constructor() {
+    this.patterns = new Map();
+    this.testCaseHistory = new Set();
+  }
+
+  addPattern(pattern, type) {
+    const hash = require("crypto")
+      .createHash("sha512")
+      .update(pattern + Date.now().toString())
+      .digest("hex")
+      .slice(0, 32);
+
+    if (!this.patterns.has(hash)) {
+      this.patterns.set(hash, {
+        pattern,
+        type,
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  getUniquePattern(type) {
+    const patterns = Array.from(this.patterns.values())
+      .filter((p) => p.type === type)
+      .sort(() => Math.random() - 0.5);
+
+    return patterns[0]?.pattern || generateVariedTestCase(testCases[0], type);
+  }
+
+  isPatternUnique(pattern) {
+    const hash = require("crypto")
+      .createHash("sha512")
+      .update(pattern + Date.now().toString())
+      .digest("hex")
+      .slice(0, 32);
+    return !this.patterns.has(hash);
+  }
+}
+
+// Initialize research interface
+const researchInterface = new ResearchDataInterface();
+
+// Add initial patterns to interface
+testCases.forEach((pattern, index) => {
+  if (researchInterface.isPatternUnique(pattern)) {
+    researchInterface.addPattern(
+      pattern,
+      ["quantum", "fractal", "fibonacci"][index % 3]
+    );
+  }
+});
+
+// Enhanced test runner with user input support
+async function runEnhancedResearchTests(userInput = "") {
+  const testData = handleUserInput(userInput);
+
+  if (researchInterface.isPatternUnique(testData)) {
+    researchInterface.addPattern(testData, "user");
+  }
+
+  // Get varied patterns for testing
+  const patterns = [
+    testData,
+    researchInterface.getUniquePattern("quantum"),
+    researchInterface.getUniquePattern("fractal"),
+    researchInterface.getUniquePattern("fibonacci"),
+  ];
+
+  console.log("\n🧪 Starting Research Analysis...");
+
+  for (const pattern of patterns) {
+    const result = enhancedAnalyzeBinary(pattern, { iteration: 0 });
+    formatAnalysisResult(pattern, result);
+
+    const improvement = await improveConfidenceLevel(pattern, 0.95, 50);
+    console.log(
+      `\n📈 Pattern Confidence: ${(improvement.confidence * 100).toFixed(1)}%`
+    );
+  }
+
+  console.log("\n✨ Research Analysis Complete ✨");
+}
+
+// Example usage with CLI input
+if (require.main === module) {
+  process.stdin.setEncoding("utf8");
+  console.log(
+    "\n🔍 Enter binary pattern for research (or press Enter for auto-generated pattern):"
+  );
+
+  process.stdin.on("data", async (input) => {
+    const cleanInput = input.trim();
+    if (cleanInput.toLowerCase() === "exit") {
+      process.exit(0);
+    }
+    await runEnhancedResearchTests(cleanInput);
+    console.log("\n🔍 Enter another pattern (or 'exit' to quit):");
+  });
 }

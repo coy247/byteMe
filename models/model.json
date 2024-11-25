@@ -1,6 +1,182 @@
 [
   {
     "id": "f1eaa411aab133e0244178551d99b9c9",
+    "timestamp": 1732498466732,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.834184392077009,
+      "complexity": 0.8549224956789235,
+      "burstiness": 5.867470308135813
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.8342"
+  },
+  {
+    "id": "b7d1511d990cb86349fd40711ffcefe2",
+    "timestamp": 1732498466323,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.9535944171060324,
+      "complexity": 0.9822290946293915,
+      "burstiness": 6.849232184689838
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.9536"
+  },
+  {
+    "id": "7d992e93d2a714b038106c42f5847b44",
+    "timestamp": 1732498465733,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.9546737445262536,
+      "complexity": 0.9719193908233698,
+      "burstiness": 4.198879857171545
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.9547"
+  },
+  {
+    "id": "7acb6b45538cbefb0896bc5fcf83196c",
+    "timestamp": 1732498464700,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.999926060268058,
+      "complexity": 1.0011914982182362,
+      "burstiness": 1.3294071108111853
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.9999"
+  },
+  {
+    "id": "f1eaa411aab133e0244178551d99b9c9",
+    "timestamp": 1732498439037,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.834184392077009,
+      "complexity": 0.8549224956789235,
+      "burstiness": 5.867470308135813
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.8342"
+  },
+  {
+    "id": "b7d1511d990cb86349fd40711ffcefe2",
+    "timestamp": 1732498438598,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.9535944171060324,
+      "complexity": 0.9822290946293915,
+      "burstiness": 6.849232184689838
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.9536"
+  },
+  {
+    "id": "7d992e93d2a714b038106c42f5847b44",
+    "timestamp": 1732498437999,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.9546737445262536,
+      "complexity": 0.9719193908233698,
+      "burstiness": 4.198879857171545
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.9547"
+  },
+  {
+    "id": "7acb6b45538cbefb0896bc5fcf83196c",
+    "timestamp": 1732498436938,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.999926060268058,
+      "complexity": 1.0011914982182362,
+      "burstiness": 1.3294071108111853
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.9999"
+  },
+  {
+    "id": "f1eaa411aab133e0244178551d99b9c9",
+    "timestamp": 1732498014294,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.834184392077009,
+      "complexity": 0.8549224956789235,
+      "burstiness": 5.867470308135813
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.8342"
+  },
+  {
+    "id": "b7d1511d990cb86349fd40711ffcefe2",
+    "timestamp": 1732498013858,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.9535944171060324,
+      "complexity": 0.9822290946293915,
+      "burstiness": 6.849232184689838
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.9536"
+  },
+  {
+    "id": "7d992e93d2a714b038106c42f5847b44",
+    "timestamp": 1732498013285,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.9546737445262536,
+      "complexity": 0.9719193908233698,
+      "burstiness": 4.198879857171545
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.9547"
+  },
+  {
+    "id": "7acb6b45538cbefb0896bc5fcf83196c",
+    "timestamp": 1732498012238,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.999926060268058,
+      "complexity": 1.0011914982182362,
+      "burstiness": 1.3294071108111853
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.9999"
+  },
+  {
+    "id": "f1eaa411aab133e0244178551d99b9c9",
+    "timestamp": 1732497792623,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.834184392077009,
+      "complexity": 0.8549224956789235,
+      "burstiness": 5.867470308135813
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.8342"
+  },
+  {
+    "id": "b7d1511d990cb86349fd40711ffcefe2",
+    "timestamp": 1732497792222,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.9535944171060324,
+      "complexity": 0.9822290946293915,
+      "burstiness": 6.849232184689838
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.9536"
+  },
+  {
+    "id": "7d992e93d2a714b038106c42f5847b44",
+    "timestamp": 1732497791625,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.9546737445262536,
+      "complexity": 0.9719193908233698,
+      "burstiness": 4.198879857171545
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.9547"
+  },
+  {
+    "id": "7acb6b45538cbefb0896bc5fcf83196c",
+    "timestamp": 1732497790603,
+    "pattern_type": "alternating",
+    "metrics": {
+      "entropy": 0.999926060268058,
+      "complexity": 1.0011914982182362,
+      "burstiness": 1.3294071108111853
+    },
+    "summary": "Pattern analyzed: alternating with entropy 0.9999"
+  },
+  {
+    "id": "f1eaa411aab133e0244178551d99b9c9",
     "timestamp": 1732496756497,
     "pattern_type": "alternating",
     "metrics": {
