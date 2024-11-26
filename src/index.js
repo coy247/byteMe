@@ -2,6 +2,54 @@
 const usedMessages = new Set();
 const seenPatterns = new Set();
 const testData = "./inputData.js";
+
+// Define performanceWizard at the top
+const performanceWizard = {
+  startTime: null,
+  totalAnalysisTime: 0,
+  testsCompleted: 0,
+  averageConfidence: 0,
+  start() {
+    this.startTime = Date.now();
+    this.totalAnalysisTime = 0;
+    this.testsCompleted = 0;
+    this.averageConfidence = 0;
+  },
+  trackAnalysis(time, confidence) {
+    this.totalAnalysisTime += time;
+    this.testsCompleted += 1;
+    this.averageConfidence =
+      (this.averageConfidence * (this.testsCompleted - 1) + confidence) /
+      this.testsCompleted;
+  },
+};
+
+// Function to report performance
+function reportPerformance() {
+  const totalTime = (Date.now() - performanceWizard.startTime) / 1000;
+  const avgAnalysisTime =
+    performanceWizard.totalAnalysisTime /
+    Math.max(1, performanceWizard.testsCompleted);
+  const avgConfidence = Math.min(
+    100,
+    performanceWizard.averageConfidence * 100
+  );
+
+  console.log("\n🎯 Performance Report");
+  console.log("════════════════════════════════════════");
+  console.log(`Total Runtime: ${totalTime.toFixed(2)}s`);
+  console.log(`Tests Completed: ${performanceWizard.testsCompleted}`);
+  console.log(`Average Analysis Time: ${avgAnalysisTime.toFixed(2)}ms`);
+  console.log(`Average Confidence: ${avgConfidence.toFixed(2)}%`);
+}
+
+// Example usage
+performanceWizard.start();
+// Simulate some analysis
+performanceWizard.trackAnalysis(200, 0.95);
+performanceWizard.trackAnalysis(150, 0.9);
+reportPerformance();
+
 /**
  * @fileoverview Advanced Binary Pattern Analysis System
  * This module provides comprehensive analysis of binary patterns using various mathematical
@@ -82,6 +130,9 @@ const windowSizes = [2, 4, 8, 16];
 const warningShown = new Set();
 
 function analyzeBinary(binary) {
+  // Define window sizes for analysis
+  const windowSizes = [2, 4, 8, 16];
+
   // Validate and clean binary input
   if (!binary || typeof binary !== "string") {
     return { error: "Invalid input: Expected binary string" };
@@ -121,9 +172,42 @@ function analyzeBinary(binary) {
     transitions: calculateTransitions(cleanBinary),
   };
 
+  // Advanced pattern detection using sliding window analysis
+  const patternAnalysis = windowSizes.map((size) => {
+    const patterns = {};
+    for (let i = 0; i <= binary.length - size; i++) {
+      const pattern = binary.substr(i, size);
+      patterns[pattern] = (patterns[pattern] || 0) + 1;
+    }
+    return {
+      size,
+      patterns,
+      uniquePatterns: Object.keys(patterns).length,
+      mostCommon: Object.entries(patterns)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3),
+    };
+  });
+
+  // Enhanced pattern metrics with visualization data
+  const stats = {
+    entropy: calculateEntropy(binary),
+    longestRun: (binary.match(/([01])\1*/g) || []).reduce(
+      (max, run) => Math.max(max, run.length),
+      0
+    ),
+    alternating: (binary.match(/(01|10)/g) || []).length / (binary.length / 2),
+    runs: (binary.match(/([01])\1+/g) || []).length / binary.length,
+    burstiness: calculateBurstiness(binary),
+    correlation: calculateCorrelation(binary),
+    patternOccurrences: findPatternOccurrences(binary),
+    hierarchicalPatterns: patternAnalysis,
+  };
+
   return {
     checksum,
     visualData,
+    stats,
     error: null,
   };
 }
@@ -689,32 +773,28 @@ function updateModelData(binary, analysisResult) {
   fs.writeFileSync(modelFile, JSON.stringify(existingData, null, 2));
   return modelData.summary;
 }
+
 function mergeJsonFiles(target, source) {
+  let targetData = [];
+  let sourceData = [];
   try {
-    let targetData = [];
-    let sourceData = [];
-
-    if (fs.existsSync(target)) {
+    if (fs.existsSync(target))
       targetData = JSON.parse(fs.readFileSync(target, "utf8"));
-    }
-
-    if (fs.existsSync(source)) {
+    if (fs.existsSync(source))
       sourceData = JSON.parse(fs.readFileSync(source, "utf8"));
-    }
-
-    // Combine and deduplicate based on id field
+    // Combine and remove duplicates
     const combined = [...targetData, ...sourceData]
       .filter(
         (item, index, self) => index === self.findIndex((t) => t.id === item.id)
       )
       .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 1000); // Keep only latest 1000 entries
-
+      .slice(0, 1000);
     fs.writeFileSync(target, JSON.stringify(combined, null, 2));
-  } catch (error) {
-    console.error("Error merging files:", error);
+  } catch (e) {
+    console.error("Error merging files:", e);
   }
 }
+
 function generateUniqueId(binary, result) {
   return require("crypto")
     .createHash("md5")
@@ -762,26 +842,6 @@ function cleanupModelFolders(basePath, normalizedName) {
   });
 }
 
-function mergeJsonFiles(target, source) {
-  let targetData = [];
-  let sourceData = [];
-  try {
-    if (fs.existsSync(target))
-      targetData = JSON.parse(fs.readFileSync(target, "utf8"));
-    if (fs.existsSync(source))
-      sourceData = JSON.parse(fs.readFileSync(source, "utf8"));
-    // Combine and remove duplicates
-    const combined = [...targetData, ...sourceData]
-      .filter(
-        (item, index, self) => index === self.findIndex((t) => t.id === item.id)
-      )
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 1000);
-    fs.writeFileSync(target, JSON.stringify(combined, null, 2));
-  } catch (e) {
-    console.error("Error merging files:", e);
-  }
-}
 // Additional test case - ZigZag pattern with advanced transcendental functions
 const zigzagPattern =
   Array(14336)
@@ -1135,7 +1195,7 @@ function formatPatternDensity(density) {
 function formatTransitionAnalysis(transitions) {
   console.log("\n╔" + "═".repeat(58) + "╗");
   console.log(
-    "║" + " ".repeat(19) + "Transition Analysis" + " ".repeat(19) + "║"
+    "║" + " ".repeat(19) + "Transition Analysis" + " ".repeat(20) + "║"
   );
   console.log("╠" + "═".repeat(58) + "╣");
   const transitionPercentage = (transitions * 100).toFixed(1);
@@ -1153,17 +1213,19 @@ testCases.forEach((binary) => {
 });
 
 function formatTransitionAnalysis(transitions) {
+  const transitionPercentage = (transitions * 100).toFixed(1);
+  const transitionBars = "█".repeat(Math.floor(transitions * 40));
+
   console.log("\n╔" + "═".repeat(58) + "╗");
   console.log(
     "║" + " ".repeat(19) + "Transition Analysis" + " ".repeat(20) + "║"
   );
   console.log("╠" + "═".repeat(58) + "╣");
-  const transitionPercentage = (transitions * 100).toFixed(1);
-  const transitionBars = "█".repeat(Math.floor(transitions * 40));
   console.log(`║ Rate: ${transitionPercentage}%`.padEnd(59) + "║");
   console.log(`║ ${transitionBars}`.padEnd(59) + "║");
   console.log("╚" + "═".repeat(58) + "╝\n");
 }
+
 // Update the analysis output to use new formatting
 testCases.forEach((binary) => {
   const result = analyzeBinary(binary);
@@ -1248,6 +1310,177 @@ function improveConfidenceLevel(
     );
   });
   console.log("╚════════════════════════════════╝");
+  return {
+    confidence: currentConfidence,
+    patterns: strongPatterns,
+    iterations: iteration,
+  };
+}
+// Test the improved confidence system
+testCases.forEach((binary, index) => {
+  console.log(`\nAnalyzing Test Case ${index + 1}`);
+  const improvement = improveConfidenceLevel(binary);
+  console.log(
+    `Confidence improvement completed after ${improvement.iterations} iterations`
+  );
+});
+// Fun and engaging console output wrapper
+function funConsole(message, type = "info", testCaseProgress = null) {
+  const funMessages = {
+    info: [
+      "🔍 Time to investigate these bits!",
+      "🎯 Target acquired, analyzing...",
+      "🎪 Step right up, data coming through!",
+      "🎨 Let's paint a picture with these patterns...",
+      "🌟 Another binary adventure begins!",
+    ],
+    success: [
+      "🎉 High five! That's some quality data!",
+      "✨ Look at you, bringing the good patterns!",
+      "🌈 This is what binary dreams are made of!",
+      "🚀 Houston, we have liftoff!",
+      "🎸 These patterns are music to my algorithms!",
+    ],
+    improvement: [
+      "📈 We're getting better! Like a binary gym workout!",
+      "🌱 Watch these patterns grow!",
+      "🎓 Getting smarter by the byte!",
+      "🎪 The improvement show continues!",
+      "🎯 Bullseye! Right on target!",
+    ],
+  };
+  // Add progress info if provided
+  const progressInfo = testCaseProgress
+    ? `[Test Case ${testCaseProgress.current}/${testCaseProgress.total}] `
+    : "";
+  const funMessage =
+    funMessages[type][Math.floor(Math.random() * funMessages[type].length)];
+  console.log(`${progressInfo}${funMessage} ${message}`);
+}
+// Enhanced test case runner with progress tracking
+function runTestCaseAnalysis(testCases) {
+  console.log("\n" + "🎪".repeat(30));
+  funConsole("Welcome to the Binary Pattern Party! 🎉", "info");
+  console.log("🎪".repeat(30) + "\n");
+  testCases.forEach((binary, index) => {
+    const progress = {
+      current: index + 1,
+      total: testCases.length,
+    };
+    funConsole("Starting new analysis...", "info", progress);
+    const result = analyzeBinary(binary);
+    const improvement = improveConfidenceLevel(binary);
+    // Celebrate improvements with fun messages
+    if (improvement.confidence > 0.8) {
+      funConsole(
+        `Wow! ${(improvement.confidence * 100).toFixed(1)}% confidence!`,
+        "success",
+        progress
+      );
+    } else if (improvement.confidence > 0.5) {
+      funConsole(
+        `Making progress! ${(improvement.confidence * 100).toFixed(
+          1
+        )}% and climbing!`,
+        "improvement",
+        progress
+      );
+    }
+    formatAnalysisResult(binary, result);
+    console.log("\n" + "🌟".repeat(30));
+  });
+  console.log("\n✨ Analysis complete! Thanks for bringing the bytes! ✨\n");
+}
+// Run all our test cases with the new fun messaging
+runTestCaseAnalysis([
+  ...testCases,
+  zigzagPattern,
+  fibonacciQuantum,
+  primeNeuralPattern,
+  hyperPattern,
+]);
+// Enhanced Pattern Learning System with dynamic progress updates
+function improveConfidenceLevel(
+  binary,
+  targetConfidence = 0.95,
+  maxIterations = 100
+) {
+  let currentConfidence = 0;
+  let iteration = 0;
+  let patterns = new Map();
+  let learningRate = 0.1;
+  let lastUpdate = 0;
+  process.stdout.write("\n╔═════ Pattern Learning System ═════╗\n");
+  process.stdout.write("║                                  ║\n");
+  process.stdout.write("╚══════════════════════════════════╝");
+  while (currentConfidence < targetConfidence && iteration < maxIterations) {
+    iteration++;
+    // Analyze current state
+    const result = analyzeBinary(binary);
+    currentConfidence = calculatePredictionConfidence(result);
+    // Extract and store patterns
+    for (let windowSize = 4; windowSize <= 16; windowSize *= 2) {
+      for (let i = 0; i <= binary.length - windowSize; i++) {
+        const pattern = binary.substr(i, windowSize);
+        const nextBit = binary[i + windowSize] || "";
+        if (nextBit) {
+          patterns.set(pattern, {
+            count: (patterns.get(pattern)?.count || 0) + 1,
+            nextBits: {
+              0:
+                (patterns.get(pattern)?.nextBits?.["0"] || 0) +
+                (nextBit === "0" ? 1 : 0),
+              1:
+                (patterns.get(pattern)?.nextBits?.["1"] || 0) +
+                (nextBit === "1" ? 1 : 0),
+            },
+          });
+        }
+      }
+    }
+    // Adjust learning parameters
+    learningRate *= 0.95; // Decay learning rate
+    // Update progress display
+    if (iteration % 10 === 0 || currentConfidence > lastUpdate + 0.05) {
+      process.stdout.write(
+        `\x1B[2A║ Iteration: ${iteration.toString().padEnd(3)} | Confidence: ${(
+          currentConfidence * 100
+        ).toFixed(2)}% ${
+          currentConfidence > lastUpdate ? "📈" : "  "
+        } ║\n\x1B[1B`
+      );
+      lastUpdate = currentConfidence;
+    }
+    // Break if confidence improvement stagnates
+    if (iteration > 10 && currentConfidence < 0.3) {
+      process.stdout.write(
+        "\x1B[2A║ Warning: Low confidence pattern detected ║\n"
+      );
+      break;
+    }
+  }
+  // Generate insights from learned patterns
+  const strongPatterns = Array.from(patterns.entries())
+    .filter(([_, data]) => data.count > 5)
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 5);
+  process.stdout.write("\x1B[2A╠══ Pattern Learning Results ══╣\n");
+  process.stdout.write(
+    `║ Final Confidence: ${(currentConfidence * 100).toFixed(2)}% ║\n`
+  );
+  process.stdout.write(`║ Patterns Analyzed: ${patterns.size} ║\n`);
+  process.stdout.write("║ Top Predictive Patterns: ║\n");
+  strongPatterns.forEach(([pattern, data]) => {
+    const total = data.nextBits["0"] + data.nextBits["1"];
+    const prediction = data.nextBits["1"] > data.nextBits["0"] ? "1" : "0";
+    const accuracy = Math.max(data.nextBits["0"], data.nextBits["1"]) / total;
+    process.stdout.write(
+      `║ ${pattern} → ${prediction} (${(accuracy * 100).toFixed(
+        1
+      )}% accurate) ║\n`
+    );
+  });
+  process.stdout.write("╚════════════════════════════════╝\n");
   return {
     confidence: currentConfidence,
     patterns: strongPatterns,
@@ -1787,22 +2020,26 @@ const monitoredAnalyzeBinary = monitorPerformance(analyzeBinary);
 const monitoredImproveConfidence = monitorPerformance(improveConfidenceLevel);
 // Add performance reporting
 function reportPerformance() {
-  const totalTime = (Date.now() - performanceData.startTime) / 1000;
-  console.log("\n🎯 Performance Report");
-  console.log("═".repeat(40));
-  console.log(`Total Runtime: ${totalTime.toFixed(2)}s`);
-  console.log(`Tests Completed: ${performanceData.testsCompleted}`);
-  console.log(
-    `Average Analysis Time: ${(
-      performanceData.totalAnalysisTime / performanceData.testsCompleted
-    ).toFixed(2)}ms`
+  const totalTime = (Date.now() - performanceWizard.startTime) / 1000;
+  const avgAnalysisTime =
+    performanceWizard.totalAnalysisTime /
+    Math.max(1, performanceWizard.testsCompleted);
+  const avgConfidence = Math.min(
+    100,
+    performanceWizard.averageConfidence * 100
   );
+
+  console.log("\n🎯 Performance Report");
+  console.log("════════════════════════════════════════");
+  console.log(`Total Runtime: ${totalTime.toFixed(2)}s`);
+  console.log(`Tests Completed: ${performanceWizard.testsCompleted}`);
+  console.log(`Average Analysis Time: ${avgAnalysisTime.toFixed(2)}ms`);
   console.log(
-    `Average Confidence: ${(performanceData.averageConfidence * 100).toFixed(
+    `Average Confidence: ${(performanceWizard.averageConfidence * 100).toFixed(
       1
     )}%`
   );
-  console.log("═".repeat(40));
+  console.log("════════════════════════════════════════");
 }
 // Update test runner to use monitored functions and report performance
 runEnhancedTests = async function () {
@@ -2502,17 +2739,23 @@ const ParallelProcessor = {
 };
 // Fix performance calculation and reporting
 function reportPerformance() {
-  const totalTime = (Date.now() - performanceData.startTime) / 1000;
+  const totalTime = (Date.now() - performanceWizard.startTime) / 1000;
   const avgAnalysisTime =
-    performanceData.totalAnalysisTime /
-    Math.max(1, performanceData.testsCompleted);
-  const avgConfidence = Math.min(100, performanceData.averageConfidence * 100);
+    performanceWizard.totalAnalysisTime /
+    Math.max(1, performanceWizard.testsCompleted);
+  const avgConfidence = Math.min(
+    100,
+    performanceWizard.averageConfidence * 100
+  );
 
   console.log("\n🎯 Performance Report");
   console.log("════════════════════════════════════════");
   console.log(`Total Runtime: ${totalTime.toFixed(2)}s`);
-  console.log(`Tests Completed: ${performanceData.testsCompleted}`);
+  console.log(`Tests Completed: ${performanceWizard.testsCompleted}`);
   console.log(`Average Analysis Time: ${avgAnalysisTime.toFixed(2)}ms`);
-  console.log(`Average Confidence: ${avgConfidence.toFixed(1)}%`);
-  console.log("════════════════════════════════════════");
+  console.log(
+    `Average Confidence: ${(performanceWizard.averageConfidence * 100).toFixed(
+      1
+    )}%`
+  );
 }
