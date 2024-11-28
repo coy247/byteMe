@@ -19,6 +19,13 @@ package-lock.json
 .DS_Store
 Thumbs.db
 
+# Model files
+model.json
+models/model.json
+
+# Project specific
+notes/
+archive/
 # macOS specific
 .DS_Store
 .AppleDouble
@@ -38,6 +45,8 @@ dist/
 build/
 out/
 .next/
+.vscode/
+.vscode-test/
 
 # Logs
 logs/
