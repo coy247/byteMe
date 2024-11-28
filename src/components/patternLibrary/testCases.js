@@ -66,7 +66,11 @@ const testCases = [
   [...Array(8192)]
     .map((_, i) => {
       const generator = new QuantumPatternGenerator();
-      const { pathA: genPathA, pathB: genPathB, pathC: genPathC } = generator.generatePaths(i);
+      const {
+        pathA: genPathA,
+        pathB: genPathB,
+        pathC: genPathC,
+      } = generator.generatePaths(i);
 
       // Quantum coefficients with labyrinth path dynamics
       const phi = (1 + Math.sqrt(5)) / 2;
@@ -82,9 +86,18 @@ const testCases = [
 
       // Post-quantum hypercomplex labyrinth interference
       const hyperLabyrinth =
-        ((computedPathA ^ Math.log1p(computedPathB | 0) ^ (Math.atan(computedPathC) >>> 0)) >>> 1) +
-        ((computedPathB ^ Math.log2(computedPathC | 1) ^ (Math.atan(computedPathA) >>> 0)) >>> 1) +
-        ((computedPathC ^ Math.log10(computedPathA | 1) ^ (Math.atan(computedPathB) >>> 0)) >>> 1);
+        ((computedPathA ^
+          Math.log1p(computedPathB | 0) ^
+          (Math.atan(computedPathC) >>> 0)) >>>
+          1) +
+        ((computedPathB ^
+          Math.log2(computedPathC | 1) ^
+          (Math.atan(computedPathA) >>> 0)) >>>
+          1) +
+        ((computedPathC ^
+          Math.log10(computedPathA | 1) ^
+          (Math.atan(computedPathB) >>> 0)) >>>
+          1);
 
       // DNA-quantum normalized output with labyrinth stability constraints
       const normalizedPath =
@@ -728,74 +741,83 @@ function improveConfidenceLevelEnhanced(
   let iteration = 0;
   let patterns = new Map();
   let learningRate = 0.1;
-  console.log("\n╔═════ Pattern Learning System Initiated ═════╗");
+  let lastDialogueThreshold = -1;
+
+  // Added visual feedback from commented version
+  console.log("\n╔════════ Pattern Learning System ════════╗");
+  console.log("║                                         ║");
+  console.log("╚═════════════════════════════════════════╝");
+
   while (currentConfidence < targetConfidence && iteration < maxIterations) {
     iteration++;
-    // Analyze current state
     const result = analyzeBinary(binary);
-    currentConfidence = calculatePredictionConfidence(result);
-    // Extract and store patterns
+    const newConfidence = calculatePredictionConfidence(result);
+
+    // Merged progress visualization
+    if (newConfidence > currentConfidence + 0.01 || iteration % 10 === 0) {
+      process.stdout.write(
+        `\x1B[2A║ Iteration: ${iteration.toString().padEnd(3)} | Confidence: ${(
+          newConfidence * 100
+        ).toFixed(1)}% ${
+          newConfidence > currentConfidence ? "📈" : "  "
+        } ║\n\x1B[1B`
+      );
+    }
+
+    // Keep original dialogue system
+    const confidenceThreshold = Math.floor(newConfidence * 10) / 10;
+    if (confidenceThreshold > lastDialogueThreshold) {
+      console.log("\n" + getConfidenceDialogue(newConfidence));
+      lastDialogueThreshold = confidenceThreshold;
+    }
+
+    if (iteration % 25 === 0) {
+      console.log(getUniqueMessage("progress"));
+    }
+
+    // Pattern analysis with original structure
     for (let windowSize = 4; windowSize <= 16; windowSize *= 2) {
-      for (let i = 0; i <= binary.length - windowSize; i++) {
-        const pattern = binary.substr(i, windowSize);
-        const nextBit = binary[i + windowSize] || "";
-        if (nextBit) {
-          patterns.set(pattern, {
-            count:
-              ((patterns.get(pattern) && patterns.get(pattern).count) || 0) + 1,
-            nextBits: {
-              0:
-                ((patterns.get(pattern) &&
-                  patterns.get(pattern).nextBits &&
-                  patterns.get(pattern).nextBits["0"]) ||
-                  0) + (nextBit === "0" ? 1 : 0),
-              1:
-                ((patterns.get(pattern) &&
-                  patterns.get(pattern).nextBits &&
-                  patterns.get(pattern).nextBits["1"]) ||
-                  0) + (nextBit === "1" ? 1 : 0),
-            },
-          });
-        }
+      const pattern = binary.substr(
+        iteration % (binary.length - windowSize),
+        windowSize
+      );
+      const nextBit =
+        binary[(iteration % (binary.length - windowSize)) + windowSize] || "";
+      if (nextBit) {
+        patterns.set(pattern, {
+          count:
+            ((patterns.get(pattern) && patterns.get(pattern).count) || 0) + 1,
+          nextBits: {
+            0:
+              ((patterns.get(pattern) &&
+                patterns.get(pattern).nextBits &&
+                patterns.get(pattern).nextBits["0"]) ||
+                0) + (nextBit === "0" ? 1 : 0),
+            1:
+              ((patterns.get(pattern) &&
+                patterns.get(pattern).nextBits &&
+                patterns.get(pattern).nextBits["1"]) ||
+                0) + (nextBit === "1" ? 1 : 0),
+          },
+        });
       }
     }
-    // Adjust learning parameters
-    learningRate *= 0.95; // Decay learning rate
-    console.log(
-      `║ Iteration: ${iteration.toString().padEnd(3)} | Confidence: ${(
-        currentConfidence * 100
-      ).toFixed(2)}% ║`
-    );
-    // Break if confidence improvement stagnates
-    if (iteration > 10 && currentConfidence < 0.3) {
-      console.log("║ Warning: Low confidence pattern detected ║");
-      break;
-    }
+
+    currentConfidence = newConfidence;
+    learningRate *= 0.95;
+    if (iteration > 10 && currentConfidence < 0.3) break;
   }
-  // Generate insights from learned patterns
-  const strongPatterns = Array.from(patterns.entries())
-    .filter(([_, data]) => data.count > 5)
-    .sort((a, b) => b[1].count - a[1].count)
-    .slice(0, 5);
-  console.log("╠══ Pattern Learning Results ══╣");
-  console.log(`║ Final Confidence: ${(currentConfidence * 100).toFixed(2)}%`);
-  console.log(`║ Patterns Analyzed: ${patterns.size}`);
-  console.log("║ Top Predictive Patterns:");
-  strongPatterns.forEach(([pattern, data]) => {
-    const total = data.nextBits["0"] + data.nextBits["1"];
-    const prediction = data.nextBits["1"] > data.nextBits["0"] ? "1" : "0";
-    const accuracy = Math.max(data.nextBits["0"], data.nextBits["1"]) / total;
-    console.log(
-      `║ ${pattern} → ${prediction} (${(accuracy * 100).toFixed(1)}% accurate)`
-    );
-  });
-  console.log("╚════════════════════════════════╝");
+
+  console.log("\n" + getUniqueMessage("success"));
+  process.stdout.write("\n"); // Clean up cursor position
+
   return {
     confidence: currentConfidence,
-    patterns: strongPatterns,
+    patterns,
     iterations: iteration,
   };
 }
+
 // Test the improved confidence system
 testCases.forEach((binary, index) => {
   console.log(`\nAnalyzing Test Case ${index + 1}`);
@@ -879,72 +901,7 @@ runTestCaseAnalysis([
   primeNeuralPattern,
   hyperPattern,
 ]);
-// Enhanced Pattern Learning System with dynamic progress updates
-function improveConfidenceLevelEnhanced(
-  binary,
-  targetConfidence = 0.95,
-  maxIterations = 100
-) {
-  let currentConfidence = 0;
-  let iteration = 0;
-  let patterns = new Map();
-  let learningRate = 0.1;
-  let lastUpdate = 0;
-  process.stdout.write("\n╔═════ Pattern Learning System ═════╗\n");
-  process.stdout.write("║                                  ║\n");
-  process.stdout.write("╚══════════════════════════════════╝");
-  while (currentConfidence < targetConfidence && iteration < maxIterations) {
-    iteration++;
-    const result = analyzeBinary(binary);
-    const newConfidence = calculatePredictionConfidence(result);
-    // Only update display if confidence improved significantly
-    if (newConfidence > currentConfidence + 0.01 || iteration % 10 === 0) {
-      process.stdout.write(
-        `\x1B[2A║ Iter: ${iteration.toString().padEnd(3)} | Conf: ${(
-          newConfidence * 100
-        ).toFixed(1)}% ${
-          newConfidence > currentConfidence ? "📈" : " "
-        } ║\n\x1B[1B`
-      );
-      currentConfidence = newConfidence;
-    }
-    // Update pattern analysis (simplified for performance)
-    for (let windowSize = 4; windowSize <= 16; windowSize *= 2) {
-      const pattern = binary.substr(
-        iteration % (binary.length - windowSize),
-        windowSize
-      );
-      const nextBit =
-        binary[(iteration % (binary.length - windowSize)) + windowSize] || "";
-      if (nextBit) {
-        patterns.set(pattern, {
-          count:
-            ((patterns.get(pattern) && patterns.get(pattern).count) || 0) + 1,
-          nextBits: {
-            0:
-              ((patterns.get(pattern) &&
-                patterns.get(pattern).nextBits &&
-                patterns.get(pattern).nextBits["0"]) ||
-                0) + (nextBit === "0" ? 1 : 0),
-            1:
-              ((patterns.get(pattern) &&
-                patterns.get(pattern).nextBits &&
-                patterns.get(pattern).nextBits["1"]) ||
-                0) + (nextBit === "1" ? 1 : 0),
-          },
-        });
-      }
-    }
-    learningRate *= 0.95;
-    if (iteration > 10 && currentConfidence < 0.3) break;
-  }
-  process.stdout.write("\n");
-  return {
-    confidence: currentConfidence,
-    patterns,
-    iterations: iteration,
-  };
-}
+
 // Final enhanced test suite execution with streamlined output
 function runEnhancedTests() {
   const allTestCases = [
@@ -974,69 +931,7 @@ function runEnhancedTests() {
   console.log("\n✨ Analysis Complete ✨\n");
 }
 runEnhancedTests();
-// Updated version with fixed spacing
-function improveConfidenceLevelEnhanced(
-  binary,
-  targetConfidence = 0.95,
-  maxIterations = 100
-) {
-  let currentConfidence = 0;
-  let iteration = 0;
-  let patterns = new Map();
-  let learningRate = 0.1;
-  console.log("\n╔════════ Pattern Learning System ════════╗");
-  console.log("║                                         ║");
-  console.log("╚═════════════════════════════════════════╝");
-  while (currentConfidence < targetConfidence && iteration < maxIterations) {
-    iteration++;
-    const newConfidence = calculatePredictionConfidence(analyzeBinary(binary));
-    if (newConfidence > currentConfidence + 0.01 || iteration % 10 === 0) {
-      process.stdout.write(
-        `\x1B[2A║ Iteration: ${iteration.toString().padEnd(3)} | Confidence: ${(
-          newConfidence * 100
-        ).toFixed(1)}% ${
-          newConfidence > currentConfidence ? "📈" : "  "
-        } ║\n\x1B[1B`
-      );
-      currentConfidence = newConfidence;
-    }
-    // Pattern analysis logic remains the same
-    for (let windowSize = 4; windowSize <= 16; windowSize *= 2) {
-      const pattern = binary.substr(
-        iteration % (binary.length - windowSize),
-        windowSize
-      );
-      const nextBit =
-        binary[(iteration % (binary.length - windowSize)) + windowSize] || "";
-      if (nextBit) {
-        patterns.set(pattern, {
-          count:
-            ((patterns.get(pattern) && patterns.get(pattern).count) || 0) + 1,
-          nextBits: {
-            0:
-              ((patterns.get(pattern) &&
-                patterns.get(pattern).nextBits &&
-                patterns.get(pattern).nextBits["0"]) ||
-                0) + (nextBit === "0" ? 1 : 0),
-            1:
-              ((patterns.get(pattern) &&
-                patterns.get(pattern).nextBits &&
-                patterns.get(pattern).nextBits["1"]) ||
-                0) + (nextBit === "1" ? 1 : 0),
-          },
-        });
-      }
-    }
-    learningRate *= 0.95;
-    if (iteration > 10 && currentConfidence < 0.3) break;
-  }
-  console.log("\n");
-  return {
-    confidence: currentConfidence,
-    patterns,
-    iterations: iteration,
-  };
-}
+
 // Function to ask user if they want to continue analysis
 function askToContinue(currentConfidence, iteration) {
   const messages = [
@@ -1063,45 +958,15 @@ function askToContinue(currentConfidence, iteration) {
     });
   });
 }
-// Update runEnhancedTests to be async and include user prompts
-async function runEnhancedTests() {
-  const allTestCases = [
-    ...testCases,
-    zigzagPattern,
-    fibonacciQuantum,
-    primeNeuralPattern,
-    hyperPattern,
-  ];
-  console.log("\n🔍 Starting initial pattern analysis...");
-  for (let i = 0; i < allTestCases.length; i++) {
-    const binary = allTestCases[i];
-    const result = analyzeBinary(binary);
-    const improvement = improveConfidenceLevelEnhanced(binary, 0.95, 25); // Reduced initial iterations
-    if (improvement.confidence < 0.8) {
-      const continueAnalysis = await askToContinue(
-        improvement.confidence,
-        improvement.iterations
-      );
-      if (!continueAnalysis) {
-        console.log("Analysis stopped by user. Thanks for playing! 👋");
-        break;
-      }
-    }
-    console.log(
-      `\n[Test ${i + 1}/${allTestCases.length}] ${
-        improvement.confidence > 0.8 ? "🎯" : "🎪"
-      }`
-    );
-    formatAnalysisResult(binary, result);
-  }
-  console.log("\n✨ Analysis Complete ✨\n");
-}
+
 // Update the final call to use async/await
 (async () => {
   await runEnhancedTests();
 })();
 // Fun dialogues for confidence improvement stages
-function getConfidenceDialogue(confidence) {
+let confidence = 0;
+function getConfidenceDialogue(confidenceLevel) {
+  confidence = confidenceLevel;
   const dialogues = [
     // Low confidence (0-0.3)
     [
@@ -1131,41 +996,7 @@ function getConfidenceDialogue(confidence) {
   const index = confidence <= 0.3 ? 0 : confidence <= 0.6 ? 1 : 2;
   return dialogues[index][Math.floor(Math.random() * dialogues[index].length)];
 }
-// Update improveConfidenceLevel to include dialogues
-function improveConfidenceLevelEnhanced(
-  binary,
-  targetConfidence = 0.95,
-  maxIterations = 100
-) {
-  let currentConfidence = 0;
-  let iteration = 0;
-  let lastDialogueThreshold = -1;
-  while (currentConfidence < targetConfidence && iteration < maxIterations) {
-    iteration++;
-    const newConfidence = calculatePredictionConfidence(analyzeBinary(binary));
-    // Show dialogue when crossing confidence thresholds
-    const confidenceThreshold = Math.floor(newConfidence * 10) / 10;
-    if (confidenceThreshold > lastDialogueThreshold) {
-      console.log("\n" + getConfidenceDialogue(newConfidence));
-      lastDialogueThreshold = confidenceThreshold;
-    }
-    currentConfidence = newConfidence;
-    if (iteration % 10 === 0) {
-      console.log(
-        `Iteration ${iteration}: ${(currentConfidence * 100).toFixed(
-          1
-        )}% confident`
-      );
-    }
-  }
-  console.log(
-    "\n🤖 Wow, did I do that? I feel like I just learned to walk! ...do I have legs?"
-  );
-  return {
-    confidence: currentConfidence,
-    iterations: iteration,
-  };
-}
+
 // Update dialogue pool with additional messages
 Object.assign(dialoguePool, {
   startup: [
@@ -1235,40 +1066,7 @@ function getUniqueMessage(category) {
   usedMessages.add(message);
   return message;
 }
-// Updated improveConfidenceLevel with better message management
-function improveConfidenceLevelEnhanced(
-  binary,
-  targetConfidence = 0.95,
-  maxIterations = 100
-) {
-  let currentConfidence = 0;
-  let iteration = 0;
-  let patterns = new Map();
-  console.log("\n" + getUniqueMessage("startup"));
-  while (currentConfidence < targetConfidence && iteration < maxIterations) {
-    iteration++;
-    const newConfidence = calculatePredictionConfidence(analyzeBinary(binary));
-    if (iteration % 25 === 0) {
-      // Reduced frequency of messages
-      console.log(getUniqueMessage("progress"));
-    }
-    if (newConfidence > currentConfidence + 0.2) {
-      // Only on significant improvements
-      console.log(
-        getUniqueMessage(
-          newConfidence > 0.7 ? "highConfidence" : "lowConfidence"
-        )
-      );
-    }
-    currentConfidence = newConfidence;
-  }
-  console.log("\n" + getUniqueMessage("success"));
-  return {
-    confidence: currentConfidence,
-    patterns,
-    iterations: iteration,
-  };
-}
+
 // Initialize performance monitoring
 const performanceData = {
   totalAnalysisTime: 0,
@@ -1279,7 +1077,7 @@ const performanceData = {
 // Export functions and data for use in other modules
 module.exports = {
   analyzeBinary,
-  predictNextBits, 
+  predictNextBits,
   improveConfidenceLevel: improveConfidenceLevelEnhanced, // Export enhanced version
   runEnhancedTests,
   formatAnalysisResult,
@@ -1335,7 +1133,9 @@ function monitorPerformance(fn) {
 }
 // Wrap key functions with performance monitoring
 const monitoredAnalyzeBinary = monitorPerformance(analyzeBinary);
-const monitoredImproveConfidence = monitorPerformance(improveConfidenceLevelEnhanced);
+const monitoredImproveConfidence = monitorPerformance(
+  improveConfidenceLevelEnhanced
+);
 // Add performance reporting
 function reportPerformance() {
   const totalTime = (Date.now() - performanceWizard.startTime) / 1000;
@@ -1366,8 +1166,10 @@ module.exports = {
   dialoguePool,
   performanceData,
   monitoredAnalyzeBinary,
-  monitoredImproveConfidence: monitorPerformance(improveConfidenceLevelEnhanced),
-  reportPerformance
+  monitoredImproveConfidence: monitorPerformance(
+    improveConfidenceLevelEnhanced
+  ),
+  reportPerformance,
 };
 // Only run tests if this is the main module
 if (require.main === module) {
@@ -1380,47 +1182,117 @@ if (require.main === module) {
     }
   })();
 }
-// Performance monitoring wrapper function
-function monitorPerformance(fn) {
-  return function (...args) {
-    const start = process.hrtime();
-    const result = fn.apply(this, args);
-    const end = process.hrtime(start);
-    const timeInMs = end[0] * 1000 + end[1] / 1000000;
-    performanceData.totalAnalysisTime += timeInMs;
-    performanceData.testsCompleted++;
-    if (result && result.confidence) {
-      performanceData.averageConfidence =
-        (performanceData.averageConfidence *
-          (performanceData.testsCompleted - 1) +
-          result.confidence) /
-        performanceData.testsCompleted;
-    }
-    return result;
-  };
-}
-// Wrap key functions with performance monitoring
-const monitoredAnalyzeBinary = monitorPerformance(analyzeBinary);
-const monitoredImproveConfidence = monitorPerformance(improveConfidenceLevelEnhanced);
-// Add performance reporting
-function reportPerformance() {
-  const totalTime = (Date.now() - performanceWizard.startTime) / 1000;
-  const avgAnalysisTime =
-    performanceWizard.totalAnalysisTime /
-    Math.max(1, performanceWizard.testsCompleted);
-  const avgConfidence = Math.min(
-    100,
-    performanceWizard.averageConfidence * 100
-  );
 
-  console.log("\n🎯 Performance Report");
-  console.log("════════════════════════════════════════");
-  console.log(`Total Runtime: ${totalTime.toFixed(2)}s`);
-  console.log(`Tests Completed: ${performanceWizard.testsCompleted}`);
-  console.log(`Average Analysis Time: ${avgAnalysisTime.toFixed(2)}ms`);
-  console.log(
-    `Average Confidence: ${(performanceWizard.averageConfidence * 100).toFixed(
-      1
-    )}%`
+function analyzeBinary(binary) {
+  if (!binary || typeof binary !== "string" || !/^[01]+$/.test(binary)) {
+    throw new Error("Invalid binary input");
+  }
+
+  const analysis = {
+    pattern_metrics: {
+      entropy: calculateEntropy(binary),
+      burstiness: calculateBurstiness(binary),
+      correlation: calculateCorrelation(binary),
+      longestRun: findLongestRun(binary),
+    },
+    pattern_complexity: {
+      type: determinePatternType(binary),
+      level: calculateComplexityLevel(binary),
+    },
+    X_ratio: binary.split("1").length / binary.length,
+    Y_ratio: binary.split("0").length / binary.length,
+    visualData: {
+      slidingWindowAnalysis: performSlidingWindowAnalysis(binary),
+      patternDensity: calculatePatternDensity(binary),
+      transitions: calculateTransitions(binary),
+    },
+  };
+
+  return analysis;
+}
+
+// --- newly added logic
+function calculateEntropy(binary) {
+  const counts = { 0: 0, 1: 0 };
+  for (const bit of binary) counts[bit]++;
+
+  return Object.values(counts).reduce((entropy, count) => {
+    const p = count / binary.length;
+    return entropy - (p ? p * Math.log2(p) : 0);
+  }, 0);
+}
+
+function calculateBurstiness(binary) {
+  const runs = binary.match(/([01])\1*/g) || [];
+  return (
+    runs.reduce((sum, run) => sum + Math.pow(run.length, 2), 0) / binary.length
   );
+}
+
+function calculateCorrelation(binary) {
+  let correlation = 0;
+  for (let i = 0; i < binary.length - 1; i++) {
+    correlation += binary[i] === binary[i + 1] ? 1 : -1;
+  }
+  return correlation / (binary.length - 1);
+}
+
+function findLongestRun(binary) {
+  const runs = binary.match(/([01])\1*/g) || [];
+  return Math.max(...runs.map((run) => run.length));
+}
+
+function determinePatternType(binary) {
+  const correlation = calculateCorrelation(binary);
+  const entropy = calculateEntropy(binary);
+
+  if (correlation > 0.8) return "run-based";
+  if (correlation < -0.8) return "alternating";
+  if (entropy > 0.9) return "random";
+  if (entropy < 0.3) return "fixed";
+  return "complex";
+}
+
+function calculateComplexityLevel(binary) {
+  const metrics = {
+    entropy: calculateEntropy(binary),
+    correlation: Math.abs(calculateCorrelation(binary)),
+    burstiness: calculateBurstiness(binary),
+  };
+
+  return (
+    metrics.entropy * 0.4 + metrics.correlation * 0.3 + metrics.burstiness * 0.3
+  );
+}
+
+function performSlidingWindowAnalysis(binary, windowSize = 8) {
+  const windows = [];
+  for (let i = 0; i <= binary.length - windowSize; i++) {
+    const window = binary.slice(i, i + windowSize);
+    windows.push({
+      window,
+      entropy: calculateEntropy(window),
+      pattern: determinePatternType(window),
+    });
+  }
+  return windows;
+}
+
+function calculatePatternDensity(binary) {
+  const patterns = {};
+  for (let len = 2; len <= 4; len++) {
+    for (let i = 0; i <= binary.length - len; i++) {
+      const pattern = binary.slice(i, i + len);
+      patterns[pattern] = (patterns[pattern] || 0) + 1;
+    }
+  }
+  return patterns;
+}
+
+function calculateTransitions(binary) {
+  let transitions = 0;
+  for (let i = 1; i < binary.length; i++) {
+    if (binary[i] !== binary[i - 1]) transitions++;
+  }
+  return transitions / (binary.length - 1);
 }
