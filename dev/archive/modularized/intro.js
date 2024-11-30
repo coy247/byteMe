@@ -49,38 +49,38 @@ const DEMO_CONFIG = {
 
 // Add to existing constants
 const RETRO_APPS = [
-  { 
+  {
     name: "Windows 95",
     messages: [
-      "is taking a quick nap, but will be back after these commercial messags...",
+      "is taking a quick nap, but will be back after these commercial messages...",
       "needs more coffee to continue...",
-      "crashed but recommends this song by Alanis..."
-    ]
+      "crashed but recommends this song by Alanis...",
+    ],
   },
-  { 
+  {
     name: "Netscape Navigator",
     messages: [
       "is still trying to connect...",
-      "got lost in cyberspace...",
-      "found this cool GeoCities page..."
-    ]
+      "is busy playing flash animations and shockwave games...",
+      "found this cool GeoCities page...",
+    ],
   },
-  { 
+  {
     name: "WordPerfect",
     messages: [
       "perfecting its words...",
       "fighting with Comic Sans...",
-      "remembering what 'real' fonts are..."
-    ]
+      "remembering what 'real' fonts are...",
+    ],
   },
-  { 
+  {
     name: "Internet Explorer",
     messages: [
       "is questioning its life choices...",
       "thinks critical updates are just being overly dramatic...",
-      "is begging to be uninstalled..."
-    ]
-  }
+      "is begging to be uninstalled...",
+    ],
+  },
 ];
 
 function getRandomApp() {
@@ -298,9 +298,15 @@ const EnhancedStartupManager = {
   },
 
   async transitionToMainApp() {
-    await animateText(`${colors.green}System Ready${colors.reset}`, 30);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    clearScreen();
+    try {
+      process.removeAllListeners('warning'); // Remove debugger listener
+      await animateText(`${colors.green}System Ready${colors.reset}`, 30);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      clearScreen();
+    } catch (err) {
+      await this.cleanup();
+      process.exit(1);
+    }
   },
 
   async runDemoSequence() {
@@ -308,6 +314,9 @@ const EnhancedStartupManager = {
     this.isRunning = true;
 
     try {
+      // Disable debugger output
+      process.env.NODE_NO_WARNINGS = '1';
+      
       clearScreen();
       await displayBanner();
       await playDemoBootSequence();
@@ -317,6 +326,7 @@ const EnhancedStartupManager = {
     } catch (err) {
       consoleError(`${colors.red}Demo Error:${colors.reset}`, err);
       await this.cleanup();
+      process.exit(1);
     } finally {
       this.isRunning = false;
     }
