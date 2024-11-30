@@ -2,6 +2,15 @@
 const { stdout } = process;
 const { log, error: consoleError } = console;
 
+// Add terminal control constants
+const terminalControl = {
+  clearLine: '\x1b[2K',
+  cursorStart: '\x1b[0G',
+  clearToEnd: '\x1b[K',
+  hideCursor: '\x1b[?25l',
+  showCursor: '\x1b[?25h'
+};
+
 // Configuration
 const CONFIG = {
   animationSpeed: 800,
@@ -16,6 +25,10 @@ const DEMO_CONFIG = {
   demoMode: true,
   matrixEffect: true,
   simulateErrors: false,
+  retroApp: {
+    name: "Windows 95",
+    delay: 3000
+  },
   bootMessages: [
     "BIOS Version 2.0.1337",
     "Memory Test: OK",
@@ -23,8 +36,58 @@ const DEMO_CONFIG = {
     "GPU: HoloTech 4090Ti",
     "Neural Network: Online",
     "AI Subsystems: Active"
+  ],
+  modernSystems: [
+    "Quantum Core",
+    "Neural Engine", 
+    "Pattern Matrix",
+    "Entropy Scanner", 
+    "Reality Engine", 
+    "Time Dilation"
   ]
 };
+
+// Add to existing constants
+const RETRO_APPS = [
+  { 
+    name: "Windows 95",
+    messages: [
+      "is taking a quick nap, but will be back after these commercial messags...",
+      "needs more coffee to continue...",
+      "crashed but recommends this song by Alanis..."
+    ]
+  },
+  { 
+    name: "Netscape Navigator",
+    messages: [
+      "is still trying to connect...",
+      "got lost in cyberspace...",
+      "found this cool GeoCities page..."
+    ]
+  },
+  { 
+    name: "WordPerfect",
+    messages: [
+      "perfecting its words...",
+      "fighting with Comic Sans...",
+      "remembering what 'real' fonts are..."
+    ]
+  },
+  { 
+    name: "Internet Explorer",
+    messages: [
+      "is questioning its life choices...",
+      "thinks critical updates are just being overly dramatic...",
+      "is begging to be uninstalled..."
+    ]
+  }
+];
+
+function getRandomApp() {
+  const app = RETRO_APPS[Math.floor(Math.random() * RETRO_APPS.length)];
+  const message = app.messages[Math.floor(Math.random() * app.messages.length)];
+  return { name: app.name, message };
+}
 
 // Enhanced display utilities
 const colors = {
@@ -79,10 +142,12 @@ function clearScreen() {
 }
 
 // Matrix effect animation
-async function playMatrixEffect(duration = 2000) {
+async function playMatrixEffect(duration = 4500) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*";
   const columns = process.stdout.columns;
   const streams = Array(columns).fill(0);
+  
+  process.stdout.write(terminalControl.hideCursor);
   
   const interval = setInterval(() => {
     let output = "";
@@ -103,6 +168,7 @@ async function playMatrixEffect(duration = 2000) {
   await new Promise(resolve => setTimeout(resolve, duration));
   clearInterval(interval);
   clearScreen();
+  process.stdout.write(terminalControl.showCursor);
 }
 
 // Enhanced boot sequence
@@ -123,10 +189,57 @@ async function playEnhancedBootSequence() {
   }
 }
 
-// Enhanced demo boot sequence
+const RETRO_CHARS = {
+  blocks: ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'],
+  spinner: ['|', '/', '-', '\\'],
+  progress: ['[', ']', '=', '*', ' '],
+  bounce: ['.   ', ' .  ', '  . ', '   .', '  . ', ' .  ']
+};
+
+async function simulateRetroAppLoading() {
+  const terminalWidth = process.stdout.columns;
+  const width = Math.min(terminalWidth - 20, 40);
+  const app = getRandomApp();
+  let progress = 0;
+  
+  process.stdout.write(terminalControl.hideCursor);
+  try {
+    // Initial message
+    process.stdout.write(`${colors.cyan}Loading ${app.name}...${colors.reset}\n`);
+    
+    // Loading animation
+    while (progress < 100) {
+      process.stdout.write(terminalControl.clearLine + terminalControl.cursorStart);
+      
+      const completed = Math.floor((width * progress) / 100);
+      const bar = '[' + '='.repeat(completed) + '>' + ' '.repeat(width - completed) + ']';
+      const spinChar = '|/-\\'[Math.floor(progress / 3) % 4];
+      const progressText = `${spinChar} ${bar} ${progress}%`;
+      
+      // Pad to full terminal width
+      const paddedText = progressText.padEnd(terminalWidth);
+      process.stdout.write(`${colors.yellow}${paddedText}${colors.reset}`);
+      
+      progress = Math.min(100, progress + (Math.random() * 3 + 1));
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    // Completion message - ensure full line coverage
+    process.stdout.write(terminalControl.clearLine + terminalControl.cursorStart);
+    const completionText = `✓ ${app.name} ${app.message}`;
+    const paddedCompletion = completionText.padEnd(terminalWidth);
+    process.stdout.write(`${colors.green}${paddedCompletion}${colors.reset}\n`);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+  } finally {
+    process.stdout.write(terminalControl.showCursor);
+  }
+}
+
+// Update playDemoBootSequence to use single app loader
 async function playDemoBootSequence() {
-  // Matrix effect intro
   await playMatrixEffect();
+  await simulateRetroAppLoading();
   
   // BIOS-style boot messages
   for (const message of DEMO_CONFIG.bootMessages) {
@@ -223,7 +336,8 @@ module.exports = {
   CONFIG,
   colors,
   DEMO_CONFIG,
-  playMatrixEffect
+  playMatrixEffect,
+  terminalControl
 };
 
 // Auto-start if main module
