@@ -1,42 +1,27 @@
-[
-  {
-    "id": "b0e6df64dc561de2ee034498f95e57c7",
-    "timestamp": 1733028684800,
-    "metrics": {
-      "entropy": 0,
-      "complexity": 0,
-      "variance": 0
-    },
-    "summary": "Pattern analyzed with entropy 0.0000"
-  },
-  {
-    "id": "66867192e1197c0c1ebcaaec3e6086f9",
-    "timestamp": 1733028684800,
-    "metrics": {
-      "entropy": 0,
-      "complexity": 0,
-      "variance": 0
-    },
-    "summary": "Pattern analyzed with entropy 0.0000"
-  },
-  {
-    "id": "cbd84ee1bd1c557d0d33ec5049b7c6d4",
-    "timestamp": 1733028684799,
-    "metrics": {
-      "entropy": 0,
-      "complexity": 0,
-      "variance": 0
-    },
-    "summary": "Pattern analyzed with entropy 0.0000"
-  },
-  {
-    "id": "7bdd0ecb721bb0e06be7fb397d5f2759",
-    "timestamp": 1733028684797,
-    "metrics": {
-      "entropy": 0,
-      "complexity": 0,
-      "variance": 0
-    },
-    "summary": "Pattern analyzed with entropy 0.0000"
+{
+  "version": "1.1",
+  "lastUpdated": 1733030027772,
+  "analyses": [
+    []
+  ],
+  "metadata": {
+    "categories": [
+      "alternating",
+      "mixed",
+      "periodic",
+      "random"
+    ],
+    "metrics": [
+      "entropy",
+      "complexity",
+      "burstiness"
+    ],
+    "thresholds": {
+      "entropy": {
+        "low": 0.3,
+        "medium": 0.7,
+        "high": 0.9
+      }
+    }
   }
-]
+}

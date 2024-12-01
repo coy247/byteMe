@@ -56,6 +56,21 @@ class ScoreManager {
       // Continue with default scores if there's an error
     }
   }
+
+  async updateScore(points, reason) {
+    this.scores.current += points;
+    const entry = {
+      timestamp: Date.now(),
+      points,
+      reason,
+      total: this.scores.current,
+    };
+    this.scores.history.push(entry);
+    await this.saveScores();
+    return entry;
+  }
+
+  // Using parent class saveScores() implementation
 }
 
 // Core utility classes
@@ -437,31 +452,20 @@ class ModelValidator {
 
 // ModelValidator instance will be initialized when needed
 class ModelRecovery {
-  constructor(scoreManagerInstance) {
-    if (!scoreManagerInstance) {
-      throw new Error("ScoreManager instance is required");
-    }
-    this.scoreManager = scoreManagerInstance;
-    this.template = {
-      id: "",
-      timestamp: 0,
-      pattern_type: "",
-      metrics: {
-        entropy: 0,
-        complexity: 0,
-        burstiness: 0,
-      },
-      summary: "",
-    };
-    this.scores = {
-      current: 0,
-      history: [],
-      penalties: [],
-    };
-    this.lastHeartbeat = Date.now();
-    this.startServerMonitoring();
-    this.waypointTracker = new WaypointTracker();
+constructor(scoreManagerInstance) {
+  if (!scoreManagerInstance) {
+    throw new Error("ScoreManager instance is required");
   }
+  this.scoreManager = scoreManagerInstance;
+  this.template = {
+    current: 0,
+    history: [],
+    penalties: [],
+  };
+  this.lastHeartbeat = Date.now();
+  this.startServerMonitoring();
+  this.waypointTracker = new WaypointTracker();
+}
 
   normalizeEntry(entry) {
     // Check if entry exists
@@ -593,27 +597,68 @@ let modelManagerInstance = null;
 
 // ModelManager singleton instance is managed within the class
 class ModelManager {
-  constructor(scoreManagerInstance) {
-    if (!scoreManagerInstance) {
-      throw new Error(
-        "ScoreManager instance is required for ModelManager initialization"
-      );
+  constructor() {
+    this.modelStructure = {
+      version: "1.1",
+      lastUpdated: Date.now(),
+      analyses: [],
+      metadata: {
+        categories: ["alternating", "mixed", "periodic", "random"],
+        metrics: ["entropy", "complexity", "burstiness"],
+        thresholds: {
+          entropy: {
+            low: 0.3,
+            medium: 0.7,
+            high: 0.9,
+          },
+        },
+      },
+    };
+  }
+
+  async updateModel(analysis) {
+    try {
+      const model = await this.loadModel();
+
+      const enrichedAnalysis = {
+        id: require("crypto").randomBytes(16).toString("hex"),
+        timestamp: Date.now(),
+        pattern_type: this.detectPatternType(analysis),
+        metrics: {
+          entropy: Number(analysis.entropy).toFixed(16),
+          complexity: Number(analysis.complexity).toFixed(16),
+          burstiness: Number(analysis.burstiness).toFixed(16),
+        },
+        summary: `Pattern analyzed: ${this.detectPatternType(
+          analysis
+        )} with entropy ${Number(analysis.entropy).toFixed(4)}`,
+      };
+
+      // Add to analyses array
+      if (!Array.isArray(model.analyses)) {
+        model.analyses = [];
+      }
+      model.analyses.push(enrichedAnalysis);
+
+      // Update timestamp
+      model.lastUpdated = Date.now();
+
+      await this.saveModel(model);
+      return enrichedAnalysis;
+    } catch (error) {
+      console.error("Error updating model:", error);
+      throw error;
     }
-    this.stabilityMonitor = new StabilityMonitor(scoreManagerInstance);
-    this.archiver = new ModelArchiver();
-    this.validator = new ModelValidator(scoreManagerInstance);
-    this.recovery = new ModelRecovery(scoreManagerInstance);
-    this.categories = {
-      alternating: [],
-      mixed: [],
-      periodic: [],
-      random: [],
-    };
-    this.entropyThresholds = {
-      low: 0.3,
-      medium: 0.7,
-      high: 0.9,
-    };
+  }
+
+  detectPatternType(analysis) {
+    const entropy = Number(analysis.entropy);
+    const complexity = Number(analysis.complexity);
+
+    if (entropy > 0.95 && complexity > 0.95) return "random";
+    if (entropy < 0.1) return "periodic";
+    if (complexity > 0.8 && entropy < 0.9) return "alternating";
+    return "mixed";
   }
 
   static async getInstance(scoreManagerInstance) {
@@ -633,7 +678,7 @@ class ModelManager {
     }
   }
 
-  async updateModel(analysis) {
+  async updateModelData(analysis) {
     try {
       const model = await this.loadModel();
 
@@ -793,8 +838,16 @@ class BinaryAnalysis {
   }
 
   abortAnalysis(reason) {
-    clearInterval(this.memoryWatcher);
+    if (this.memoryWatcher) {
+      clearInterval(this.memoryWatcher);
+    }
     this.performEmergencyCleanup();
+    const state = {
+      reason,
+      timestamp: Date.now(),
+      memoryUsage: process.memoryUsage(),
+    };
+    console.log(JSON.stringify(state, null, 2));
     throw new Error(`Analysis aborted: ${reason}`);
   }
 
@@ -878,6 +931,14 @@ class DataProcessor {
 
   generateId() {
     return require("crypto").randomBytes(16).toString("hex");
+  }
+
+  extractMetrics(entry) {
+    return {
+      entropy: entry && entry.metrics ? entry.metrics.entropy || 0 : 0,
+      complexity: entry && entry.metrics ? entry.metrics.complexity || 0 : 0,
+      burstiness: entry && entry.metrics ? entry.metrics.burstiness || 0 : 0,
+    };
   }
 
   processData(inputData) {
@@ -1004,6 +1065,254 @@ class ExtendedScoreManager extends ScoreManager {
   }
 }
 
+// Export modules after all class declarations
+class ModelInitializer {
+  constructor() {
+    this.MODEL_PATH = path.join(
+      __dirname,
+      "..",
+      "models",
+      "patterns",
+      "model.json"
+    );
+    this.BACKUP_PATH = path.join(
+      __dirname,
+      "..",
+      "models",
+      "patterns",
+      "model.backup.json"
+    );
+    this.DEFAULT_MODEL = {
+      version: "1.1",
+      lastUpdated: Date.now(),
+      analyses: [],
+      metadata: {
+        categories: ["alternating", "mixed", "periodic", "random"],
+        metrics: ["entropy", "complexity", "burstiness"],
+        thresholds: {
+          entropy: { low: 0.3, medium: 0.7, high: 0.9 },
+        },
+      },
+    };
+  }
+
+  async initializeModel() {
+    try {
+      // Check if model exists
+      const modelExists = await fsPromises
+        .access(this.MODEL_PATH)
+        .then(() => true)
+        .catch(() => false);
+
+      if (!modelExists) {
+        await this.createNewModel();
+        return this.DEFAULT_MODEL;
+      }
+
+      // Try to load and validate existing model
+      const model = await this.loadAndValidateModel();
+      if (model) return model;
+
+      // Try to restore from backup
+      const restored = await this.restoreFromBackup();
+      if (restored) return restored;
+
+      // Create new if all else fails
+      return await this.createNewModel();
+    } catch (error) {
+      console.error("Model initialization failed:", error);
+      return this.DEFAULT_MODEL;
+    }
+  }
+
+  async loadAndValidateModel() {
+    try {
+      const data = await fsPromises.readFile(this.MODEL_PATH, "utf8");
+      const model = JSON.parse(data);
+
+      if (this.isValidModel(model)) {
+        await this.backupModel(model);
+        return model;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Model validation failed:", error);
+      return null;
+    }
+  }
+
+  isValidModel(model) {
+    return (
+      model &&
+      model.version &&
+      Array.isArray(model.analyses) &&
+      model.metadata &&
+      Array.isArray(model.metadata.categories) &&
+      Array.isArray(model.metadata.metrics)
+    );
+  }
+
+  async createNewModel() {
+    await fsPromises.writeFile(
+      this.MODEL_PATH,
+      JSON.stringify(this.DEFAULT_MODEL, null, 2)
+    );
+    return this.DEFAULT_MODEL;
+  }
+
+  async backupModel(model) {
+    await fsPromises.writeFile(
+      this.BACKUP_PATH,
+      JSON.stringify(model, null, 2)
+    );
+  }
+
+  async restoreFromBackup() {
+    try {
+      const data = await fsPromises.readFile(this.BACKUP_PATH, "utf8");
+      const model = JSON.parse(data);
+      if (this.isValidModel(model)) {
+        await this.createNewModel();
+        return model;
+      }
+      return null;
+    } catch (error) {
+      console.error("Backup restoration failed:", error);
+      return null;
+    }
+  }
+}
+
+// ModelData class declaration comes before export
+// ModelData class is defined at the end of the file
+
+class ModelData {
+  constructor() {
+    this.model = {
+      version: "1.1",
+      lastUpdated: Date.now(),
+      analyses: [],
+      patterns: {
+        alternating: [],
+        periodic: [],
+        random: [],
+        mixed: []
+      },
+      metadata: {
+        categories: ["alternating", "mixed", "periodic", "random"],
+        metrics: ["entropy", "complexity", "burstiness"],
+        thresholds: {
+          entropy: { low: 0.3, medium: 0.7, high: 0.9 }
+        }
+      }
+    };
+    this.testPatterns = [
+      { type: "alternating", value: "1010101010" },
+      { type: "periodic", value: "11110000" },
+      { type: "mixed", value: Array(64).fill(0).map(() => Math.random() > 0.5 ? "1" : "0").join("") }
+    ];
+    this.cache = new Map();
+    this.lastAnalysis = null;
+    this.initialized = false;
+  }
+
+  async initialize() {
+    try {
+      const exists = await fsPromises.access(MODEL_PATH).then(() => true).catch(() => false);
+      if (!exists) {
+        await this.createInitialModel();
+        return;
+      }
+
+      const data = await fsPromises.readFile(MODEL_PATH, 'utf8');
+      const loaded = JSON.parse(data);
+      
+      if (this.validateModel(loaded)) {
+        this.model = loaded;
+      } else {
+        console.warn('Invalid model structure detected, initializing new model');
+        await this.createInitialModel();
+      }
+    } catch (error) {
+      console.error('Model initialization error:', error);
+      await this.createInitialModel();
+    }
+  }
+
+  validateModel(data) {
+    return data && 
+           data.version && 
+           Array.isArray(data.analyses) &&
+           data.metadata &&
+           Array.isArray(data.metadata.categories) &&
+           Array.isArray(data.metadata.metrics);
+  }
+
+  async createInitialModel() {
+    try {
+      // Analyze test patterns first
+      for (const pattern of this.testPatterns) {
+        const analysis = {
+          id: require('crypto').randomBytes(16).toString('hex'),
+          timestamp: Date.now(),
+          pattern_type: pattern.type,
+          metrics: this.analyzePattern(pattern.value),
+          summary: `Initial ${pattern.type} pattern`
+        };
+        this.model.analyses.push(analysis);
+        this.model.patterns[pattern.type].push(analysis);
+      }
+
+      await this.save();
+    } catch (error) {
+      console.error('Error creating initial model:', error);
+      throw error;
+    }
+  }
+
+  analyzePattern(binary) {
+    return {
+      entropy: this.calculateEntropy(binary),
+      complexity: this.calculateComplexity(binary),
+      burstiness: this.calculateBurstiness(binary)
+    };
+  }
+
+  async save() {
+    try {
+      await fsPromises.writeFile(MODEL_PATH, JSON.stringify(this.model, null, 2));
+    } catch (error) {
+      console.error('Error saving model:', error);
+      throw error;
+    }
+  }
+
+  calculateEntropy(binary) {
+    const freq = new Map();
+    for (const bit of binary) {
+      freq.set(bit, (freq.get(bit) || 0) + 1);
+    }
+    return -Array.from(freq.values())
+      .map(count => count / binary.length)
+      .reduce((sum, p) => sum + p * Math.log2(p), 0);
+  }
+
+  calculateComplexity(binary) {
+    let transitions = 0;
+    for (let i = 1; i < binary.length; i++) {
+      if (binary[i] !== binary[i-1]) transitions++;
+    }
+    return transitions / (binary.length - 1);
+  }
+
+  calculateBurstiness(binary) {
+    const runs = binary.match(/([01])\1*/g) || [];
+    return Math.sqrt(runs.reduce((acc, run) => 
+      acc + Math.pow(run.length - runs.length/2, 2), 0) / runs.length);
+  }
+}
+
 // Export modules
 module.exports = {
   BinaryAnalysis,
@@ -1011,6 +1320,8 @@ module.exports = {
   ScoreManager,
   DataProcessor,
   ModelAnalyzer,
+  ModelInitializer,
+  ModelData,
 };
 
 // Main execution
@@ -2459,7 +2770,7 @@ const additionalTestCases = [
   "11110000", // periodic
   "10101010101010", // alternating
   "1100110011", // periodic
-  Math.random().toString(2).substr(2), // random
+  Math.random().toString(2).substring(2), // random
 ];
 
 additionalTestCases.forEach((binary) => {
@@ -2468,3 +2779,8 @@ additionalTestCases.forEach((binary) => {
   console.log(`\nTesting binary: ${binary.slice(0, 32)}...`);
   console.log(JSON.stringify(results, null, 2));
 });
+
+// The ModelInitializer class is already defined above
+
+// ModelData is already defined above, removing duplicate definition
+module.exports = { ModelData };
