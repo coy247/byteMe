@@ -757,7 +757,7 @@ class ModelManager {
       }
 
       // Write new model atomically
-      const tempPath = this.modelPath + '.tmp';
+      const tempPath = this.modelPath + ".tmp";
       await fs.promises.writeFile(
         tempPath,
         JSON.stringify(this.model, null, 2)
@@ -785,19 +785,48 @@ modelManager.initialize();
 
 class BinaryAnalysis {
   constructor(binary) {
+    if (!binary) {
+      throw new Error("Binary input is required");
+    }
     this.binary = this.validateBinary(binary);
+  }
+
+  calculateEntropy(binary) {
+    const freq = new Map();
+    for (const bit of binary) {
+      freq.set(bit, (freq.get(bit) || 0) + 1);
+    }
+    return -Array.from(freq.values())
+      .map((count) => {
+        const p = count / binary.length;
+        return p * Math.log2(p);
+      })
+      .reduce((sum, val) => sum + val, 0);
+  }
+
+  validateBinary(binary) {
+    if (typeof binary !== "string") {
+      throw new Error("Binary must be a string");
+    }
+
+    const cleaned = binary.replace(/[^01]/g, "");
+    if (cleaned.length === 0) {
+      throw new Error("No valid binary data after cleaning");
+    }
+
+    return cleaned;
   }
 
   analyze() {
     try {
-      const metrics = this.calculateMetrics();
-      const patternType = this.detectPattern();
+      const metrics = this.calculateMetrics(this.binary);
+      const pattern = this.detectPattern();
 
       return {
         id: require("crypto").randomBytes(16).toString("hex"),
         timestamp: Date.now(),
         pattern: {
-          type: patternType,
+          type: pattern,
           data: this.binary.slice(0, 32),
           length: this.binary.length,
         },
@@ -816,11 +845,27 @@ class BinaryAnalysis {
   detectPattern() {
     if (/^(10)+1?$/.test(this.binary)) return "alternating";
     if (/^(.{2,8})\1+/.test(this.binary)) return "periodic";
-    if (this.calculateEntropy() > 0.9) return "random";
+    if (this.calculateEntropy(this.binary) > 0.9) return "random";
     return "mixed";
   }
 
-  // ...existing code...
+  calculateMetrics(binary) {
+    const transitions = binary.split("").reduce((count, bit, i) => {
+      return i > 0 && bit !== binary[i - 1] ? count + 1 : count;
+    }, 0);
+
+    return {
+      entropy: this.calculateEntropy(binary),
+      complexity: transitions / (binary.length - 1) || 0,
+      burstiness:
+        (binary.match(/([01])\1+/g) || []).reduce(
+          (sum, run) => sum + Math.pow(run.length - binary.length / 2, 2),
+          0
+        ) / binary.length || 0,
+    };
+  }
+
+  // ...existing code for calculateEntropy, calculateComplexity, calculateBurstiness...
 }
 
 async function analyzeBinary(binary) {
@@ -920,11 +965,16 @@ class ModelAnalyzer {
 
   analyze(data) {
     try {
-      if (!data || typeof data !== "string") {
-        throw new Error("Invalid input data");
+      // Convert data to string if it's not already and clean it
+      const cleanData = String(data || "").replace(/[^01]/g, "");
+
+      if (!cleanData) {
+        throw new Error(
+          "Invalid input data: must contain binary digits (0 or 1)"
+        );
       }
 
-      const metrics = this.calculateMetrics(data);
+      const metrics = this.calculateMetrics(cleanData);
       const pattern = this.detectPattern(data);
 
       return {
@@ -1940,7 +1990,7 @@ async function loadExistingModel() {
 
 async function saveModel(model) {
   try {
-    const tempPath = MODEL_PATH + '.tmp';
+    const tempPath = MODEL_PATH + ".tmp";
     await fsPromises.writeFile(tempPath, JSON.stringify(model, null, 2));
     await fsPromises.rename(tempPath, MODEL_PATH);
   } catch (error) {
@@ -2311,11 +2361,10 @@ class BinaryPatternProcessor {
       ),
     };
 
-    this.stats.lastMetrics = {
-      ...metrics,
+    this.stats.lastMetrics = Object.assign({}, metrics, {
       timestamp: Date.now(),
       processedBlocks: this.stats.processedBlocks,
-    };
+    });
 
     return metrics;
   }
@@ -2328,11 +2377,10 @@ class BinaryPatternProcessor {
   }
 
   getStats() {
-    return {
-      ...this.stats,
+    return Object.assign({}, this.stats, {
       cacheSize: this.metricsCache.size,
       timeSinceLastUpdate: Date.now() - this.lastUpdate,
-    };
+    });
   }
 }
 
