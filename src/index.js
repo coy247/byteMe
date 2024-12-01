@@ -421,6 +421,7 @@ class ModelValidator {
       }
     }
   }
+
   async pruneModel() {
     try {
       const data = await this.readModel();
@@ -610,123 +611,166 @@ const DEFAULT_MODEL = {
 
 class ModelManager {
   constructor() {
-    this.MODEL_PATH = path.join(
+    if (ModelManager.instance) {
+      throw new Error("Use ModelManager.getInstance() instead of new operator");
+    }
+    ModelManager.instance = this;
+    this.modelPath = path.join(
       __dirname,
       "..",
       "models",
       "patterns",
       "model.json"
     );
-    this.BACKUP_PATH = path.join(
+    this.backupPath = path.join(
       __dirname,
       "..",
       "models",
       "patterns",
       "model.backup.json"
     );
-    this.model = null;
     this.initialized = false;
   }
 
+  static getInstance() {
+    if (!ModelManager.instance) {
+      ModelManager.instance = new ModelManager();
+    }
+    return ModelManager.instance;
+  }
+
   async initialize() {
+    if (this.initialized) return;
+
     try {
-      // Create directory if needed
-      await fsPromises.mkdir(path.dirname(this.MODEL_PATH), {
-        recursive: true,
-      });
-
-      // Try loading existing model
-      const model = await this.loadModel();
-      if (model) {
-        this.model = model;
-      } else {
-        // Initialize with default
-        this.model = DEFAULT_MODEL;
-        await this.saveModel(this.model);
-      }
-
+      await this.loadOrCreateModel();
       this.initialized = true;
-      return this.model;
     } catch (error) {
       console.error("Model initialization failed:", error);
-      this.model = DEFAULT_MODEL;
-      return this.model;
+      throw error;
     }
   }
 
-  async loadModel() {
+  async loadOrCreateModel() {
     try {
-      // Try main file
-      if (await this.fileExists(this.MODEL_PATH)) {
-        const data = await this.safeReadFile(this.MODEL_PATH);
-        if (this.isValidModel(data)) {
-          return data;
-        }
-      }
+      const exists = await fsPromises
+        .access(this.modelPath)
+        .then(() => true)
+        .catch(() => false);
 
-      // Try backup
-      if (await this.fileExists(this.BACKUP_PATH)) {
-        const backup = await this.safeReadFile(this.BACKUP_PATH);
-        if (this.isValidModel(backup)) {
-          await this.saveModel(backup); // Restore from backup
-          return backup;
-        }
+      if (exists) {
+        const data = await fsPromises.readFile(this.modelPath, "utf8");
+        this.model = JSON.parse(data);
+      } else {
+        this.model = {
+          version: "1.1",
+          lastUpdated: Date.now(),
+          analyses: [],
+          metadata: {
+            categories: ["alternating", "mixed", "periodic", "random"],
+            metrics: ["entropy", "complexity", "burstiness"],
+            thresholds: {
+              entropy: { low: 0.3, medium: 0.7, high: 0.9 },
+            },
+          },
+        };
+        await this.saveModel();
       }
-
-      return null;
     } catch (error) {
       console.error("Error loading model:", error);
-      return null;
+      throw error;
     }
   }
 
-  async saveModel(model) {
-    try {
-      // Backup current if exists
-      if (await this.fileExists(this.MODEL_PATH)) {
-        await fsPromises.copyFile(this.MODEL_PATH, this.BACKUP_PATH);
-      }
-
-      // Safe write using temporary file
-      const tempPath = this.MODEL_PATH + ".tmp";
-      await fsPromises.writeFile(tempPath, JSON.stringify(model, null, 2));
-      await fsPromises.rename(tempPath, this.MODEL_PATH);
-
-      return true;
-    } catch (error) {
-      console.error("Error saving model:", error);
-      return false;
+  async addAnalysis(analysis) {
+    if (!this.isValidAnalysis(analysis)) {
+      throw new Error("Invalid analysis structure");
     }
+
+    this.model.analyses.push(analysis);
+    this.model.lastUpdated = Date.now();
+    await this.saveModel();
+    return analysis;
   }
 
-  isValidModel(model) {
+  isValidAnalysis(analysis) {
     return (
-      model &&
-      model.version &&
-      Array.isArray(model.analyses) &&
-      model.metadata &&
-      model.metadata.categories &&
-      model.metadata.metrics &&
-      model.metadata.thresholds
+      analysis &&
+      analysis.id &&
+      analysis.timestamp &&
+      analysis.pattern &&
+      analysis.pattern.type &&
+      analysis.pattern.data &&
+      analysis.metrics &&
+      analysis.metrics.entropy !== undefined &&
+      analysis.metrics.complexity !== undefined &&
+      analysis.metrics.burstiness !== undefined
     );
   }
 
-  async fileExists(path) {
+  calculateMetrics(binary) {
+    // Entropy calculation
+    const freq = new Map();
+    for (const bit of binary) {
+      freq.set(bit, (freq.get(bit) || 0) + 1);
+    }
+    const entropy = -Array.from(freq.values())
+      .map((count) => {
+        const p = count / binary.length;
+        return p * Math.log2(p);
+      })
+      .reduce((sum, val) => sum + val, 0);
+
+    // Complexity calculation
+    let transitions = 0;
+    for (let i = 1; i < binary.length; i++) {
+      if (binary[i] !== binary[i - 1]) transitions++;
+    }
+    const complexity = transitions / (binary.length - 1);
+
+    // Burstiness calculation
+    const runs = binary.match(/([01])\1*/g) || [];
+    const burstiness = Math.sqrt(
+      runs.reduce(
+        (acc, run) => acc + Math.pow(run.length - runs.length / 2, 2),
+        0
+      ) / runs.length
+    );
+
+    return { entropy, complexity, burstiness };
+  }
+
+  detectPattern(binary) {
+    if (/^(10)+1?$/.test(binary.slice(0, 100))) return { type: "alternating" };
+    if (/^(.{2,8})\1{2,}/.test(binary.slice(0, 100)))
+      return { type: "periodic" };
+    if (this.calculateMetrics(binary.slice(0, 100)).entropy > 0.9)
+      return { type: "random" };
+    return { type: "mixed" };
+  }
+
+  async saveModel() {
     try {
-      await fsPromises.access(path);
-      return true;
+      // Backup current model
+      if (fs.existsSync(this.modelPath)) {
+        await fs.promises.copyFile(this.modelPath, this.backupPath);
+      }
+
+      // Write new model atomically
+      const tempPath = this.modelPath + '.tmp';
+      await fs.promises.writeFile(
+        tempPath,
+        JSON.stringify(this.model, null, 2)
+      );
+      await fs.promises.rename(tempPath, this.modelPath);
     } catch (error) {
-      return false;
+      console.error("Error saving model:", error);
+      throw error;
     }
   }
 
-  async safeReadFile(path) {
-    try {
-      const data = await fsPromises.readFile(path, "utf8");
-      return JSON.parse(data);
-    } catch (error) {
-      return null;
-    }
+  generateId() {
+    return require("crypto").randomBytes(16).toString("hex");
   }
 }
 
@@ -740,193 +784,57 @@ modelManager.initialize();
 // Removing duplicate BinaryAnalysis class since it's already defined above
 
 class BinaryAnalysis {
-  validateBinary(input) {
-    if (!input || typeof input !== "string") {
-      throw new Error("Binary input must be a string");
-    }
-
-    // Remove any whitespace
-    const cleaned = input.replace(/\s/g, "");
-
-    // Check for valid binary characters
-    if (!/^[01]+$/.test(cleaned)) {
-      throw new Error("Binary string must contain only 0s and 1s");
-    }
-
-    // Enforce maximum length
-    if (cleaned.length > this.maxLength) {
-      console.warn(
-        "Binary truncated from " +
-          cleaned.length +
-          " to " +
-          this.maxLength +
-          " bits"
-      );
-      return cleaned.slice(0, this.maxLength);
-    }
-
-    return cleaned;
+  constructor(binary) {
+    this.binary = this.validateBinary(binary);
   }
 
-  setupMemoryWatcher() {
-    this.memoryWatcher = setInterval(() => {
-      const used = process.memoryUsage().heapUsed;
-      if (used > this.MEMORY_LIMITS.ABORT) {
-        this.abortAnalysis("Memory limit exceeded");
-      } else if (used > this.MEMORY_LIMITS.CRITICAL) {
-        this.performEmergencyCleanup();
-      }
-    }, this.memoryCheckInterval);
-  }
-
-  async performAnalysis() {
+  analyze() {
     try {
-      const chunks = this.splitIntoChunks();
-      const results = [];
+      const metrics = this.calculateMetrics();
+      const patternType = this.detectPattern();
 
-      for (const chunk of chunks) {
-        const memUsage = process.memoryUsage().heapUsed;
-        if (memUsage > this.MEMORY_LIMITS.WARNING) {
-          await this.performGC();
-        }
-
-        const chunkResult = await this.analyzeChunk(chunk);
-        results.push(chunkResult);
-
-        // Allow event loop to clear
-        await new Promise((resolve) => setImmediate(resolve));
-      }
-
-      this.results = this.mergeResults(results);
-      return this.results;
+      return {
+        id: require("crypto").randomBytes(16).toString("hex"),
+        timestamp: Date.now(),
+        pattern: {
+          type: patternType,
+          data: this.binary.slice(0, 32),
+          length: this.binary.length,
+        },
+        metrics: {
+          entropy: Number(metrics.entropy.toFixed(4)),
+          complexity: Number(metrics.complexity.toFixed(4)),
+          burstiness: Number(metrics.burstiness.toFixed(4)),
+        },
+      };
     } catch (error) {
       console.error("Analysis error:", error);
       throw error;
-    } finally {
-      clearInterval(this.memoryWatcher);
-      await this.performGC();
     }
   }
 
-  splitIntoChunks() {
-    const chunks = [];
-    for (let i = 0; i < this.binary.length; i += this.chunkSize) {
-      chunks.push(this.binary.slice(i, i + this.chunkSize));
-    }
-    return chunks;
+  detectPattern() {
+    if (/^(10)+1?$/.test(this.binary)) return "alternating";
+    if (/^(.{2,8})\1+/.test(this.binary)) return "periodic";
+    if (this.calculateEntropy() > 0.9) return "random";
+    return "mixed";
   }
 
-  async analyzeChunk(chunk) {
-    const startMemory = process.memoryUsage().heapUsed;
-    const result = {
-      patterns: {},
-      metrics: {
-        entropy: this.calculateEntropyEfficient(chunk),
-        complexity: this.calculateComplexityEfficient(chunk),
-      },
-    };
-    const endMemory = process.memoryUsage().heapUsed;
-    result.memoryUsed = endMemory - startMemory;
-    return result;
-  }
+  // ...existing code...
+}
 
-  async performGC() {
-    if (global.gc) {
-      global.gc();
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-  }
-
-  performEmergencyCleanup() {
-    this.results = null;
-    this.patterns = null;
-    this.performGC();
-  }
-
-  abortAnalysis(reason) {
-    if (this.memoryWatcher) {
-      clearInterval(this.memoryWatcher);
-    }
-    this.performEmergencyCleanup();
-    const state = {
-      reason,
-      timestamp: Date.now(),
-      memoryUsage: process.memoryUsage(),
-    };
-    console.log(JSON.stringify(state, null, 2));
-    throw new Error(`Analysis aborted: ${reason}`);
-  }
-  calculateEntropyEfficient(chunk) {
-    const freq = new Uint32Array(2);
-    for (const bit of chunk) {
-      freq[bit === "1" ? 1 : 0]++;
-    }
-    let entropy = 0;
-    const len = chunk.length;
-    for (let i = 0; i < 2; i++) {
-      if (freq[i] > 0) {
-        const p = freq[i] / len;
-        entropy -= p * Math.log2(p);
-      }
-    }
-    return entropy;
-  }
-
-  calculateComplexityEfficient(chunk) {
-    let transitions = 0;
-    for (let i = 1; i < chunk.length; i++) {
-      if (chunk[i] !== chunk[i - 1]) transitions++;
-    }
-    return transitions / (chunk.length - 1);
-  }
-
-  mergeResults(results) {
-    return {
-      totalPatterns: results.length,
-      averageEntropy:
-        results.reduce((sum, r) => sum + r.metrics.entropy, 0) / results.length,
-      averageComplexity:
-        results.reduce((sum, r) => sum + r.metrics.complexity, 0) /
-        results.length,
-      memoryStats: {
-        peak: Math.max(...results.map((r) => r.memoryUsed)),
-        average:
-          results.reduce((sum, r) => sum + r.memoryUsed, 0) / results.length,
-      },
-    };
-  }
-
-  toJSON() {
-    // Create safe copyh without circular references
-    return {
-      length: (this.binary && this.binary.length) || 0,
-      results: this.results
-        ? {
-            totalPatterns: this.results.totalPatterns,
-            averageEntropy: this.results.averageEntropy,
-            averageComplexity: this.results.averageComplexity,
-            memoryStats: this.results.memoryStats,
-          }
-        : null,
-      metrics: {
-        entropy: (this.metrics && this.metrics.entropy) || 0,
-        complexity: (this.metrics && this.metrics.complexity) || 0,
-        burstiness: (this.metrics && this.metrics.burstiness) || 0,
-      },
-    };
-  }
-
-  cleanup() {
-    // Clear all timers
-    this.timers.forEach((timer) => clearInterval(timer));
-    this.timers.clear();
-
-    if (this.memoryWatcher) {
-      clearInterval(this.memoryWatcher);
-      this.memoryWatcher = null;
-    }
+async function analyzeBinary(binary) {
+  try {
+    const analyzer = new BinaryAnalysis(binary);
+    const analysis = analyzer.analyze();
+    return await modelManager.addAnalysis(analysis);
+  } catch (error) {
+    console.error("Analysis failed:", error);
+    throw error;
   }
 }
+
+module.exports = { BinaryAnalysis };
 
 class DataProcessor {
   constructor() {
@@ -1005,39 +913,87 @@ class ModelAnalyzer {
       metrics: {
         entropy: 0,
         complexity: 0,
+        burstiness: 0,
       },
     };
   }
 
   analyze(data) {
-    return this.analyzeData(data);
-  }
-
-  analyzeData(inputData) {
     try {
-      const crypto = require("crypto");
+      if (!data || typeof data !== "string") {
+        throw new Error("Invalid input data");
+      }
 
-      // Process entries with validation
-      return inputData
-        .filter((entry) => entry && typeof entry === "object")
-        .map((entry) => ({
-          id: entry.id || crypto.randomUUID(),
-          timestamp: entry.timestamp || Date.now(),
-          metrics: {
-            entropy: Number(
-              (entry && entry.metrics && entry.metrics.entropy) || 0
-            ),
-            complexity: Number(
-              (entry && entry.metrics && entry.metrics.complexity) || 0
-            ),
-          },
-        }));
+      const metrics = this.calculateMetrics(data);
+      const pattern = this.detectPattern(data);
+
+      return {
+        id: require("crypto").randomBytes(16).toString("hex"),
+        timestamp: Date.now(),
+        pattern: {
+          type: pattern,
+          data: data.slice(0, 32),
+          length: data.length,
+        },
+        metrics: {
+          entropy: Number(metrics.entropy.toFixed(4)),
+          complexity: Number(metrics.complexity.toFixed(4)),
+          burstiness: Number(metrics.burstiness.toFixed(4)),
+        },
+      };
     } catch (error) {
       console.error("Analysis error:", error);
-      return [this.defaultEntry];
+      return this.defaultEntry;
     }
   }
+
+  calculateMetrics(binary) {
+    const entropy = this.calculateEntropy(binary);
+    const complexity = this.calculateComplexity(binary);
+    const burstiness = this.calculateBurstiness(binary);
+    return { entropy, complexity, burstiness };
+  }
+
+  calculateEntropy(binary) {
+    const freq = new Map();
+    for (const bit of binary) {
+      freq.set(bit, (freq.get(bit) || 0) + 1);
+    }
+    return -Array.from(freq.values())
+      .map((count) => {
+        const p = count / binary.length;
+        return p * Math.log2(p);
+      })
+      .reduce((sum, val) => sum + val, 0);
+  }
+
+  calculateComplexity(binary) {
+    let transitions = 0;
+    for (let i = 1; i < binary.length; i++) {
+      if (binary[i] !== binary[i - 1]) transitions++;
+    }
+    return transitions / (binary.length - 1);
+  }
+
+  calculateBurstiness(binary) {
+    const runs = binary.match(/([01])\1*/g) || [];
+    return Math.sqrt(
+      runs.reduce(
+        (acc, run) => acc + Math.pow(run.length - runs.length / 2, 2),
+        0
+      ) / runs.length
+    );
+  }
+
+  detectPattern(binary) {
+    if (/^(10)+1?$/.test(binary)) return "alternating";
+    if (/^(.{2,8})\1+/.test(binary)) return "periodic";
+    if (this.calculateEntropy(binary) > 0.9) return "random";
+    return "mixed";
+  }
 }
+
+module.exports = { ModelAnalyzer };
 
 // Initialize ModelAnalyzer instance
 const modelAnalyzer = new ModelAnalyzer();
@@ -1320,20 +1276,40 @@ class ModelData {
   }
 
   calculateComplexity(binary) {
-    let transitions = 0;
-    for (let i = 1; i < binary.length; i++) {
-      if (binary[i] !== binary[i - 1]) transitions++;
+    // Count unique patterns of length 2-4 and weight them by their frequency
+    const uniquePatterns = new Set();
+    const weights = { 2: 0.5, 3: 0.3, 4: 0.2 };
+
+    for (let len = 2; len <= 4; len++) {
+      for (let i = 0; i <= binary.length - len; i++) {
+        uniquePatterns.add(binary.substr(i, len));
+      }
     }
-    return transitions / (binary.length - 1);
+
+    return uniquePatterns.size / (2 * binary.length);
   }
 
   calculateBurstiness(binary) {
-    const runs = binary.match(/([01])\1*/g) || [];
+    let currentRun = 1;
+    let runs = [];
+
+    // Count consecutive bits manually instead of using regex
+    for (let i = 1; i < binary.length; i++) {
+      if (binary[i] === binary[i - 1]) {
+        currentRun++;
+      } else {
+        runs.push(currentRun);
+        currentRun = 1;
+      }
+    }
+    runs.push(currentRun);
+
+    if (runs.length === 0) return 0;
+
+    const mean = runs.reduce((sum, length) => sum + length, 0) / runs.length;
     return Math.sqrt(
-      runs.reduce(
-        (acc, run) => acc + Math.pow(run.length - runs.length / 2, 2),
-        0
-      ) / runs.length
+      runs.reduce((sum, length) => sum + Math.pow(length - mean, 2), 0) /
+        runs.length
     );
   }
 }
@@ -1371,7 +1347,7 @@ if (require.main === module) {
 function calculateSymmetry(binary) {
   const mid = Math.floor(binary.length / 2);
   const firstHalf = binary.slice(0, mid);
-  const secondHalf = binary.slice(-mid).split("").reverse().join("");
+  const secondHalf = binary.split("").reverse().join("");
   return (
     firstHalf
       .split("")
@@ -1406,13 +1382,7 @@ function calculateBurstiness(binary) {
     ) || 0
   );
 }
-function calculateCorrelation(binary) {
-  const arr = binary.split("").map(Number);
-  return (
-    arr.slice(1).reduce((acc, val, i) => acc + val * arr[i], 0) /
-    (binary.length - 1)
-  );
-}
+// Removed duplicate function definition
 function findPatternOccurrences(binary) {
   const patterns = {};
   for (let len = 2; len <= 4; len++) {
@@ -1423,24 +1393,9 @@ function findPatternOccurrences(binary) {
   }
   return patterns;
 }
-function preprocessBinary(binary) {
-  // Remove any noise or invalid characters
-  return binary.replace(/[^01]/g, "");
-}
-function calculatePatternDensity(binary) {
-  const windowSize = Math.min(100, binary.length);
-  const density = [];
-  for (let i = 0; i <= binary.length - windowSize; i += windowSize) {
-    const window = binary.substr(i, windowSize);
-    const ones = window.match(/1/g);
-    density.push(ones ? ones.length / windowSize : 0);
-  }
-  return density;
-}
-function calculateTransitions(binary) {
-  const transitions = binary.match(/(01|10)/g);
-  return transitions ? transitions.length / binary.length : 0;
-}
+// Removed duplicate function definition
+// Removed duplicate function definition
+// Removed duplicate function definition
 // Add Math.std if not exists
 if (!Math.std) {
   Math.std = function (arr) {
@@ -1916,683 +1871,15 @@ class ModelTracker {
 // Initialize singleton instance
 const modelTracker = new ModelTracker();
 
-async function updateModelData(binary, analysis) {
-  try {
-    const updateResult = await modelTracker.trackModelUpdate(binary, "update");
-    // Early validation
-    if (!binary || !analysis) {
-      console.warn("Skipping invalid analysis input");
-      return "Analysis skipped - invalid input";
-    }
-    // Safe metrics extraction
-    const metrics = {
-      entropy: 0,
-      complexity: 0,
-      variance: 0,
-    };
-    if (analysis.pattern_metrics) {
-      metrics.entropy = analysis.pattern_metrics.entropy || 0;
-      metrics.variance = analysis.pattern_metrics.variance || 0;
-    }
-    const modelData = {
-      id: generateUniqueId(binary, metrics),
-      timestamp: Date.now(),
-      metrics,
-      summary: "Pattern analyzed with entropy " + metrics.entropy.toFixed(4),
-    };
-    // Safe file operations
-    const modelPath = path.join(process.cwd(), "models", "patterns");
-    if (!fs.existsSync(modelPath)) {
-      fs.mkdirSync(modelPath, { recursive: true });
-    }
-    const modelFile = path.join(modelPath, "model.json");
-    let existingData = [];
-    // Validate existing data
-    if (fs.existsSync(modelFile)) {
-      try {
-        const fileContent = fs.readFileSync(modelFile, "utf8");
-        const parsed = JSON.parse(fileContent);
-        if (Array.isArray(parsed)) {
-          existingData = parsed;
-        } else {
-          console.warn("Invalid model data structure, initializing new array");
-        }
-      } catch (e) {
-        console.warn("Error reading model file:", e);
-      }
-    }
-    // Safe array operations
-    const updatedData = Array.isArray(existingData)
-      ? existingData.filter((item) => item && item.id !== modelData.id)
-      : [];
-    updatedData.push(modelData);
-    // Sort and limit
-    updatedData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-    const finalData = updatedData.slice(0, 1000);
-    if (existingData.length > 1000) {
-      await modelTracker.trackModelUpdate(binary, "prune");
-    }
-    fs.writeFileSync(modelFile, JSON.stringify(finalData, null, 2));
-    return {
-      summary: "Model updated: " + updateResult.hash,
-      stats: modelTracker.getStats(),
-    };
-  } catch (error) {
-    console.error("Error updating model:", error);
-    return "Error updating model";
-  }
-}
-// Update test runner to continue on errors
-function analyzePatterns(patterns) {
-  const results = [];
-  patterns.forEach(function (binary, index) {
-    try {
-      const result = new BinaryAnalysis(binary);
-      const analysis = result.performAnalysis();
-      const summary = updateModelData(binary, analysis);
-      results.push({ index: index, status: "success", summary: summary });
-    } catch (error) {
-      console.warn("Pattern " + index + " failed:", error.message);
-      results.push({ index: index, status: "error", error: error.message });
-    }
-  });
-  return results;
-}
-function generateUniqueId(binary, result) {
-  const crypto = require("crypto");
-  // Add safe default values
-  const metrics = {
-    entropy:
-      result && result.pattern_metrics ? result.pattern_metrics.entropy : 0,
-    type:
-      result && result.pattern_complexity
-        ? result.pattern_complexity.type
-        : "unknown",
-    sample: binary ? binary.slice(0, 100) : "",
-  };
-  const input = [metrics.entropy, metrics.type, metrics.sample].join("-");
-  return crypto.createHash("md5").update(input).digest("hex");
-}
-function cleanupModelFolders(basePath, normalizedName) {
-  if (!fs.existsSync(basePath)) return;
-  const items = fs.readdirSync(basePath);
-  items.forEach((item) => {
-    const fullPath = `${basePath}/${item}`;
-    if (
-      fs.statSync(path.join(basePath, item)).isDirectory() &&
-      item.toLowerCase().includes("pattern") &&
-      item !== normalizedName
-    ) {
-      // Move contents to normalized folder if exists
-      if (fs.existsSync(`${fullPath}/model.json`)) {
-        const normalizedFolder = basePath + "/" + normalizedName;
-        if (!fs.existsSync(normalizedFolder)) {
-          fs.mkdirSync(normalizedFolder, { recursive: true });
-        }
-        fs.renameSync(
-          path.join(fullPath, "model.json"),
-          path.join(normalizedFolder, "model.json.tmp")
-        );
-        mergeJsonFiles(
-          normalizedFolder + "/model.json",
-          normalizedFolder + "/model.json.tmp"
-        );
-        fs.unlinkSync(normalizedFolder + "/model.json.tmp");
-      }
-      fs.rmSync(fullPath, { recursive: true, force: true });
-    }
-  });
-}
-function mergeJsonFiles(target, source) {
-  let targetData = [];
-  let sourceData = [];
-  try {
-    if (fs.existsSync(target)) {
-      targetData = JSON.parse(fs.readFileSync(target, "utf8"));
-    }
-    if (fs.existsSync(source)) {
-      sourceData = JSON.parse(fs.readFileSync(source, "utf8"));
-    }
-    // Combine arrays without spread operator
-    const combined = targetData.concat(sourceData);
-    // Remove duplicates
-    const unique = [];
-    const ids = {};
-    for (const item of combined) {
-      if (!ids[item.id]) {
-        ids[item.id] = true;
-        unique.push(item);
-      }
-    }
-    // Sort by timestamp
-    unique.sort((a, b) => b.timestamp - a.timestamp);
-    // Keep latest 1000
-    const result = unique.slice(0, 1000);
-    fs.writeFileSync(target, JSON.stringify(result, null, 2));
-  } catch (e) {
-    console.error("Error merging files:", e);
-  }
-}
-testCases.forEach((binary) => {
-  console.log(
-    "\nTesting binary: " +
-      (binary.length > 20 ? "[truncated for brevity]" : binary)
-  );
-  const result = new BinaryAnalysis(binary);
-  console.log(result);
-  console.log(JSON.stringify(result.hierarchicalPatterns, null, 2));
-  try {
-    const summary = updateModelData(binary, result);
-    console.log("Model updated:", summary);
-  } catch (error) {
-    console.error("Error updating model:", error);
-  }
-});
-// Complex number utilities
-class Complex {
-  constructor(re, im) {
-    this.re = re;
-    this.im = im;
-  }
-  static exp(z) {
-    const r = Math.exp(z.re);
-    return new Complex(r * Math.cos(z.im), r * Math.sin(z.im));
-  }
-  abs() {
-    return Math.sqrt(this.re * this.re + this.im * this.im);
-  }
-}
-// Mathematical patterns array
-const patterns = [
-  // Riemann-Roch Quantum Pattern
-  Array(16384)
-    .fill(0)
-    .map((_, i) => {
-      const genus = Math.floor(Math.log2(i + 2));
-      const divisor = Array(genus)
-        .fill(0)
-        .map((_, k) => {
-          const degree =
-            Math.sin((i * Math.PI) / Math.pow(2, k)) *
-            Math.cos((i * Math.E) / Math.pow(3, k));
-          return Math.floor(Math.abs(degree * 10)) / 10;
-        })
-        .reduce((a, b) => a + b, 0);
-      const riemannRoch = 1 - genus + divisor;
-      return 0.2 < riemannRoch % 1 && riemannRoch % 1 < 0.8 ? "1" : "0";
-    })
-    .join(""),
-  // Riemann hypothesis zeros pattern
-  Array(24576)
-    .fill(0)
-    .map((_, i) => {
-      const t = i / 100;
-      const zeta = Array(50)
-        .fill(0)
-        .map((_, k) => Math.cos(t * Math.log(k + 2)) / Math.pow(k + 2, 0.5))
-        .reduce((a, b) => a + b, 0);
-      return complexAbs(0.5 - zeta, t) < 0.5 ? "1" : "0";
-    })
-    .join(""),
-  // Additional patterns...
-];
-// Analyze patterns
-patterns.forEach((binary) => {
-  console.log("\nAnalyzing pattern length: " + binary.length);
-  console.log(new BinaryAnalysis(binary));
-});
-// Replace model reference with proper async function
-async function checkModelEntropy() {
-  try {
-    const modelData = await fsPromises.readFile(MODEL_PATH, "utf8");
-    const model = JSON.parse(modelData);
-    // Validate model structure
-    if (!model || !model.analyses || !model.analyses.length) {
-      throw new Error("Invalid model structure");
-    }
-    // Get latest analysis
-    const latestAnalysis = model.analyses[model.analyses.length - 1];
-    // Check entropy exists
-    if (latestAnalysis && latestAnalysis.entropy) {
-      return latestAnalysis.entropy;
-    }
-    throw new Error("No entropy data found");
-  } catch (error) {
-    console.error("Error reading model:", error);
-    throw error;
-  }
-}
-function processPatternsInBatches(binary, batchSize = 1000) {
-  const patterns = {};
-  const totalPatterns = binary.length;
-  let processedCount = 0;
-  // Process in batches
-  for (let i = 0; i < totalPatterns; i += batchSize) {
-    const end = Math.min(i + batchSize, totalPatterns);
-    // Process batch
-    for (let j = i; j < end; j++) {
-      const pattern = binary.substr(j, 16); // Fixed window size
-      patterns[pattern] = (patterns[pattern] || 0) + 1;
-    }
-    processedCount += end - i;
-    // Log progress only at 25% intervals
-    if (processedCount % Math.floor(totalPatterns / 4) === 0) {
-      console.log(
-        "Processed " + Math.floor((processedCount / totalPatterns) * 100) + "%"
-      );
-    }
-  }
-  return patterns;
-}
-class AdaptiveProcessor {
-  constructor() {
-    this.warningSignals = {
-      longRepeats: 0.7,
-      patternDensity: 0.8,
-      entropyThreshold: 0.3,
-      maxChunkSize: 4096,
-    };
-    this.queue = new Map();
-    this.metrics = new Map();
-  }
-  async detectProblematicPattern(binary) {
-    // Quick pattern analysis
-    const sample = binary.slice(0, 1000);
-    const repeats = this.calculateRepeats(sample);
-    const entropy = this.calculateFastEntropy(sample);
-    return {
-      isProblematic:
-        repeats > this.warningSignals.longRepeats ||
-        entropy < this.warningSignals.entropyThreshold,
-      metrics: { repeats, entropy },
-    };
-  }
-  async processBatch(inputs) {
-    const mainBatch = new Map();
-    const problemBatch = new Map();
-    // Classify inputs
-    for (const [id, input] of inputs.entries()) {
-      const analysis = await this.detectProblematicPattern(input);
-      if (analysis.isProblematic) {
-        problemBatch.set(id, { input, metrics: analysis.metrics });
-      } else {
-        mainBatch.set(id, input);
-      }
-    }
-    // Process main batch
-    const mainResults = await Promise.all(
-      Array.from(mainBatch).map(async ([id, input]) => {
-        try {
-          return await this.processNormalInput(id, input);
-        } catch (error) {
-          problemBatch.set(id, { input, error });
-          return null;
-        }
-      })
-    );
-    // Process problem batch with extra care
-    const problemResults = await this.processProblemBatch(problemBatch);
-    return {
-      main: mainResults.filter(Boolean),
-      problematic: problemResults,
-      metrics: this.metrics,
-    };
-  }
-  async processNormalInput(id, binary) {
-    const chunkSize = Math.min(
-      this.warningSignals.maxChunkSize,
-      Math.ceil(binary.length / 10)
-    );
-    const chunks = [];
-    for (let i = 0; i < binary.length; i += chunkSize) {
-      const chunk = binary.slice(i, Math.min(i + chunkSize, binary.length));
-      chunks.push(chunk);
-      // Allow event loop to clear
-      if (i % (chunkSize * 4) === 0) {
-        await new Promise((resolve) => setImmediate(resolve));
-      }
-    }
-    return {
-      id,
-      result: await this.processChunks(chunks),
-      metrics: this.getMetrics(id),
-    };
-  }
-  async processProblemBatch(batch) {
-    return Promise.all(
-      Array.from(batch).map(async ([id, data]) => {
-        try {
-          const hex = this.convertToHex(data.input);
-          const smallerChunks = this.splitHexToChunks(hex, 256);
-          const processed = await this.processWithRetry(smallerChunks);
-          return {
-            id,
-            result: this.convertToBinary(processed),
-            metrics: Object.assign({}, data.metrics, {
-              retries: processed.retries,
-            }),
-          };
-        } catch (error) {
-          return { id, error: error.message };
-        }
-      })
-    );
-  }
-  calculateRepeats(binary) {
-    const patterns = {};
-    let maxRepeat = 0;
-    for (let i = 0; i < binary.length - 8; i++) {
-      const pattern = binary.slice(i, i + 8);
-      patterns[pattern] = (patterns[pattern] || 0) + 1;
-      maxRepeat = Math.max(maxRepeat, patterns[pattern]);
-    }
-    return maxRepeat / (binary.length - 7);
-  }
-  calculateFastEntropy(binary) {
-    const freq = new Map();
-    for (const bit of binary) {
-      freq.set(bit, (freq.get(bit) || 0) + 1);
-    }
-    return -Array.from(freq.values())
-      .map((count) => count / binary.length)
-      .reduce((sum, p) => sum + p * Math.log2(p), 0);
-  }
-}
-class BooleanPreprocessor {
-  constructor() {
-    this.knownPatterns = new Map();
-    this.logicGates = {
-      XAND: (a, b) => a === b && a,
-      XOR: (a, b) => (a === "1") !== (b === "1"),
-      NAND: (a, b) => !(a === "1" && b === "1"),
-      NOR: (a, b) => !(a === "1" || b === "1"),
-    };
-  }
-  preprocessBinary(binary) {
-    const chunks = this.splitIntoLogicBlocks(binary);
-    const patterns = this.detectLogicPatterns(chunks);
-    return {
-      optimizedBinary: this.applyLogicOptimizations(binary, patterns),
-      patterns,
-      complexity: this.measureLogicComplexity(patterns),
-    };
-  }
-  splitIntoLogicBlocks(binary, blockSize = 8) {
-    const blocks = [];
-    for (let i = 0; i < binary.length; i += blockSize) {
-      blocks.push({
-        value: binary.slice(i, i + blockSize),
-        position: i,
-        pattern: this.identifyLogicPattern(binary.slice(i, i + blockSize)),
-      });
-    }
-    return blocks;
-  }
-  identifyLogicPattern(block) {
-    const patterns = {
-      isIdentity: block === "1".repeat(block.length),
-      isInverse: block === "0".repeat(block.length),
-      isAlternating: /^(10)+1?$/.test(block),
-      isSymmetric: block === block.split("").reverse().join(""),
-    };
-    return (
-      Object.entries(patterns)
-        .filter(([_, value]) => value)
-        .map(([key]) => key)[0] || "complex"
-    );
-  }
-  applyLogicOptimizations(binary, patterns) {
-    let optimized = binary;
-    patterns.forEach((pattern) => {
-      if (this.knownPatterns.has(pattern.signature)) {
-        const optimization = this.knownPatterns.get(pattern.signature);
-        optimized = this.applyOptimization(optimized, pattern, optimization);
-      }
-    });
-    return optimized;
-  }
-  measureLogicComplexity(patterns) {
-    return {
-      uniquePatterns: new Set(patterns.map((p) => p.type)).size,
-      symmetryScore:
-        patterns.filter((p) => p.type === "isSymmetric").length /
-        patterns.length,
-      complexityScore:
-        patterns.filter((p) => p.type === "complex").length / patterns.length,
-    };
-  }
-  applyOptimization(binary, pattern, optimization) {
-    switch (optimization.type) {
-      case "reduction":
-        return this.reducePattern(binary, pattern);
-      case "transformation":
-        return this.transformPattern(binary, pattern);
-      default:
-        return binary;
-    }
-  }
-  reducePattern(binary, pattern) {
-    const { start, length, type } = pattern;
-    if (type === "isIdentity" || type === "isInverse") {
-      return (
-        binary.slice(0, start) +
-        this.compressRepeatingPattern(binary.slice(start, start + length)) +
-        binary.slice(start + length)
-      );
-    }
-    return binary;
-  }
-  compressRepeatingPattern(pattern) {
-    return {
-      value: pattern[0],
-      count: pattern.length,
-      original: pattern,
-    };
-  }
-}
-class PerformanceGame {
-  constructor() {
-    this.scores = new Map();
-    this.leakPenalties = new Map();
-    this.recoveryBonuses = new Map();
-    this.benchmarks = {
-      speed: { best: Infinity, current: 0 },
-      memory: { best: Infinity, current: 0 },
-      patterns: { best: 0, current: 0 },
-    };
-    this.multipliers = {
-      speedBonus: 1.5,
-      memoryBonus: 2.0,
-      patternBonus: 1.2,
-    };
-  }
-  async measurePerformance(binary, processor) {
-    const startTime = process.hrtime.bigint();
-    const startMem = process.memoryUsage().heapUsed;
-    const result = await processor.process(binary);
-    const score = this.calculateScore({
-      time: Number(process.hrtime.bigint() - startTime) / 1e6,
-      memory: process.memoryUsage().heapUsed - startMem,
-      patterns: (result.patterns && result.patterns.length) || 0,
-    });
-    this.updateHighScores(score);
-    return score;
-  }
-  calculateScore(metrics) {
-    let score = 1000; // Base score
-    // Speed points (faster = better)
-    const speedPoints = Math.max(0, 100 - metrics.time / 10);
-    score += speedPoints * this.multipliers.speedBonus;
-    // Memory points (less = better)
-    const memoryPoints = Math.max(0, 100 - metrics.memory / (1024 * 1024));
-    score += memoryPoints * this.multipliers.memoryBonus;
-    // Pattern recognition bonus
-    const patternPoints = metrics.patterns * 10;
-    score += patternPoints * this.multipliers.patternBonus;
-    // Achievement bonuses
-    if (metrics.time < this.benchmarks.speed.best) {
-      score += 500; // New speed record!
-      this.benchmarks.speed.best = metrics.time;
-    }
-    if (metrics.memory < this.benchmarks.memory.best) {
-      score += 1000; // New memory record!
-      this.benchmarks.memory.best = metrics.memory;
-    }
-    return Math.round(score);
-  }
-  updateHighScores(score) {
-    const timestamp = Date.now();
-    this.scores.set(timestamp, score);
-    // Keep only top 10 scores
-    const sortedScores = Array.from(this.scores.entries())
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 10);
-    this.scores = new Map(sortedScores);
-    console.log(
-      "\n🎮 Performance Score: " +
-        score +
-        "\n🏆 High Score: " +
-        Math.max(...this.scores.values()) +
-        "\n⚡ Speed: " +
-        this.benchmarks.speed.current.toFixed(2) +
-        "ms" +
-        "\n💾 Memory: " +
-        (this.benchmarks.memory.current / 1024 / 1024).toFixed(2) +
-        "MB" +
-        "\n🎯 Pattern Bonus: " +
-        this.benchmarks.patterns.current
-    );
-  }
-  getLeaderboard() {
-    return Array.from(this.scores.entries())
-      .sort(([, a], [, b]) => b - a)
-      .map(([timestamp, score], index) => ({
-        rank: index + 1,
-        score,
-        date: new Date(timestamp).toISOString(),
-      }));
-  }
-}
-class SecureEncryption {
-  constructor() {
-    this.modulus = BigInt(2) ** BigInt(4096); // 4096-bit security
-    this.primeCache = new Map();
-  }
-  async generateKey() {
-    const p = await this.findLargePrime(2048);
-    const q = await this.findLargePrime(2048);
-    const n = p * q;
-    const phi = (p - BigInt(1)) * (q - BigInt(1));
-    const e = this.findCoprime(phi);
-    const d = this.modInverse(e, phi);
-    return {
-      public: { e, n },
-      private: { d, n },
-    };
-  }
-  findLargePrime(bits) {
-    let candidate = this.generateRandomBigInt(bits);
-    while (!this.isProbablePrime(candidate)) {
-      candidate = this.generateRandomBigInt(bits);
-    }
-    return candidate;
-  }
-  generateRandomBigInt(bits) {
-    const bytes = new Uint8Array(Math.ceil(bits / 8));
-    for (let i = 0; i < bytes.length; i++) {
-      bytes[i] = Math.floor(Math.random() * 256);
-    }
-    return BigInt("0x" + Buffer.from(bytes).toString("hex"));
-  }
-  isProbablePrime(n, k = 64) {
-    if (n <= BigInt(1) || n === BigInt(4)) return false;
-    if (n <= BigInt(3)) return true;
-
-    let d = n - BigInt(1);
-    let r = 0;
-    while (d % BigInt(2) === BigInt(0)) {
-      d /= BigInt(2);
-      r++;
-    }
-
-    return this.millerRabinTest(n, d, r, k);
-  }
-
-  millerRabinTest(n, d, r, k) {
-    for (let i = 0; i < k; i++) {
-      const a =
-        (this.generateRandomBigInt(n.toString(2).length - 1) %
-          (n - BigInt(2))) +
-        BigInt(2);
-      let x = this.modPow(a, d, n);
-
-      if (x == BigInt(1) || x == n - BigInt(1)) continue;
-
-      let isPrime = false;
-      for (let j = r - 1; j > 0; j--) {
-        x = (x * x) % n;
-        if (x == n - BigInt(1)) {
-          isPrime = true;
-          break;
-        }
-        if (x == BigInt(1)) return false;
-      }
-
-      if (!isPrime) return false;
-    }
-    return true;
-  }
-  modPow(base, exponent, modulus) {
-    let result = BigInt(1);
-    base = base % modulus;
-    while (exponent > BigInt(0)) {
-      if (exponent % BigInt(2) === BigInt(1)) {
-        result = (result * base) % modulus;
-      }
-      base = (base * base) % modulus;
-      exponent /= BigInt(2);
-    }
-    return result;
-  }
-  findCoprime(phi) {
-    let e = BigInt(65537);
-    while (this.gcd(e, phi) !== BigInt(1)) {
-      e += BigInt(2);
-    }
-    return e;
-  }
-  gcd(a, b) {
-    while (b) {
-      [a, b] = [b, a % b];
-    }
-    return a;
-  }
-  modInverse(a, m) {
-    let [old_r, r] = [BigInt(a), BigInt(m)];
-    let [old_s, s] = [BigInt(1), BigInt(0)];
-    let [old_t, t] = [BigInt(0), BigInt(1)];
-    while (r !== BigInt(0)) {
-      const quotient = old_r / r;
-      [old_r, r] = [r, old_r - quotient * r];
-      [old_s, s] = [s, old_s - quotient * s];
-      [old_t, t] = [t, old_t - quotient * t];
-    }
-    return old_s;
-  }
-}
-// ModelTracker class implementation moved to line 1413
-
-// ModelManager instance tracking
-modelManagerInstance = null;
-
-// ModelArchiver implementation is complete above
-
-// ModelManager instance is created through getInstance()
-
 async function updateModel(analysis) {
   try {
-    // Initialize model structure with validation
-    let model = {
+    // Validate analysis data
+    if (!analysis || !analysis.pattern || !analysis.metrics) {
+      throw new Error("Invalid analysis structure");
+    }
+
+    // Load existing model or create new
+    let model = (await loadExistingModel()) || {
       version: "1.1",
       lastUpdated: Date.now(),
       analyses: [],
@@ -2600,48 +1887,68 @@ async function updateModel(analysis) {
         categories: ["alternating", "mixed", "periodic", "random"],
         metrics: ["entropy", "complexity", "burstiness"],
         thresholds: {
-          entropy: {
-            low: 0.3,
-            medium: 0.7,
-            high: 0.9,
-          },
+          entropy: { low: 0.3, medium: 0.7, high: 0.9 },
         },
       },
     };
-    // Ensure valid analysis input
-    if (!analysis || typeof analysis !== "object") {
-      throw new Error("Invalid analysis data");
-    }
-    const modelDir = path.dirname(MODEL_PATH);
-    // Create directory structure safely
-    await fsPromises.mkdir(modelDir, { recursive: true });
-    try {
-      // Read and parse existing model with validation
-      const data = await fsPromises.readFile(MODEL_PATH, "utf8");
-      const existingModel = JSON.parse(data);
-      if (existingModel && Array.isArray(existingModel.analyses)) {
-        model = existingModel;
-      }
-    } catch (error) {
-      // File doesn't exist or is invalid, use default model
-      console.log("Creating new model file");
-    }
+
+    // Create normalized analysis entry
+    const entry = {
+      id: analysis.id || require("crypto").randomBytes(16).toString("hex"),
+      timestamp: Date.now(),
+      pattern: {
+        type: analysis.pattern.type || "unknown",
+        data: analysis.pattern.data || "",
+        length: analysis.pattern.data ? analysis.pattern.data.length : 0,
+      },
+      metrics: {
+        entropy: Number(analysis.metrics.entropy || 0).toFixed(4),
+        complexity: Number(analysis.metrics.complexity || 0).toFixed(4),
+        burstiness: Number(analysis.metrics.burstiness || 0).toFixed(4),
+      },
+    };
+
     // Update model
-    model.analyses.push(analysis);
+    model.analyses.push(entry);
     model.lastUpdated = Date.now();
-    // Prune old entries (keep latest 1000)
-    if (model.analyses.length > 1000) {
-      model.analyses.sort((a, b) => b.timestamp - a.timestamp);
-      model.analyses = model.analyses.slice(0, 1000);
-    }
-    // Write updated model
-    await fsPromises.writeFile(MODEL_PATH, JSON.stringify(model, null, 2));
-    return model;
+
+    // Save updated model
+    await saveModel(model);
+    return entry;
   } catch (error) {
-    console.error("Error updating model:", error);
+    console.error("Model update failed:", error);
     throw error;
   }
 }
+
+async function loadExistingModel() {
+  try {
+    const exists = await fsPromises
+      .access(MODEL_PATH)
+      .then(() => true)
+      .catch(() => false);
+
+    if (!exists) return null;
+
+    const data = await fsPromises.readFile(MODEL_PATH, "utf8");
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("Error loading model:", error);
+    return null;
+  }
+}
+
+async function saveModel(model) {
+  try {
+    const tempPath = MODEL_PATH + '.tmp';
+    await fsPromises.writeFile(tempPath, JSON.stringify(model, null, 2));
+    await fsPromises.rename(tempPath, MODEL_PATH);
+  } catch (error) {
+    console.error("Error saving model:", error);
+    throw error;
+  }
+}
+
 function formatBinary(binary, maxLength = MAX_DISPLAY_LENGTH) {
   if (binary.length <= maxLength) return binary;
   return (
@@ -2722,19 +2029,11 @@ class PerformanceMonitor {
       patternDensity: 0.8,
     };
   }
-  loadBenchmarks() {
+  async loadBenchmarks() {
     try {
-      const modelPath = path.join(
-        process.cwd(),
-        "models",
-        "patterns",
-        "model.json"
-      );
-      if (fs.existsSync(modelPath)) {
-        const data = JSON.parse(fs.readFileSync(modelPath, "utf8"));
-        if (Array.isArray(data)) {
-          this.calculateBenchmarks(data);
-        }
+      const model = await modelManager.loadModel();
+      if (model && Array.isArray(model.analyses)) {
+        this.calculateBenchmarks(model.analyses);
       }
     } catch (error) {
       console.warn("Error loading benchmarks:", error);
@@ -2822,3 +2121,231 @@ additionalTestCases.forEach((binary) => {
 
 // ModelData is already defined above, removing duplicate definition
 module.exports = { ModelData };
+
+// Cache for memoization
+const patternCache = new Map();
+const correlationCache = new Map();
+
+function calculateCorrelation(binary) {
+  // Check cache first
+  if (correlationCache.has(binary)) {
+    return correlationCache.get(binary);
+  }
+
+  try {
+    const arr = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      arr[i] = binary[i] === "1" ? 1 : 0;
+    }
+
+    let correlation = 0;
+    for (let i = 0; i < arr.length - 1; i++) {
+      correlation += arr[i] * arr[i + 1];
+    }
+
+    const result = correlation / (binary.length - 1);
+    correlationCache.set(binary, result);
+    return result;
+  } catch (error) {
+    console.error("Correlation calculation error:", error);
+    return 0;
+  }
+}
+
+// Removed duplicate function definition
+
+function preprocessBinary(binary) {
+  if (!binary || typeof binary !== "string") {
+    return "";
+  }
+
+  // Use faster string replace with array join
+  return Array.from(binary)
+    .filter((char) => char === "0" || char === "1")
+    .join("");
+}
+
+function calculatePatternDensity(binary) {
+  if (!binary || binary.length === 0) {
+    return [];
+  }
+
+  const windowSize = Math.min(100, binary.length);
+  const density = new Float32Array(Math.ceil(binary.length / windowSize));
+
+  let index = 0;
+  for (let i = 0; i < binary.length; i += windowSize) {
+    const window = binary.slice(i, Math.min(i + windowSize, binary.length));
+    let ones = 0;
+
+    // Manual counting instead of regex
+    for (const char of window) {
+      if (char === "1") ones++;
+    }
+
+    density[index++] = ones / window.length;
+  }
+
+  return Array.from(density);
+}
+
+function calculateTransitions(binary) {
+  if (!binary || binary.length < 2) {
+    return 0;
+  }
+
+  let transitions = 0;
+  for (let i = 1; i < binary.length; i++) {
+    if (binary[i] !== binary[i - 1]) {
+      transitions++;
+    }
+  }
+
+  return transitions;
+}
+
+// Clear cache periodically to prevent memory leaks
+setInterval(() => {
+  if (patternCache.size > 0) {
+    patternCache.clear();
+  }
+  correlationCache.clear();
+}, 300000); // Clear every 5 minutes
+
+// Example usage
+const modelData = new ModelData();
+
+async function processBatch(binaries) {
+  console.log("🎮 Starting pattern analysis game...");
+
+  for (const binary of binaries) {
+    const result = await modelData.processPattern(binary);
+
+    if (result.timeout) {
+      console.log("⏰ Timeout - Moving to next pattern");
+      continue;
+    }
+
+    if (result.pattern) {
+      console.log(
+        "🎯 Pattern found! +" + modelData.SCORE_VALUES.patternFound + " points"
+      );
+    }
+  }
+
+  console.log("\n🏆 Game Stats:", modelData.getGameStats());
+}
+
+class BinaryPatternProcessor {
+  constructor() {
+    this.MAX_BLOCK_SIZE = 8192;
+    this.metricsCache = new Map();
+    this.lastUpdate = Date.now();
+    this.stats = {
+      processedBlocks: 0,
+      patterns: new Map(),
+      lastMetrics: null,
+    };
+  }
+
+  splitIntoBlocks(binary) {
+    const blocks = [];
+    for (let i = 0; i < binary.length; i += this.MAX_BLOCK_SIZE) {
+      blocks.push({
+        data: binary.slice(i, i + this.MAX_BLOCK_SIZE),
+        index: i,
+        timestamp: Date.now(),
+      });
+    }
+    return blocks;
+  }
+
+  analyzeBlocks(blocks) {
+    return blocks.map((block) => {
+      const cacheKey = this.generateBlockHash(block.data);
+
+      if (this.metricsCache.has(cacheKey)) {
+        this.stats.processedBlocks++;
+        return this.metricsCache.get(cacheKey);
+      }
+
+      const metrics = {
+        alternating: /^(10)+1?$/.test(block.data),
+        periodic: /^(.{2,8})\1+/.test(block.data),
+        entropy: this.calculateEntropyOptimized(block.data),
+        timestamp: block.timestamp,
+        index: block.index,
+      };
+
+      this.metricsCache.set(cacheKey, metrics);
+      this.stats.processedBlocks++;
+      return metrics;
+    });
+  }
+
+  calculateEntropyOptimized(block) {
+    const freq = new Uint32Array(2);
+    for (let i = 0; i < block.length; i++) {
+      freq[block[i] === "1" ? 1 : 0]++;
+    }
+
+    return -freq.reduce((sum, count) => {
+      if (count === 0) return sum;
+      const p = count / block.length;
+      return sum + p * Math.log2(p);
+    }, 0);
+  }
+
+  calculateMetrics(patterns) {
+    if (!patterns.length) return { entropy: 0, complexity: 0, burstiness: 0 };
+
+    const metrics = {
+      entropy:
+        patterns.reduce((sum, p) => sum + p.entropy, 0) / patterns.length,
+      complexity:
+        patterns.filter((p) => p.alternating || p.periodic).length /
+        patterns.length,
+      burstiness: Math.sqrt(
+        patterns.reduce((sum, p) => sum + p.entropy * p.entropy, 0) /
+          patterns.length
+      ),
+    };
+
+    this.stats.lastMetrics = {
+      ...metrics,
+      timestamp: Date.now(),
+      processedBlocks: this.stats.processedBlocks,
+    };
+
+    return metrics;
+  }
+
+  generateBlockHash(data) {
+    return require("crypto")
+      .createHash("md5")
+      .update(data.slice(0, 64))
+      .digest("hex");
+  }
+
+  getStats() {
+    return {
+      ...this.stats,
+      cacheSize: this.metricsCache.size,
+      timeSinceLastUpdate: Date.now() - this.lastUpdate,
+    };
+  }
+}
+
+module.exports = {
+  BinaryPatternProcessor,
+  analyzeBinary: async function (binary) {
+    await modelManager.initialize();
+    const processor = new BinaryPatternProcessor();
+    const result = await processor.processPattern(binary);
+    return await modelManager.addAnalysis(result);
+  },
+};
+
+const binary = "1010101010";
+const analyzer = new BinaryAnalysis(binary);
+console.log(analyzer.analyze());
