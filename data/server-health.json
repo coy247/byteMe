@@ -1,0 +1,12 @@
+{
+  "lastHeartbeat": 1733026742857,
+  "status": "running",
+  "uptime": 737.157701,
+  "memory": {
+    "rss": 29163520,
+    "heapTotal": 5914624,
+    "heapUsed": 4461152,
+    "external": 2170490,
+    "arrayBuffers": 527818
+  }
+}

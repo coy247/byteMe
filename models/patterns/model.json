@@ -1,0 +1,27 @@
+{
+  "version": "1.1",
+  "lastUpdated": 1733027525045,
+  "analyses": [
+    []
+  ],
+  "metadata": {
+    "categories": [
+      "alternating",
+      "mixed",
+      "periodic",
+      "random"
+    ],
+    "metrics": [
+      "entropy",
+      "complexity",
+      "burstiness"
+    ],
+    "thresholds": {
+      "entropy": {
+        "low": 0.3,
+        "medium": 0.7,
+        "high": 0.9
+      }
+    }
+  }
+}

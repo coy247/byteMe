@@ -1,0 +1,29 @@
+{
+  "name": "byteme",
+  "version": "1.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "path": "^0.12.7"
+  },
+  "lastUpdated": "2024-01-01T00:00:00Z",
+  "analyses": [],
+  "metadata": {
+    "categories": ["alternating", "mixed", "periodic", "random"],
+    "metrics": ["entropy", "complexity", "burstiness"],
+    "thresholds": {
+      "entropy": {
+        "low": 0.3,
+        "medium": 0.7,
+        "high": 0.9
+      }
+    }
+  }
+}

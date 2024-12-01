@@ -1,0 +1,3263 @@
+{
+  "current": 0,
+  "history": [],
+  "penalties": [
+    {
+      "timestamp": 1733026024143,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.091755
+    },
+    {
+      "timestamp": 1733026025145,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026026147,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.0050149999999999995
+    },
+    {
+      "timestamp": 1733026027148,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026029149,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026030152,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.0050149999999999995
+    },
+    {
+      "timestamp": 1733026031154,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026032155,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026034157,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026035158,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026037159,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026038161,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026041162,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026042163,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026043164,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026044165,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026045166,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026046167,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026047169,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026049170,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026052171,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026053173,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026056175,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026058176,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026059178,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026060179,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026061180,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026062181,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026063182,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026064183,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026066185,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026068186,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026070187,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026071189,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026073190,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026074191,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026075192,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026076193,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026079195,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026080196,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026081198,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026082199,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026083200,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026084201,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026085202,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026086204,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026087205,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026088206,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026089209,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.0050149999999999995
+    },
+    {
+      "timestamp": 1733026091208,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026092209,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026093210,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026094211,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026095212,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026097213,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026098214,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026099216,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026100217,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026101218,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026103220,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026104221,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026106222,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026107223,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026108224,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026109225,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026110228,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.0050149999999999995
+    },
+    {
+      "timestamp": 1733026111230,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026112231,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026113232,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026114233,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026115234,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026116235,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026117237,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026119239,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026120240,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026121242,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026123243,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026125244,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026126246,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026127247,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026128249,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026130250,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026131252,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026133254,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026134255,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026135257,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026137258,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026139259,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026140261,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026141263,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026142264,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026143266,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026144267,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026145269,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026147270,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026150271,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026151272,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026152273,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026153274,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026154276,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026155278,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026156279,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026157280,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026158282,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026159284,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026160285,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026162286,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026163287,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026164288,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026165289,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026166291,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026167293,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026168294,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026169295,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026170296,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026171297,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026172299,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026173300,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026174303,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.0050149999999999995
+    },
+    {
+      "timestamp": 1733026175304,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026176305,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026177306,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026180307,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026181308,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026182309,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026184311,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026185312,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026186314,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026187315,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026188316,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026189317,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026190318,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026192320,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026193320,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026194322,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026195324,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026196325,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026198326,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026200327,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026201331,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00502
+    },
+    {
+      "timestamp": 1733026202333,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026204335,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026205337,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026206339,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026207340,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026208341,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026209342,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026210343,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026212344,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026213346,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026214348,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026215349,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026217350,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026218351,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026219352,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026221353,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026222354,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026223355,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026224356,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026225357,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026226358,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026227359,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026228361,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026230362,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026231363,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026232364,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026233365,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026234367,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026235368,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026236370,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026237371,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026238372,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026239373,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026240374,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026241375,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026242376,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026243378,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026244379,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026245380,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026246381,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026248382,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026249383,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026250384,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026251385,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026252386,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026253387,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026254388,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026256389,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026258390,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026260392,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026261393,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026263395,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026265396,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026267397,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026268399,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026270401,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026271402,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026273403,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026274404,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026275405,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026276406,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026277407,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026278410,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.0050149999999999995
+    },
+    {
+      "timestamp": 1733026279411,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026280412,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026281413,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026282415,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026283416,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026284417,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026285418,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026286420,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026287422,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026288423,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026290425,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026291426,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026292427,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026293428,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026295429,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026297430,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026298431,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026299432,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026300433,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026301435,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026302437,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026303437,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026306438,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026308439,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026310440,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026311441,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026312442,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026313443,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026314444,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026315445,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026316446,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026318448,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026319449,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026320450,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026321451,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026322452,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026323453,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026324454,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026325455,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026326457,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026328459,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026330461,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026332463,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026333464,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026334466,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026337467,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026338468,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026339470,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026341471,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026342473,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026343475,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026344476,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026345477,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026347478,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026349479,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026350481,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026352483,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026353485,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026354486,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026356486,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026357487,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026359488,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026361490,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026362491,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026363492,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026364493,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026365494,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026366496,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026369498,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026370500,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026371501,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026372502,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026374504,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026376505,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026377506,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026378508,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026379508,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026380510,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026381510,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026383511,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026384512,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026385513,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026386514,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026387515,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026388516,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026389517,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026390518,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026391519,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026392520,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026394521,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026395522,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026396523,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026397524,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026398525,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026399526,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026400527,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026401528,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026403529,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026404530,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026405531,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026407532,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026408533,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026409534,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026410536,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026411537,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026412538,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026413540,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026415542,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026417544,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026419545,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026421547,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026424549,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026426550,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026427552,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026428553,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026430554,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026431555,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026432556,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026433558,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026434559,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026435560,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026436561,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026437566,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005025
+    },
+    {
+      "timestamp": 1733026438567,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026439568,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026440570,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026442571,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026443572,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026444574,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026445576,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026446578,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026448579,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026449580,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026450581,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026451583,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026453584,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026454585,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026455586,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026456587,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026457588,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026458589,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026459590,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026460591,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026461592,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026463593,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026464595,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026465596,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026466597,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026467598,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026468599,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026469600,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026470601,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026471602,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026473603,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026474604,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026476605,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026477607,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026478608,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026479609,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026481610,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026483612,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026485613,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026486615,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026488616,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026489621,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005025
+    },
+    {
+      "timestamp": 1733026492623,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026493624,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026494626,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026496627,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026497629,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026499631,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026500632,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026502633,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026503634,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026504636,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026505637,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026507638,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026509639,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026511639,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026513641,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026514643,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026516645,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026517647,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026519648,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026520650,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026522651,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026523653,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026525653,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026526655,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026528655,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026531656,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026532657,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026533658,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026534659,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026535660,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026536661,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026537662,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026538663,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026539664,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026540665,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026541666,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026542667,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026543668,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026544669,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026545670,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026546671,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026547672,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026549674,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026551676,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026553677,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026555679,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026556680,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026558682,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026559683,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026561684,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026562686,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026563688,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026564690,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026565691,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026567693,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026569694,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026571695,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026572696,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026574698,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026576699,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026577700,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026578701,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026579703,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026580704,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026581705,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026583706,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026584707,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026585708,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026588710,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026589711,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026591712,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026592716,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00502
+    },
+    {
+      "timestamp": 1733026594718,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026596720,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026597722,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026598724,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026599725,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026600726,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026601728,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026602730,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026606730,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026607732,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026608733,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026611734,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026612735,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026613736,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026614738,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026615739,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026617741,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026618743,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026619744,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026621745,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026623746,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026625747,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026628749,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026630751,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026631752,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026632753,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026634754,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026635756,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026636761,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005025
+    },
+    {
+      "timestamp": 1733026637762,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026639764,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026640766,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026642767,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026643769,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026645771,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026646772,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026647773,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026649774,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026650775,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026652775,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026653777,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026654778,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026655779,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026656781,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026659782,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026660783,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026662785,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026664786,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026666787,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026667788,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026669788,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026670789,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026671790,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026672791,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026673793,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026675794,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026676795,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026678796,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026679797,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026681798,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026682799,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026683800,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026684801,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026686803,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026687804,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026688805,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026689806,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026690807,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026692809,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026693811,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026695813,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026696814,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026697815,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026700817,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026703818,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026704819,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026706820,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026709822,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026710823,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026711824,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026713825,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026714827,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026716829,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026717831,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026718832,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026719833,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026720834,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026721835,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026723836,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026724837,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026726838,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026727839,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026728840,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026729841,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026731843,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026732845,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026734846,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026735847,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026737848,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.005005
+    },
+    {
+      "timestamp": 1733026738851,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.0050149999999999995
+    },
+    {
+      "timestamp": 1733026740853,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00501
+    },
+    {
+      "timestamp": 1733026742857,
+      "amount": 0,
+      "reason": "Server downtime",
+      "multiplier": 0.00502
+    }
+  ],
+  "serverDowntime": {
+    "start": null,
+    "total": 0,
+    "penalties": []
+  }
+}
