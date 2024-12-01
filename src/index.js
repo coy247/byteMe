@@ -20,6 +20,44 @@ const SERVER_HEALTH_PATH = path.join(
   "server-health.json"
 );
 
+// Move ScoreManager class to the top before other classes that depend on it
+class ScoreManager {
+  constructor() {
+    this.scores = {
+      current: 0,
+      history: [],
+      penalties: [],
+    };
+  }
+
+  static async create() {
+    const manager = new ScoreManager();
+    await manager.initializeScores();
+    return manager;
+  }
+
+  async initializeScores() {
+    try {
+      const exists = await fsPromises
+        .access(SCORES_PATH)
+        .then(() => true)
+        .catch(() => false);
+      if (exists) {
+        const data = await fsPromises.readFile(SCORES_PATH, "utf8");
+        this.scores = JSON.parse(data);
+      } else {
+        await fsPromises.writeFile(
+          SCORES_PATH,
+          JSON.stringify(this.scores, null, 2)
+        );
+      }
+    } catch (error) {
+      console.error("Error initializing scores:", error);
+      // Continue with default scores if there's an error
+    }
+  }
+}
+
 // Core utility classes
 class WaypointTracker {
   constructor() {
@@ -174,140 +212,132 @@ class StabilityMonitor {
 
 class ModelArchiver {
   constructor() {
-    this.MAX_JSON_SIZE = 10 * 1024 * 1024; // 10MB
-    this.ARCHIVE_PATH = path.join(
+    this.BATCH_SIZE = 100;
+    this.MAX_RETRIES = 3;
+    this.SAVE_INTERVAL = 5000; // 5 seconds
+    this.pendingWrites = [];
+    this.MODEL_PATH = path.join(
       __dirname,
       "..",
       "models",
       "patterns",
-      "model.txt"
+      "model.json"
     );
-    this.priorityFields = [
-      "id",
-      "timestamp",
-      "pattern_type",
-      "metrics",
-      "summary",
-    ];
-  }
-  async manageModelSize() {
-    const stats = await fsPromises.stat(MODEL_PATH);
-    if (stats.size > this.MAX_JSON_SIZE) {
-      const data = await this.readModel();
-      const [keepJson, moveToTxt] = this.splitData(data);
-      await this.updateFiles(keepJson, moveToTxt);
-    }
-  }
-  splitData(data) {
-    const keepJson = data
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 1000)
-      .sort((a, b) => {
-        const aIndex = this.priorityFields.indexOf(Object.keys(a)[0]);
-        const bIndex = this.priorityFields.indexOf(Object.keys(b)[0]);
-        return aIndex - bIndex;
-      });
-    const moveToTxt = data.slice(1000);
-    return [keepJson, moveToTxt];
+    this.lastSave = Date.now();
+    this.initializeAutoSave();
   }
 
-  async updateFiles(jsonData, archiveData) {
+  async initializeModel() {
     try {
-      // Update model.json with priority data
-      await fsPromises.writeFile(MODEL_PATH, JSON.stringify(jsonData, null, 2));
-
-      // Minify and append to archive
-      const minified = this.minifyData(archiveData);
-      await fsPromises.appendFile(this.ARCHIVE_PATH, minified + "\n");
-
-      // Analyze trends
-      const trends = this.analyzeTrends(archiveData);
-      return trends;
+      const exists = await fsPromises
+        .access(this.MODEL_PATH)
+        .then(() => true)
+        .catch(() => false);
+      if (!exists) {
+        const initialModel = {
+          version: "1.1",
+          lastUpdated: Date.now(),
+          analyses: [],
+          metadata: {
+            categories: ["alternating", "mixed", "periodic", "random"],
+            metrics: ["entropy", "complexity", "burstiness"],
+            thresholds: {
+              entropy: { low: 0.3, medium: 0.7, high: 0.9 },
+            },
+          },
+        };
+        await this.saveModel(initialModel);
+      }
     } catch (error) {
-      console.error("Error updating files:", error);
+      console.error("Model initialization failed:", error);
       throw error;
     }
   }
 
-  minifyData(data) {
-    if (!Array.isArray(data)) {
-      throw new Error("Expected array input for minification");
+  async loadModel() {
+    try {
+      const data = await fsPromises.readFile(this.MODEL_PATH, "utf8");
+      return JSON.parse(data);
+    } catch (error) {
+      console.error("Error loading model:", error);
+      return this.initializeModel();
     }
-
-    return data
-      .map((entry) => {
-        try {
-          return {
-            i: entry && entry.id ? entry.id.slice(0, 8) : "00000000",
-            t: (entry && entry.timestamp) || Date.now(),
-            p:
-              (entry && entry.pattern_type && entry.pattern_type.charAt(0)) ||
-              "u",
-            m: {
-              e: Number(
-                (
-                  (entry && entry.metrics && entry.metrics.entropy) ||
-                  0
-                ).toFixed(4)
-              ),
-              c: Number(
-                (
-                  (entry && entry.metrics && entry.metrics.complexity) ||
-                  0
-                ).toFixed(4)
-              ),
-              b: Number(
-                (
-                  (entry && entry.metrics && entry.metrics.burstiness) ||
-                  0
-                ).toFixed(4)
-              ),
-            },
-          };
-        } catch (error) {
-          console.warn("Error processing entry:", error);
-          return null;
-        }
-      })
-      .filter(Boolean);
   }
 
-  analyzeTrends(data) {
+  async saveModel(model) {
+    try {
+      const tmpPath = `${this.MODEL_PATH}.tmp`;
+      await fsPromises.writeFile(tmpPath, JSON.stringify(model, null, 2));
+      await fsPromises.rename(tmpPath, this.MODEL_PATH);
+      this.lastSave = Date.now();
+    } catch (error) {
+      console.error("Error saving model:", error);
+      throw error;
+    }
+  }
+
+  async addAnalysis(analysis) {
+    const validatedAnalysis = this.validateAnalysis(analysis);
+    this.pendingWrites.push(validatedAnalysis);
+
+    if (this.pendingWrites.length >= this.BATCH_SIZE) {
+      await this.flushPendingWrites();
+    }
+  }
+
+  validateAnalysis(analysis) {
     return {
-      patterns: this.getCommonPatterns(data),
-      metrics: this.getAverageMetrics(data),
-      timeRanges: this.getTimeRanges(data),
+      id: analysis.id || this.generateId(),
+      timestamp: Date.now(),
+      pattern_type: analysis.pattern_type || "unknown",
+      metrics: {
+        entropy: Number(
+          (analysis.metrics && analysis.metrics.entropy) || 0
+        ).toFixed(4),
+        complexity: Number(
+          (analysis.metrics && analysis.metrics.complexity) || 0
+        ).toFixed(4),
+        burstiness: Number(
+          (analysis.metrics && analysis.metrics.burstiness) || 0
+        ).toFixed(4),
+      },
+      summary:
+        analysis.summary ||
+        `Pattern analyzed with entropy ${
+          analysis.metrics && analysis.metrics.entropy
+            ? analysis.metrics.entropy.toFixed(4)
+            : 0
+        }`,
     };
   }
-  getCommonPatterns(data) {
-    return Object.entries(
-      data.reduce((acc, entry) => {
-        acc[entry.pattern_type] = (acc[entry.pattern_type] || 0) + 1;
-        return acc;
-      }, {})
-    ).sort((a, b) => b[1] - a[1]);
+
+  async flushPendingWrites() {
+    if (this.pendingWrites.length === 0) return;
+
+    const model = await this.loadModel();
+    model.analyses.push(...this.pendingWrites);
+    model.lastUpdated = Date.now();
+
+    await this.saveModel(model);
+    this.pendingWrites = [];
   }
-  getAverageMetrics(data) {
-    return data.reduce(
-      (acc, entry) => ({
-        entropy: acc.entropy + entry.metrics.entropy,
-        complexity: acc.complexity + entry.metrics.complexity,
-        burstiness: acc.burstiness + entry.metrics.burstiness,
-      }),
-      { entropy: 0, complexity: 0, burstiness: 0 }
-    );
+
+  initializeAutoSave() {
+    setInterval(async () => {
+      if (
+        this.pendingWrites.length > 0 &&
+        Date.now() - this.lastSave > this.SAVE_INTERVAL
+      ) {
+        await this.flushPendingWrites();
+      }
+    }, this.SAVE_INTERVAL);
   }
-  getTimeRanges(data) {
-    const timestamps = data.map((e) => e.timestamp);
-    return {
-      oldest: Math.min(...timestamps),
-      newest: Math.max(...timestamps),
-      range: Math.max(...timestamps) - Math.min(...timestamps),
-    };
+
+  generateId() {
+    return require("crypto").randomBytes(16).toString("hex");
   }
 }
 
-// Remove duplicate declaration and keep only one ModelValidator class
 class ModelValidator {
   constructor(scoreManagerInstance) {
     if (!scoreManagerInstance) {
@@ -488,14 +518,17 @@ class ModelRecovery {
   }
   async applyPenalty(multiplier, reason) {
     if (multiplier <= 0) return;
-    const penalty = Math.min(this.scores.current * multiplier, this.scores.current);
+    const penalty = Math.min(
+      this.scores.current * multiplier,
+      this.scores.current
+    );
     this.scores.current = Math.max(0, this.scores.current - penalty);
     const penaltyRecord = {
       timestamp: Date.now(),
       amount: penalty,
       reason,
       multiplier,
-      remainingScore: this.scores.current
+      remainingScore: this.scores.current,
     };
     this.scores.penalties.push(penaltyRecord);
     await this.saveScores();
@@ -556,73 +589,7 @@ class ModelRecovery {
 let modelManagerInstance = null;
 // Using the ScoreManager class defined below
 
-// ScoreManager class definition
-class ScoreManager {
-  constructor() {
-    this.scores = {
-      current: 0,
-      history: [],
-      penalties: [],
-    };
-  }
-
-  static async create() {
-    const manager = new ScoreManager();
-    await manager.initializeScores();
-    return manager;
-  }
-
-  async initializeScores() {
-    try {
-      await fsPromises.mkdir(path.dirname(SCORES_PATH), { recursive: true });
-      if (fs.existsSync(SCORES_PATH)) {
-        this.scores = JSON.parse(
-          await fsPromises.readFile(SCORES_PATH, "utf8")
-        );
-      } else {
-        await this.saveScores();
-      }
-    } catch (error) {
-      console.error("Score initialization error:", error);
-    }
-  }
-
-  async saveScores() {
-    try {
-      await fsPromises.writeFile(
-        SCORES_PATH,
-        JSON.stringify(this.scores, null, 2)
-      );
-    } catch (error) {
-      console.error("Error saving scores:", error);
-    }
-  }
-
-  async updateScore(points, reason) {
-    this.scores.current = Math.max(0, this.scores.current + points);
-    const entry = {
-      timestamp: Date.now(),
-      points,
-      reason,
-      total: this.scores.current,
-    };
-    this.scores.history.push(entry);
-    await this.saveScores();
-    return entry;
-  }
-
-  applyPenalty(multiplier, reason) {
-    const penalty = this.scores.current * multiplier;
-    this.scores.current -= penalty;
-    this.scores.penalties.push({
-      timestamp: Date.now(),
-      amount: penalty,
-      reason,
-      multiplier,
-    });
-    this.saveScores();
-  }
-}
+// ScoreManager class is already defined above
 
 // ModelManager singleton instance is managed within the class
 class ModelManager {
@@ -634,8 +601,8 @@ class ModelManager {
     }
     this.stabilityMonitor = new StabilityMonitor(scoreManagerInstance);
     this.archiver = new ModelArchiver();
-    this.validator = new ModelValidator();
-    this.recovery = new ModelRecovery();
+    this.validator = new ModelValidator(scoreManagerInstance);
+    this.recovery = new ModelRecovery(scoreManagerInstance);
     this.categories = {
       alternating: [],
       mixed: [],
@@ -909,6 +876,10 @@ class DataProcessor {
     this.cache = new Map();
   }
 
+  generateId() {
+    return require("crypto").randomBytes(16).toString("hex");
+  }
+
   processData(inputData) {
     if (!Array.isArray(inputData)) {
       const arrayData = [inputData]; // Convert single item to array
@@ -954,25 +925,9 @@ class DataProcessor {
     return {
       id: this.generateId(),
       timestamp: Date.now(),
-      pattern: { type: "unknown", length: 0 },
-      metrics: { entropy: 0, complexity: 0, burstiness: 0 },
+      pattern: null,
+      metrics: {},
     };
-  }
-
-  extractMetrics(entry = {}) {
-    const metrics = entry.metrics || {};
-    return {
-      entropy: Number(metrics.entropy || 0),
-      complexity: Number(metrics.complexity || 0),
-      burstiness: Number(metrics.burstiness || 0),
-    };
-  }
-
-  generateId() {
-    return require("crypto")
-      .createHash("md5")
-      .update(Date.now().toString())
-      .digest("hex");
   }
 }
 
@@ -981,18 +936,19 @@ class ModelAnalyzer {
     this.defaultEntry = {
       id: "",
       timestamp: Date.now(),
-      metrics: { entropy: 0, complexity: 0 },
+      metrics: {
+        entropy: 0,
+        complexity: 0,
+      },
     };
   }
 
-  analyze(inputData = []) {
-    try {
-      // Validate input
-      if (!Array.isArray(inputData)) {
-        console.warn("Expected array, got:", typeof inputData);
-        return [this.defaultEntry];
-      }
+  analyze(data) {
+    return this.analyzeData(data);
+  }
 
+  analyzeData(inputData) {
+    try {
       const crypto = require("crypto");
 
       // Process entries with validation
@@ -1020,48 +976,8 @@ class ModelAnalyzer {
 // Initialize ModelAnalyzer instance
 const modelAnalyzer = new ModelAnalyzer();
 
-// ScoreManager class definition
-class ScoreManager {
-  constructor() {
-    this.scores = {
-      current: 0,
-      history: [],
-      penalties: [],
-    };
-  }
-
-  static async create() {
-    const manager = new ScoreManager();
-    await manager.initializeScores();
-    return manager;
-  }
-
-  async initializeScores() {
-    try {
-      await fsPromises.mkdir(path.dirname(SCORES_PATH), { recursive: true });
-      if (fs.existsSync(SCORES_PATH)) {
-        this.scores = JSON.parse(
-          await fsPromises.readFile(SCORES_PATH, "utf8")
-        );
-      } else {
-        await this.saveScores();
-      }
-    } catch (error) {
-      console.error("Score initialization error:", error);
-    }
-  }
-
-  async saveScores() {
-    try {
-      await fsPromises.writeFile(
-        SCORES_PATH,
-        JSON.stringify(this.scores, null, 2)
-      );
-    } catch (error) {
-      console.error("Error saving scores:", error);
-    }
-  }
-
+// ScoreManager is already defined above, no need to redefine it
+class ExtendedScoreManager extends ScoreManager {
   async updateScore(points, reason) {
     this.scores.current = Math.max(0, this.scores.current + points);
     const entry = {
@@ -1102,7 +1018,6 @@ async function main() {
   try {
     const binary = await fsPromises.readFile(MODEL_PATH, "utf8");
     const cleanBinary = binary.trim();
-    console.log("Analyzing binary data...");
     const analyzer = new ModelAnalyzer();
     const analysis = analyzer.analyze([cleanBinary]);
     await updateModel(analysis);
