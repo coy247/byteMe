@@ -1,8 +1,82 @@
 {
   "version": "1.1",
-  "lastUpdated": 1733074348290,
+  "lastUpdated": 1733092905373,
   "analyses": [
-    []
+    [],
+    {
+      "id": "08e359023eed4efc6a444d33e7723c2e",
+      "timestamp": 1733091144002,
+      "pattern": {
+        "type": "mixed",
+        "data": [
+          "{\n  \"version\": \"1.1\",\n  \"lastUpdated\": 1733077033867,\n  \"analyses\": [\n    []\n  ],\n  \"metadata\": {\n    \"categories\": [\n      \"alternating\",\n      \"mixed\",\n      \"periodic\",\n      \"random\"\n    ],\n    \"metrics\": [\n      \"entropy\",\n      \"complexity\",\n      \"burstiness\"\n    ],\n    \"thresholds\": {\n      \"entropy\": {\n        \"low\": 0.3,\n        \"medium\": 0.7,\n        \"high\": 0.9\n      }\n    }\n  }\n}"
+        ],
+        "length": 1
+      },
+      "metrics": {
+        "entropy": "0.9544",
+        "complexity": "0.1429",
+        "burstiness": "3.1623"
+      }
+    },
+    {
+      "id": "e33db09f634b685971408f95d62bcb1d",
+      "timestamp": 1733092806630,
+      "pattern": {
+        "type": "mixed",
+        "data": [
+          "{\n  \"version\": \"1.1\",\n  \"lastUpdated\": 1733091144002,\n  \"analyses\": [\n    [],\n    {\n      \"id\": \"08e359023eed4efc6a444d33e7723c2e\",\n      \"timestamp\": 1733091144002,\n      \"pattern\": {\n        \"type\": \"mixed\",\n        \"data\": [\n          \"{\\n  \\\"version\\\": \\\"1.1\\\",\\n  \\\"lastUpdated\\\": 1733077033867,\\n  \\\"analyses\\\": [\\n    []\\n  ],\\n  \\\"metadata\\\": {\\n    \\\"categories\\\": [\\n      \\\"alternating\\\",\\n      \\\"mixed\\\",\\n      \\\"periodic\\\",\\n      \\\"random\\\"\\n    ],\\n    \\\"metrics\\\": [\\n      \\\"entropy\\\",\\n      \\\"complexity\\\",\\n      \\\"burstiness\\\"\\n    ],\\n    \\\"thresholds\\\": {\\n      \\\"entropy\\\": {\\n        \\\"low\\\": 0.3,\\n        \\\"medium\\\": 0.7,\\n        \\\"high\\\": 0.9\\n      }\\n    }\\n  }\\n}\"\n        ],\n        \"length\": 1\n      },\n      \"metrics\": {\n        \"entropy\": \"0.9544\",\n        \"complexity\": \"0.1429\",\n        \"burstiness\": \"3.1623\"\n      }\n    }\n  ],\n  \"metadata\": {\n    \"categories\": [\n      \"alternating\",\n      \"mixed\",\n      \"periodic\",\n      \"random\"\n    ],\n    \"metrics\": [\n      \"entropy\",\n      \"complexity\",\n      \"burstiness\"\n    ],\n    \"thresholds\": {\n      \"entropy\": {\n        \"low\": 0.3,\n        \"medium\": 0.7,\n        \"high\": 0.9\n      }\n    }\n  }\n}"
+        ],
+        "length": 1
+      },
+      "metrics": {
+        "entropy": "0.9887",
+        "complexity": "0.4194",
+        "burstiness": "4.8550"
+      }
+    },
+    {
+      "id": "d170ac9f5bd3119b8ab58c7dd22e1fc1",
+      "timestamp": 1733092904913,
+      "pattern": {
+        "type": "alternating",
+        "data": "1010101010",
+        "length": 10
+      },
+      "metrics": {
+        "entropy": 1,
+        "complexity": 1,
+        "burstiness": 0
+      }
+    },
+    {
+      "id": "8e116f8c38b6ddfe1085da158171419d",
+      "timestamp": 1733092905268,
+      "pattern": {
+        "type": "periodic",
+        "data": "11110000",
+        "length": 8
+      },
+      "metrics": {
+        "entropy": 1,
+        "complexity": 0.1429,
+        "burstiness": 0
+      }
+    },
+    {
+      "id": "a77aa6f205984643fae7a5cb9d759459",
+      "timestamp": 1733092905373,
+      "pattern": {
+        "type": "alternating",
+        "data": "10101010101010",
+        "length": 14
+      },
+      "metrics": {
+        "entropy": 1,
+        "complexity": 1,
+        "burstiness": 0
+      }
+    }
   ],
   "metadata": {
     "categories": [

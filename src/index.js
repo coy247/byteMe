@@ -683,6 +683,25 @@ class ModelManager {
   }
 
   async addAnalysis(analysis) {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+
+    if (!this.model) {
+      this.model = {
+        version: "1.1",
+        lastUpdated: Date.now(),
+        analyses: [],
+        metadata: {
+          categories: ["alternating", "mixed", "periodic", "random"],
+          metrics: ["entropy", "complexity", "burstiness"],
+          thresholds: {
+            entropy: { low: 0.3, medium: 0.7, high: 0.9 },
+          },
+        },
+      };
+    }
+
     if (!this.isValidAnalysis(analysis)) {
       throw new Error("Invalid analysis structure");
     }
@@ -2387,12 +2406,43 @@ class BinaryPatternProcessor {
 module.exports = {
   BinaryPatternProcessor,
   analyzeBinary: async function (binary) {
-    await modelManager.initialize();
-    const processor = new BinaryPatternProcessor();
-    const result = await processor.processPattern(binary);
-    return await modelManager.addAnalysis(result);
+    try {
+      await modelManager.initialize();
+      const processor = new BinaryPatternProcessor();
+      const result = await processor.processPattern(binary);
+      await modelManager.addAnalysis(result);
+      return result;
+    } catch (error) {
+      console.error("Analysis failed:", error);
+      throw error;
+    }
   },
 };
+
+// Testing implementation
+async function runAnalysis() {
+  const testPatterns = [
+    "1010101010",
+    "11110000",
+    "10101010101010",
+    "1100110011",
+  ];
+
+  for (const binary of testPatterns) {
+    try {
+      console.log(`\nAnalyzing pattern: ${binary}`);
+      const result = await analyzeBinary(binary);
+      console.log("Analysis complete:", result);
+    } catch (error) {
+      console.error(`Error analyzing ${binary}:`, error);
+    }
+  }
+}
+
+// Run analysis if not being imported
+if (require.main === module) {
+  runAnalysis().catch(console.error);
+}
 
 const binary = "1010101010";
 const analyzer = new BinaryAnalysis(binary);
