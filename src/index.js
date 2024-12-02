@@ -2354,8 +2354,8 @@ class BinaryPatternProcessor {
 
   calculateEntropyOptimized(block) {
     const freq = new Uint32Array(2);
-    for (let i = 0; i < block.length; i++) {
-      freq[block[i] === "1" ? 1 : 0]++;
+    for (const char of block) {
+      freq[char === "1" ? 1 : 0]++;
     }
 
     return -freq.reduce((sum, count) => {
@@ -2419,6 +2419,104 @@ module.exports = {
   },
 };
 
+// PatternAnalysisQueue is already defined above
+
+// PatternAnalysisQueue class is already defined above
+
+class PatternAnalysisQueue {
+  constructor() {
+    this.queue = [];
+    this.results = [];
+    this.processing = false;
+    this.batchSize = 5;
+    this.timeout = 2000;
+    this.metrics = {
+      processed: 0,
+      errors: 0,
+      startTime: Date.now(),
+      lastProcessed: null,
+    };
+    this.initialize();
+  }
+
+  initialize() {
+    if (typeof this.addPattern !== "function") {
+      this.addPattern = async (binary) => {
+        this.queue.push({ binary, timestamp: Date.now() });
+        await processPattern(binary); // Add visual enhancement
+        if (!this.processing) {
+          await this.processQueue();
+        }
+      };
+    }
+  }
+
+  async addPattern(binary) {
+    this.queue.push({ binary, timestamp: Date.now() });
+    await processPattern(binary); // Add visual enhancement
+    if (!this.processing) {
+      await this.processQueue();
+    }
+  }
+
+  async processQueue() {
+    this.processing = true;
+
+    while (this.queue.length > 0) {
+      const batch = this.queue.splice(0, this.batchSize);
+
+      await Promise.race([this.processBatch(batch), this.createTimeout()]);
+
+      // Prevent CPU overload
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    this.processing = false;
+    this.logMetrics();
+  }
+
+  async processBatch(batch) {
+    const results = await Promise.allSettled(
+      batch.map(async (item) => {
+        try {
+          const analyzer = new BinaryAnalysis(item.binary);
+          const result = analyzer.analyze();
+          this.metrics.processed++;
+          this.metrics.lastProcessed = Date.now();
+          return result;
+        } catch (error) {
+          this.metrics.errors++;
+          throw error;
+        }
+      })
+    );
+
+    this.results.push(
+      ...results.filter((r) => r.status === "fulfilled").map((r) => r.value)
+    );
+  }
+
+  createTimeout() {
+    return new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Queue timeout")), this.timeout)
+    );
+  }
+
+  logMetrics() {
+    const duration = Date.now() - this.metrics.startTime;
+    console.log("Queue Processing Complete:", {
+      processed: this.metrics.processed,
+      errors: this.metrics.errors,
+      duration: duration + "ms",
+      rate: (this.metrics.processed / (duration / 1000)).toFixed(2) + "/s",
+    });
+  }
+
+  getResults() {
+    return this.results;
+  }
+}
+
 // Testing implementation
 async function runAnalysis() {
   const testPatterns = [
@@ -2430,20 +2528,338 @@ async function runAnalysis() {
 
   for (const binary of testPatterns) {
     try {
-      console.log(`\nAnalyzing pattern: ${binary}`);
+      console.log("\nAnalyzing pattern: " + binary);
       const result = await analyzeBinary(binary);
       console.log("Analysis complete:", result);
     } catch (error) {
-      console.error(`Error analyzing ${binary}:`, error);
+      console.error("Error analyzing " + binary + ":", error);
     }
   }
 }
 
 // Run analysis if not being imported
 if (require.main === module) {
-  runAnalysis().catch(console.error);
+  runQueueAnalysis().catch(console.error);
 }
 
 const binary = "1010101010";
 const analyzer = new BinaryAnalysis(binary);
 console.log(analyzer.analyze());
+
+// Methods for PatternAnalysisQueue are already defined above
+
+// Run analysis
+async function runQueueAnalysis() {
+  const queue = new PatternAnalysisQueue();
+  const testPatterns = [
+    "1010101010",
+    "11110000",
+    "10101010101010",
+    "1100110011",
+  ];
+
+  for (const pattern of testPatterns) {
+    await queue.addPattern(pattern);
+  }
+
+  return queue.getResults();
+}
+
+if (require.main === module) {
+  runQueueAnalysis()
+    .then((results) => console.log("Analysis Results:", results))
+    .catch(console.error);
+}
+
+class PatternDetector {
+  constructor(binary) {
+    this.binary = binary;
+    this.confidence = 0;
+    this.patterns = {
+      alternating: { score: 0, possible: true },
+      periodic: { score: 0, possible: true },
+      random: { score: 0, possible: true },
+      complex: { score: 0, possible: true },
+      nested: { score: 0, possible: true },
+    };
+  }
+
+  detect() {
+    this.preProcess();
+    this.scorePatterns();
+    return this.predictPattern();
+  }
+
+  preProcess() {
+    const sample = this.binary.slice(0, 100);
+
+    // Boolean elimination checks
+    this.patterns.alternating.possible = !/11{2,}|00{2,}/.test(sample);
+    this.patterns.periodic.possible = this.hasRepeatingSubsequence(sample);
+    this.patterns.random.possible = this.calculateEntropy(sample) > 0.7;
+    this.patterns.complex.possible = true; // Always possible as fallback
+    this.patterns.nested.possible = sample.length >= 8;
+  }
+
+  scorePatterns() {
+    if (this.patterns.alternating.possible) {
+      this.patterns.alternating.score = this.scoreAlternating();
+    }
+
+    if (this.patterns.periodic.possible) {
+      this.patterns.periodic.score = this.scorePeriodic();
+    }
+
+    if (this.patterns.random.possible) {
+      this.patterns.random.score = this.scoreRandom();
+    }
+
+    if (this.patterns.nested.possible) {
+      this.patterns.nested.score = this.scoreNested();
+    }
+
+    this.patterns.complex.score = this.scoreComplex();
+  }
+
+  predictPattern() {
+    const scores = Object.entries(this.patterns)
+      .filter(([_, data]) => data.possible)
+      .map(([type, data]) => ({ type, score: data.score }));
+
+    const bestMatch = scores.reduce((prev, current) =>
+      current.score > prev.score ? current : prev
+    );
+
+    this.confidence =
+      (bestMatch.score / Math.max(...scores.map((s) => s.score))) * 100;
+
+    return {
+      type: bestMatch.type,
+      confidence: this.confidence.toFixed(2),
+      alternatives: scores
+        .filter((s) => s.type !== bestMatch.type)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 2),
+    };
+  }
+
+  hasRepeatingSubsequence(sample) {
+    for (let len = 2; len <= sample.length / 2; len++) {
+      const seq = sample.slice(0, len);
+      if (sample.slice(len, len * 2) === seq) return true;
+    }
+    return false;
+  }
+
+  calculateEntropy(sample) {
+    const freq = new Map();
+    for (const bit of sample) {
+      freq.set(bit, (freq.get(bit) || 0) + 1);
+    }
+    return -Array.from(freq.values())
+      .map((count) => {
+        const p = count / sample.length;
+        return p * Math.log2(p);
+      })
+      .reduce((sum, val) => sum + val, 0);
+  }
+
+  scoreAlternating() {
+    const matches = this.binary
+      .split("")
+      .reduce(
+        (count, bit, i) =>
+          count + (i > 0 && bit !== this.binary[i - 1] ? 1 : 0),
+        0
+      );
+    return matches / (this.binary.length - 1);
+  }
+
+  scorePeriodic() {
+    const patterns = new Map();
+    for (let len = 2; len <= 8; len++) {
+      for (let i = 0; i <= this.binary.length - len; i++) {
+        const pattern = this.binary.slice(i, i + len);
+        patterns.set(pattern, (patterns.get(pattern) || 0) + 1);
+      }
+    }
+    return Math.max(...patterns.values()) / (this.binary.length / 2);
+  }
+
+  scoreRandom() {
+    return this.calculateEntropy(this.binary);
+  }
+
+  scoreComplex() {
+    return 0.5 + this.calculateEntropy(this.binary) * 0.5;
+  }
+
+  scoreNested() {
+    const subPatterns = new Set();
+    for (let len = 2; len <= 4; len++) {
+      for (let i = 0; i <= this.binary.length - len; i++) {
+        subPatterns.add(this.binary.slice(i, i + len));
+      }
+    }
+    return subPatterns.size / (this.binary.length * 0.75);
+  }
+}
+
+class BinaryVisualizer {
+  constructor() {
+    this.patterns = ["⣿", "⢿", "⡿", "⣟", "⣯", "⣷", "⣾", "⣽"];
+    this.cache = new Map();
+    this.frameDelay = 100;
+  }
+
+  async visualizePattern(binary) {
+    const frameWidth = process.stdout.columns || 80;
+    const chunks = this.chunkBinary(binary, frameWidth);
+
+    console.clear();
+
+    for (const chunk of chunks) {
+      const frame = this.createFrame(chunk, frameWidth);
+      process.stdout.write("\x1b[?25l"); // Hide cursor
+      process.stdout.write(frame);
+      await this.sleep(this.frameDelay);
+    }
+
+    process.stdout.write("\x1b[?25h"); // Show cursor
+  }
+
+  chunkBinary(binary, width) {
+    const chunks = [];
+    for (let i = 0; i < binary.length; i += width) {
+      chunks.push(binary.slice(i, i + width));
+    }
+    return chunks;
+  }
+
+  createFrame(chunk, width) {
+    let frame = "";
+    for (let i = 0; i < chunk.length; i++) {
+      const pattern = this.getPattern(chunk[i], i);
+      frame += pattern;
+    }
+    return frame + "\n";
+  }
+
+  getPattern(bit, position) {
+    const cacheKey = bit + "-" + (position % this.patterns.length);
+
+    if (!this.cache.has(cacheKey)) {
+      const pattern =
+        bit === "1" ? this.patterns[position % this.patterns.length] : "░";
+      this.cache.set(cacheKey, pattern);
+    }
+
+    return this.cache.get(cacheKey);
+  }
+
+  sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+}
+
+// Usage in your existing code
+async function processPattern(binary) {
+  const visualizer = new BinaryVisualizer();
+  await visualizer.visualizePattern(binary);
+}
+
+class PatternAnalyzer {
+  constructor() {
+    this.cache = new Map();
+    this.EARLY_EXIT_THRESHOLD = 0.95;
+    this.MIN_PATTERN_LENGTH = 2;
+    this.MAX_PATTERN_LENGTH = 16;
+    this.patterns = new Uint8Array(1024);
+  }
+
+  scorePatterns() {
+    // Early exit if high confidence pattern found
+    const quickScore = this.getQuickScore();
+    if (quickScore.confidence > this.EARLY_EXIT_THRESHOLD) {
+      return quickScore;
+    }
+
+    // Process patterns in parallel for large inputs
+    if (this.binary.length > 1000) {
+      return this.parallelScore();
+    }
+
+    // Standard scoring with optimizations
+    return this.standardScore();
+  }
+
+  getQuickScore() {
+    // Check cache first
+    const cacheKey = this.binary.slice(0, 32);
+    if (this.cache.has(cacheKey)) {
+      return this.cache.get(cacheKey);
+    }
+
+    // Quick pattern checks
+    if (/^(10)+1?$/.test(this.binary.slice(0, 16))) {
+      return { type: 'alternating', confidence: 1, score: 1 };
+    }
+    
+    if (/^(.{2,8})\1{2,}/.test(this.binary.slice(0, 16))) {
+      return { type: 'periodic', confidence: 1, score: 1 };
+    }
+
+    return { type: null, confidence: 0, score: 0 };
+  }
+
+  standardScore() {
+    const scores = new Float32Array(5); // For better performance
+    let maxScore = 0;
+
+    // Process in smaller chunks
+    for (let i = 0; i < this.patterns.length && maxScore < 0.95; i++) {
+      const score = this.scoreSinglePattern(i);
+      scores[i] = score;
+      maxScore = Math.max(maxScore, score);
+    }
+
+    return {
+      type: this.getPatternType(scores),
+      confidence: maxScore,
+      score: maxScore
+    };
+  }
+
+  async parallelScore() {
+    const chunkSize = 1000;
+    const chunks = [];
+    
+    // Split into chunks
+    for (let i = 0; i < this.binary.length; i += chunkSize) {
+      chunks.push(this.binary.slice(i, i + chunkSize));
+    }
+
+    // Process chunks in parallel
+    const results = await Promise.all(
+      chunks.map(chunk => this.processChunk(chunk))
+    );
+
+    return this.combineResults(results);
+  }
+
+  processChunk(chunk) {
+    return new Promise(resolve => {
+      const worker = new Worker(path.join(__dirname, 'patternWorker.js'));
+      worker.postMessage(chunk);
+      worker.onmessage = (e) => {
+        worker.terminate();
+        resolve(e.data);
+      };
+      worker.onerror = (error) => {
+        worker.terminate();
+        console.error('Worker error:', error);
+        resolve({});
+      };
+    });
+  }
+}
