@@ -1,9 +1,14 @@
 const fs = require("fs");
 const fsPromises = require("fs").promises;
 const path = require("path");
+const { resolveModelPath } = require('../utils/PathResolver');
+const { validateModel } = require('./ModelValidator');
+const { FileManager } = require('../utils/FileManager');
+
 // Constants
 const MODEL_PATH = path.join(
   __dirname,
+  "..",
   "..",
   "models",
   "patterns",
@@ -543,6 +548,9 @@ class ModelRecovery {
     await this.saveScores();
     return penaltyRecord;
   }
+
+  // fsPromises already declared at the top of the file
+
   async saveScores() {
     try {
       await fsPromises.writeFile(
@@ -629,6 +637,8 @@ class ModelManager {
       "model.backup.json"
     );
     this.initialized = false;
+    this.fileManager = new FileManager();
+    this.MODEL_PATH = resolveModelPath();
   }
   static getInstance() {
     if (!ModelManager.instance) {
@@ -764,6 +774,10 @@ class ModelManager {
         JSON.stringify(this.model, null, 2)
       );
       await fs.promises.rename(tempPath, this.modelPath);
+      if (!validateModel(this.model)) {
+        throw new Error("Invalid model structure");
+      }
+      await this.fileManager.writeModelFile(this.MODEL_PATH, this.model);
     } catch (error) {
       console.error("Error saving model:", error);
       throw error;
@@ -1902,6 +1916,9 @@ async function updateModel(analysis) {
       },
     };
     // Update model
+    if (!model.analyses) {
+      model.analyses = [];
+    }
     model.analyses.push(entry);
     model.lastUpdated = Date.now();
     // Save updated model
