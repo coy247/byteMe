@@ -1,6 +1,4 @@
-const { ModelManager } = require("../models/ModelManager");
-const { ModelValidator } = require("../models/ModelValidator");
-const { DataProcessor } = require("../models/DataProcessor");
+const { ModelValidator } = require("../utils/ModelValidator");
 
 class PatternAnalyzer {
   constructor() {
