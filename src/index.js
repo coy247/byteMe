@@ -1,18 +1,15 @@
 const fs = require("fs");
 const fsPromises = require("fs").promises;
 const path = require("path");
-const { resolveModelPath } = require('../utils/PathResolver');
-const { validateModel } = require('./ModelValidator');
-const { FileManager } = require('../utils/FileManager');
+const { resolveModelPath } = require("./utils/PathResolver");
+const { validateModel } = require("./models/ModelValidator");
+const { FileManager } = require("./utils/FileManager");
 
 // Constants
-const MODEL_PATH = path.join(
+const MODEL_PATH = path.join(__dirname, "../models/patterns/model.json");
+const BACKUP_PATH = path.join(
   __dirname,
-  "..",
-  "..",
-  "models",
-  "patterns",
-  "model.json"
+  "../models/patterns/model.backup.json"
 );
 const PRECISION = 6;
 const MAX_DISPLAY_LENGTH = 100;
@@ -47,10 +44,7 @@ class ScoreManager {
         const data = await fsPromises.readFile(SCORES_PATH, "utf8");
         this.scores = JSON.parse(data);
       } else {
-        await fsPromises.writeFile(
-          SCORES_PATH,
-          JSON.stringify(this.scores, null, 2)
-        );
+        await fsPromises.writeFile(SCORES_PATH, dd);
       }
     } catch (error) {
       console.error("Error initializing scores:", error);
@@ -616,6 +610,18 @@ const DEFAULT_MODEL = {
     },
   },
 };
+class ModelFileManager {
+  async writeModelFile(path, data) {
+    try {
+      await fsPromises.writeFile(path, JSON.stringify(data, null, 2));
+      return true;
+    } catch (error) {
+      console.error("Error writing model file:", error);
+      return false;
+    }
+  }
+}
+
 class ModelManager {
   constructor() {
     if (ModelManager.instance) {
@@ -637,7 +643,7 @@ class ModelManager {
       "model.backup.json"
     );
     this.initialized = false;
-    this.fileManager = new FileManager();
+    this.fileManager = new ModelFileManager();
     this.MODEL_PATH = resolveModelPath();
   }
   static getInstance() {
