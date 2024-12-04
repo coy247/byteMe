@@ -135,11 +135,11 @@ class StabilityMonitor {
   handleCriticalMemory(used) {
     this.warningCount++;
     if (this.warningCount >= 3) {
-      if (typeof global.gc === 'function') {
+      if (typeof global.gc === "function") {
         global.gc();
       }
-      this.triggerPreemptiveCleanup().catch(err => {
-        console.warn('Error during cleanup:', err);
+      this.triggerPreemptiveCleanup().catch((err) => {
+        console.warn("Error during cleanup:", err);
       });
     }
   }
@@ -264,11 +264,11 @@ class ModelArchiver {
       };
       // Write to temp file first
       const tempPath = MODEL_PATH + ".tmp";
-      await fsPromises.writeFile(
-        tempPath,
-        JSON.stringify(cleanModel, null, 2),
-        "utf8"
-      );
+      const modelData = JSON.stringify(cleanModel, null, 2);
+      if (!modelData) {
+        throw new Error("Failed to stringify model data");
+      }
+      await fsPromises.writeFile(tempPath, modelData, { encoding: "utf8" });
       // Validate the written file
       try {
         const written = await fsPromises.readFile(tempPath, "utf8");
@@ -351,6 +351,11 @@ class ModelValidator {
     this.SIZE_THRESHOLDS = {
       BASE: 1024 * 1024,
     };
+  }
+  isValidBinary(binary) {
+    if (typeof binary !== "string") return false;
+    if (binary.length === 0) return false;
+    return /^[01]+$/.test(binary);
   }
   static getInstance(scoreManagerInstance) {
     if (!ModelValidator.instance) {
@@ -744,10 +749,7 @@ class ModelManager {
       }
       // Write new model atomically
       const tempPath = this.modelPath + ".tmp";
-      await fs.promises.writeFile(
-        tempPath,
-        JSON.stringify(this.model, null, 2)
-      );
+      await fsPromises.writeFile(tempPath, JSON.stringify(this.model, null, 2));
       await fs.promises.rename(tempPath, this.modelPath);
       if (!validateModel(this.model)) {
         throw new Error("Invalid model structure");
@@ -768,18 +770,13 @@ const modelManager = new ModelManager();
 modelManager.initialize();
 // Analysis classes
 // Removing duplicate BinaryAnalysis class since it's already defined above
-class BinaryAnalysis {
-  constructor(binary) {
-    this.validateInput(binary);
-    this.binary = this.cleanBinary(binary);
-    this.validateLength();
-  }
-  calculateComplexity(binary) {
-    let transitions = 0;
-    for (let i = 1; i < binary.length; i++) {
-      if (binary[i] !== binary[i - 1]) transitions++;
-    }
-    return transitions / (binary.length - 1);
+class MetricsCalculator {
+  calculate(binary) {
+    return {
+      entropy: this.calculateEntropy(binary),
+      complexity: this.calculateComplexity(binary),
+      burstiness: this.calculateBurstiness(binary),
+    };
   }
   calculateEntropy(binary) {
     const freq = new Map();
@@ -793,90 +790,15 @@ class BinaryAnalysis {
       })
       .reduce((sum, val) => sum + val, 0);
   }
-  calculatePatternEntropy(binary) {
-    // Enhanced entropy calculation with pattern weights
-    const freq = new Map();
-    const patterns = new Map();
-    // Count both individual bits and small patterns
-    for (let i = 0; i < binary.length; i++) {
-      freq.set(binary[i], (freq.get(binary[i]) || 0) + 1);
-      if (i > 0) {
-        const pattern = binary.slice(i - 1, i + 1);
-        patterns.set(pattern, (patterns.get(pattern) || 0) + 1);
-      }
+  calculateComplexity(binary) {
+    let transitions = 0;
+    for (let i = 1; i < binary.length; i++) {
+      if (binary[i] !== binary[i - 1]) transitions++;
     }
-    // Calculate weighted entropy using both bit frequency and pattern frequency
-    const bitEntropy = -Array.from(freq.values())
-      .map((count) => {
-        const p = count / binary.length;
-        return p * Math.log2(p);
-      })
-      .reduce((sum, val) => sum + val, 0);
-    const patternEntropy = -Array.from(patterns.values())
-      .map((count) => {
-        const p = count / (binary.length - 1);
-        return p * Math.log2(p);
-      })
-      .reduce((sum, val) => sum + val, 0);
-    return (bitEntropy + patternEntropy) / 2;
+    return transitions / (binary.length - 1);
   }
-  validateInput(binary) {
-    if (!binary || typeof binary !== "string") {
-      throw new Error("Binary input must be a string");
-    }
-  }
-  cleanBinary(binary) {
-    const cleaned = binary.replace(/[^01]/g, "");
-    if (!cleaned) {
-      throw new Error("No valid binary digits found");
-    }
-    return cleaned;
-  }
-  validateLength() {
-    if (this.binary.length < 2) {
-      throw new Error("Binary string too short for analysis");
-    }
-  }
-  analyze() {
-    const pattern = this.detectPattern();
-    const metrics = this.calculateMetrics();
-    this.validateResults(pattern, metrics);
-    return {
-      id: require("crypto").randomBytes(16).toString("hex"),
-      timestamp: Date.now(),
-      pattern: {
-        type: pattern.type,
-        data: this.binary.slice(0, 32),
-        length: this.binary.length,
-      },
-      metrics: {
-        entropy: Number(metrics.entropy.toFixed(4)),
-        complexity: Number(metrics.complexity.toFixed(4)),
-        burstiness: Number(metrics.burstiness.toFixed(4)),
-      },
-    };
-  }
-  detectPattern() {
-    const patterns = {
-      alternating: /^(10)+1?$/,
-      periodic: /^(.{2,8})\1+/,
-      mixed: /^[01]+$/,
-    };
-    for (const [type, regex] of Object.entries(patterns)) {
-      if (regex.test(this.binary)) {
-        return { type, confidence: 1.0 };
-      }
-    }
-    return { type: "random", confidence: 0.8 };
-  }
-  calculateMetrics() {
-    const entropy = this.calculateEntropy(this.binary);
-    const complexity = this.calculateComplexity(this.binary);
-    const burstiness = this.calculateBurstiness();
-    return { entropy, complexity, burstiness };
-  }
-  calculateBurstiness() {
-    const runs = this.binary.match(/([01])\1*/g) || [];
+  calculateBurstiness(binary) {
+    const runs = binary.match(/([01])\1*/g) || [];
     return Math.sqrt(
       runs.reduce(
         (acc, run) => acc + Math.pow(run.length - runs.length / 2, 2),
@@ -884,19 +806,458 @@ class BinaryAnalysis {
       ) / runs.length
     );
   }
-  validateResults(pattern, metrics) {
-    if (
-      !pattern.type ||
-      (!metrics.entropy && !metrics.complexity && !metrics.burstiness)
-    ) {
-      throw new Error("Invalid analysis results");
+}
+// Move PatternDetector class before BinaryAnalysis
+// PatternDetectorV2 implementation moved above
+class EnhancedPatternDetector {
+  constructor(binary) {
+    this.binary = binary;
+    this.confidence = 0;
+    this.patterns = {
+      alternating: { score: 0, possible: true },
+      periodic: { score: 0, possible: true },
+      random: { score: 0, possible: true },
+      complex: { score: 0, possible: true },
+      nested: { score: 0, possible: true },
+    };
+  }
+  detect() {
+    this.preProcess();
+    this.scorePatterns();
+    return this.predictPattern();
+  }
+  preProcess() {
+    const sample = this.binary.slice(0, 100);
+    this.patterns.alternating.possible = !/11{2,}|00{2,}/.test(sample);
+    this.patterns.periodic.possible = this.hasRepeatingSubsequence(sample);
+    this.patterns.random.possible = this.calculateEntropy(sample) > 0.7;
+    this.patterns.complex.possible = true;
+    this.patterns.nested.possible = sample.length >= 8;
+  }
+  scorePatterns() {
+    if (this.patterns.alternating.possible) {
+      this.patterns.alternating.score = this.scoreAlternating();
+    }
+    if (this.patterns.periodic.possible) {
+      this.patterns.periodic.score = this.scorePeriodic();
+    }
+    if (this.patterns.random.possible) {
+      this.patterns.random.score = this.scoreRandom();
+    }
+    if (this.patterns.nested.possible) {
+      this.patterns.nested.score = this.scoreNested();
+    }
+    this.patterns.complex.score = this.scoreComplex();
+  }
+  predictPattern() {
+    const scores = Object.entries(this.patterns)
+      .filter(([_, data]) => data.possible)
+      .map(([type, data]) => ({ type, score: data.score }));
+    const bestMatch = scores.reduce((prev, current) =>
+      current.score > prev.score ? current : prev
+    );
+    this.confidence =
+      (bestMatch.score / Math.max(...scores.map((s) => s.score))) * 100;
+    return {
+      type: bestMatch.type,
+      confidence: this.confidence.toFixed(2),
+      alternatives: scores
+        .filter((s) => s.type !== bestMatch.type)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 2),
+    };
+  }
+  hasRepeatingSubsequence(sample) {
+    for (let len = 2; len <= sample.length / 2; len++) {
+      const seq = sample.slice(0, len);
+      if (sample.slice(len, len * 2) === seq) return true;
+    }
+    return false;
+  }
+  calculateEntropy(sample) {
+    const freq = new Map();
+    for (const bit of sample) {
+      freq.set(bit, (freq.get(bit) || 0) + 1);
+    }
+    return -Array.from(freq.values())
+      .map((count) => {
+        const p = count / sample.length;
+        return p * Math.log2(p);
+      })
+      .reduce((sum, val) => sum + val, 0);
+  }
+}
+class PatternDetectorV2 {
+  constructor(binary) {
+    this.binary = binary;
+    this.confidence = 0;
+    this.patterns = {
+      alternating: { score: 0, possible: true },
+      periodic: { score: 0, possible: true },
+      random: { score: 0, possible: true },
+      complex: { score: 0, possible: true },
+      nested: { score: 0, possible: true },
+    };
+  }
+  detect() {
+    this.preProcess();
+    this.scorePatterns();
+    return this.predictPattern();
+  }
+  preProcess() {
+    const sample = this.binary.slice(0, 100);
+    this.patterns.alternating.possible = !/11{2,}|00{2,}/.test(sample);
+    this.patterns.periodic.possible = this.hasRepeatingSubsequence(sample);
+    this.patterns.random.possible = this.calculateEntropy(sample) > 0.7;
+    this.patterns.complex.possible = true;
+    this.patterns.nested.possible = sample.length >= 8;
+  }
+  scorePatterns() {
+    if (this.patterns.alternating.possible) {
+      this.patterns.alternating.score = this.scoreAlternating();
+    }
+    if (this.patterns.periodic.possible) {
+      this.patterns.periodic.score = this.scorePeriodic();
+    }
+    if (this.patterns.random.possible) {
+      this.patterns.random.score = this.scoreRandom();
+    }
+    if (this.patterns.nested.possible) {
+      this.patterns.nested.score = this.scoreNested();
+    }
+    this.patterns.complex.score = this.scoreComplex();
+  }
+  predictPattern() {
+    const scores = Object.entries(this.patterns)
+      .filter(([_, data]) => data.possible)
+      .map(([type, data]) => ({ type, score: data.score }));
+    const bestMatch = scores.reduce((prev, current) =>
+      current.score > prev.score ? current : prev
+    );
+    this.confidence =
+      (bestMatch.score / Math.max(...scores.map((s) => s.score))) * 100;
+    return {
+      type: bestMatch.type,
+      confidence: this.confidence.toFixed(2),
+      alternatives: scores
+        .filter((s) => s.type !== bestMatch.type)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 2),
+    };
+  }
+  hasRepeatingSubsequence(sample) {
+    for (let len = 2; len <= sample.length / 2; len++) {
+      const seq = sample.slice(0, len);
+      if (sample.slice(len, len * 2) === seq) return true;
+    }
+    return false;
+  }
+  calculateEntropy(sample) {
+    const freq = new Map();
+    for (const bit of sample) {
+      freq.set(bit, (freq.get(bit) || 0) + 1);
+    }
+    return -Array.from(freq.values())
+      .map((count) => {
+        const p = count / sample.length;
+        return p * Math.log2(p);
+      })
+      .reduce((sum, val) => sum + val, 0);
+  }
+  scoreAlternating() {
+    const matches = this.binary
+      .split("")
+      .reduce(
+        (count, bit, i) =>
+          count + (i > 0 && bit !== this.binary[i - 1] ? 1 : 0),
+        0
+      );
+    return matches / (this.binary.length - 1);
+  }
+  scorePeriodic() {
+    const patterns = new Map();
+    for (let len = 2; len <= 8; len++) {
+      for (let i = 0; i <= this.binary.length - len; i++) {
+        const pattern = this.binary.slice(i, i + len);
+        patterns.set(pattern, (patterns.get(pattern) || 0) + 1);
+      }
+    }
+    return Math.max(...patterns.values()) / (this.binary.length / 2);
+  }
+  scoreRandom() {
+    return this.calculateEntropy(this.binary);
+  }
+  scoreComplex() {
+    return 0.5 + this.calculateEntropy(this.binary) * 0.5;
+  }
+  scoreNested() {
+    const subPatterns = new Set();
+    for (let len = 2; len <= 4; len++) {
+      for (let i = 0; i <= this.binary.length - len; i++) {
+        subPatterns.add(this.binary.slice(i, i + len));
+      }
+    }
+    return subPatterns.size / (this.binary.length * 0.75);
+  }
+}
+class PatternDetectorV3 {
+  constructor(binary) {
+    this.binary = binary;
+    this.confidence = 0;
+    this.patterns = {
+      alternating: { score: 0, possible: true },
+      periodic: { score: 0, possible: true },
+      random: { score: 0, possible: true },
+      complex: { score: 0, possible: true },
+      nested: { score: 0, possible: true },
+    };
+  }
+  detect() {
+    this.preProcess();
+    this.scorePatterns();
+    return this.predictPattern();
+  }
+  preProcess() {
+    const sample = this.binary.slice(0, 100);
+    this.patterns.alternating.possible = !/11{2,}|00{2,}/.test(sample);
+    this.patterns.periodic.possible = this.hasRepeatingSubsequence(sample);
+    this.patterns.random.possible = this.calculateEntropy(sample) > 0.7;
+    this.patterns.complex.possible = true;
+    this.patterns.nested.possible = sample.length >= 8;
+  }
+  hasRepeatingSubsequence(sample) {
+    for (let len = 2; len <= sample.length / 2; len++) {
+      const seq = sample.slice(0, len);
+      if (sample.slice(len, len * 2) === seq) return true;
+    }
+    return false;
+  }
+  calculateEntropy(sample) {
+    const freq = new Map();
+    for (const bit of sample) {
+      freq.set(bit, (freq.get(bit) || 0) + 1);
+    }
+    return -Array.from(freq.values())
+      .map((count) => {
+        const p = count / sample.length;
+        return p * Math.log2(p);
+      })
+      .reduce((sum, val) => sum + val, 0);
+  }
+}
+// Removed duplicate EnhancedPatternDetector class declaration
+// Move PatternDetector class before BinaryAnalysis
+const PatternDetector = require("./models/PatternDetector");
+// Removed duplicate ModelPersistenceV2 class definition as it's already defined above
+class ModelPersistenceV2 {
+  constructor() {
+    this.MODEL_PATH = path.join(__dirname, "..", "data", "model.json");
+    this.pendingChanges = [];
+  }
+  async saveAnalysis(analysis) {
+    try {
+      await fsPromises.mkdir(path.dirname(this.MODEL_PATH), {
+        recursive: true,
+      });
+      let model = await this.loadModel();
+      if (!model) {
+        model = {
+          version: "1.0",
+          lastUpdated: Date.now(),
+          analyses: [],
+        };
+      }
+      model.analyses.push(analysis);
+      model.lastUpdated = Date.now();
+      await fs.writeFile(this.MODEL_PATH, JSON.stringify(model, null, 2), {
+        encoding: "utf8",
+        flag: "w",
+      });
+      return true;
+    } catch (error) {
+      console.error("Failed to save model:", error);
+      throw error;
+    }
+  }
+  async loadModel() {
+    try {
+      const data = await fs.readFile(this.MODEL_PATH, "utf8");
+      return JSON.parse(data);
+    } catch (error) {
+      return null;
     }
   }
 }
+class ModelPersistenceV3 {
+  constructor() {
+    this.MODEL_PATH = path.join(__dirname, "..", "data", "model.json");
+    this.pendingChanges = [];
+  }
+  async saveAnalysis(analysis) {
+    try {
+      await fsPromises.mkdir(path.dirname(this.MODEL_PATH), {
+        recursive: true,
+      });
+      let model = await this.loadModel();
+      if (!model) {
+        model = {
+          version: "1.0",
+          lastUpdated: Date.now(),
+          analyses: [],
+        };
+      }
+      model.analyses.push(analysis);
+      model.lastUpdated = Date.now();
+      await fs.writeFile(this.MODEL_PATH, JSON.stringify(model, null, 2), {
+        encoding: "utf8",
+        flag: "w",
+      });
+      return true;
+    } catch (error) {
+      console.error("Failed to save model:", error);
+      throw error;
+    }
+  }
+  async loadModel() {
+    try {
+      const data = await fs.readFile(this.MODEL_PATH, "utf8");
+      return JSON.parse(data);
+    } catch (error) {
+      return null;
+    }
+  }
+}
+class ModelPersistenceV4 {
+  constructor() {
+    this.MODEL_PATH = path.join(__dirname, "..", "data", "model.json");
+    this.METRIC_THRESHOLDS = {
+      entropy: 0.0001,
+      complexity: 0.0001,
+      burstiness: 0.0001
+    };
+    this.SIMILARITY_THRESHOLD = 0.99;
+  }
+
+  async saveAnalysis(analysis) {
+    try {
+      await fsPromises.mkdir(path.dirname(this.MODEL_PATH), { recursive: true });
+      let model = await this.loadModel();
+      if (!model) {
+        model = {
+          version: "1.0",
+          lastUpdated: Date.now(),
+          analyses: []
+        };
+      }
+      model.analyses.push(analysis);
+      model.lastUpdated = Date.now();
+      await fsPromises.writeFile(this.MODEL_PATH, JSON.stringify(model, null, 2));
+      return true;
+    } catch (error) {
+      console.error("Failed to save analysis:", error);
+      throw error;
+    }
+  }
+
+  async loadModel() {
+    try {
+      const data = await fsPromises.readFile(this.MODEL_PATH, "utf8");
+      return JSON.parse(data);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  isDuplicate(analyses, newAnalysis) {
+    return analyses.some(existing => {
+        // Basic validation
+        if (existing.input !== newAnalysis.input) return false;
+        if (existing.pattern_type !== newAnalysis.pattern_type) return false;
+        
+        // Pattern comparison
+        const patternMatch = this.comparePatterns(existing, newAnalysis);
+        if (!patternMatch) return false;
+
+        // Detailed metrics comparison
+        const metricsMatch = this.compareMetrics(existing.metrics, newAnalysis.metrics);
+        if (!metricsMatch) return false;
+
+        // Structure comparison
+        return this.compareStructure(existing, newAnalysis);
+    });
+  }
+
+  compareMetrics(existing, newMetrics) {
+    return (
+        Math.abs(existing.entropy - newMetrics.entropy) < this.METRIC_THRESHOLDS.entropy &&
+        Math.abs(existing.complexity - newMetrics.complexity) < this.METRIC_THRESHOLDS.complexity &&
+        Math.abs(existing.burstiness - newMetrics.burstiness) < this.METRIC_THRESHOLDS.burstiness
+    );
+  }
+
+  comparePatterns(existing, newAnalysis) {
+    if (existing.pattern_type === 'alternating') {
+        return this.compareAlternating(existing.input, newAnalysis.input);
+    }
+    if (existing.pattern_type === 'periodic') {
+        return this.comparePeriodic(existing.input, newAnalysis.input);
+    }
+    return existing.input === newAnalysis.input;
+  }
+
+  compareStructure(existing, newAnalysis) {
+    return (
+        existing.input.length === newAnalysis.input.length &&
+        existing.pattern_type === newAnalysis.pattern_type &&
+        typeof existing.metrics === typeof newAnalysis.metrics
+    );
+  }
+}
+const ModelPersistence = require("./models/ModelPersistence");
+class BinaryAnalysis {
+  constructor(binaryString) {
+    this.input = binaryString;
+    this.persistence = new ModelPersistenceV4();
+    const scoreManager = new ScoreManager();
+    this.validator = new ModelValidator(scoreManager);
+    this.metrics = new MetricsCalculator();
+    this.patterns = new PatternDetector(binaryString);
+    this.persistence = new ModelPersistenceV4();
+  }
+  async analyze() {
+    try {
+      // Validate input
+      if (!this.validator.isValidBinary(this.input)) {
+        throw new Error("Invalid binary input");
+      }
+      // Calculate metrics
+      const metrics = this.metrics.calculate(this.input);
+      // Detect patterns
+      const pattern = this.patterns.detect(this.input);
+      const analysis = {
+        id: require("crypto").randomBytes(16).toString("hex"),
+        timestamp: Date.now(),
+        input: this.input,
+        pattern_type: pattern,
+        metrics: metrics,
+      };
+      // Save analysis
+      await this.persistence.saveAnalysis(analysis);
+      return analysis;
+    } catch (error) {
+      console.error("Analysis failed:", error);
+      throw error;
+    }
+  }
+}
+module.exports = {
+  ...module.exports,
+  BinaryAnalysis,
+};
 async function analyzeBinary(binary) {
   try {
     const analyzer = new BinaryAnalysis(binary);
-    const analysis = analyzer.analyze();
+    const analysis = await analyzer.analyze();
     return await modelManager.addAnalysis(analysis);
   } catch (error) {
     console.error("Analysis failed:", error);
@@ -1052,95 +1413,86 @@ module.exports = { ModelAnalyzer };
 const modelAnalyzer = new ModelAnalyzer();
 // ScoreManager is already defined above, no need to redefine it
 class ScoreManager {
-    constructor() {
-        this.scores = new Map();
-        this.weights = {
-            entropy: 0.4,
-            complexity: 0.3,
-            burstiness: 0.3
-        };
-    }
-
-    calculateScore(metrics) {
-        return metrics ? (
-            metrics.entropy * this.weights.entropy +
-            metrics.complexity * this.weights.complexity +
-            metrics.burstiness * this.weights.burstiness
-        ) : 0;
-    }
-
-    getScore(id) {
-        return this.scores.get(id);
-    }
+  constructor() {
+    this.scores = new Map();
+    this.weights = {
+      entropy: 0.4,
+      complexity: 0.3,
+      burstiness: 0.3,
+    };
+  }
+  calculateScore(metrics) {
+    return metrics
+      ? metrics.entropy * this.weights.entropy +
+          metrics.complexity * this.weights.complexity +
+          metrics.burstiness * this.weights.burstiness
+      : 0;
+  }
+  getScore(id) {
+    return this.scores.get(id);
+  }
 }
-
 // Your ExtendedScoreManager can now properly extend this class
 // Removed duplicate declaration of ExtendedScoreManager
-
 class ExtendedScoreManager extends ScoreManager {
-    constructor() {
-        super();
-        this.history = [];
-        this.patternWeights = {
-            alternating: 1.2,
-            periodic: 1.1,
-            random: 1.0,
-            mixed: 0.9
-        };
-        this.normalizationBounds = {
-            min: 0,
-            max: 100
-        };
-        this.performanceMetrics = new Map();
+  constructor() {
+    super();
+    this.history = [];
+    this.patternWeights = {
+      alternating: 1.2,
+      periodic: 1.1,
+      random: 1.0,
+      mixed: 0.9,
+    };
+    this.normalizationBounds = {
+      min: 0,
+      max: 100,
+    };
+    this.performanceMetrics = new Map();
+  }
+  calculateEnhancedScore(metrics, pattern) {
+    const baseScore = super.calculateScore(metrics);
+    const patternMultiplier = this.patternWeights[pattern] || 1.0;
+    return this.normalizeScore(baseScore * patternMultiplier);
+  }
+  normalizeScore(score) {
+    return Math.min(
+      Math.max(score, this.normalizationBounds.min),
+      this.normalizationBounds.max
+    );
+  }
+  addScore(id, metrics, pattern) {
+    const score = this.calculateEnhancedScore(metrics, pattern);
+    this.scores.set(id, score);
+    this.history.push({
+      id,
+      score,
+      pattern,
+      timestamp: Date.now(),
+    });
+    this.updatePerformanceMetrics(pattern, score);
+    return score;
+  }
+  updatePerformanceMetrics(pattern, score) {
+    if (!this.performanceMetrics.has(pattern)) {
+      this.performanceMetrics.set(pattern, {
+        count: 0,
+        totalScore: 0,
+        avgScore: 0,
+      });
     }
-
-    calculateEnhancedScore(metrics, pattern) {
-        const baseScore = super.calculateScore(metrics);
-        const patternMultiplier = this.patternWeights[pattern] || 1.0;
-        return this.normalizeScore(baseScore * patternMultiplier);
-    }
-
-    normalizeScore(score) {
-        return Math.min(Math.max(score, this.normalizationBounds.min), 
-                       this.normalizationBounds.max);
-    }
-
-    addScore(id, metrics, pattern) {
-        const score = this.calculateEnhancedScore(metrics, pattern);
-        this.scores.set(id, score);
-        this.history.push({
-            id,
-            score,
-            pattern,
-            timestamp: Date.now()
-        });
-        this.updatePerformanceMetrics(pattern, score);
-        return score;
-    }
-
-    updatePerformanceMetrics(pattern, score) {
-        if (!this.performanceMetrics.has(pattern)) {
-            this.performanceMetrics.set(pattern, {
-                count: 0,
-                totalScore: 0,
-                avgScore: 0
-            });
-        }
-        const metrics = this.performanceMetrics.get(pattern);
-        metrics.count++;
-        metrics.totalScore += score;
-        metrics.avgScore = metrics.totalScore / metrics.count;
-    }
-
-    getPatternPerformance(pattern) {
-        return this.performanceMetrics.get(pattern);
-    }
-
-    getHistory() {
-        return this.history;
-    }
+    const metrics = this.performanceMetrics.get(pattern);
+    metrics.count++;
+    metrics.totalScore += score;
+    metrics.avgScore = metrics.totalScore / metrics.count;
+  }
+  getPatternPerformance(pattern) {
+    return this.performanceMetrics.get(pattern);
+  }
+  getHistory() {
+    return this.history;
+  }
 }
-
 module.exports = { ScoreManager, ExtendedScoreManager };
 // Export modules after all class declarations
 class ModelInitializer {
@@ -1979,8 +2331,12 @@ async function updateModel(analysis) {
       },
       metrics: {
         entropy: Number(analysis.metrics.entropy || 0).toFixed(4),
-        complexity: Number(analysis.metrics.complexity || 0).toFixed(4),
-        burstiness: Number(analysis.metrics.burstiness || 0).toFixed(4),
+        complexity: Number(
+          (analysis.metrics && analysis.metrics.complexity) || 0
+        ).toFixed(4),
+        burstiness: Number(
+          (analysis.metrics && analysis.metrics.burstiness) || 0
+        ).toFixed(4),
       },
     };
     // Update model
@@ -2306,19 +2662,18 @@ setInterval(() => {
 const modelData = new ModelData();
 async function processBatch(binaries) {
   console.log("🎮 Starting pattern analysis game...");
+  const queue = new PatternAnalysisQueue();
+  queue.timeout = 5000;
+  queue.batchSize = 3;
   for (const binary of binaries) {
-    const result = await modelData.processPattern(binary);
+    const result = await queue.addPattern(binary);
     if (result.timeout) {
       console.log("⏰ Timeout - Moving to next pattern");
       continue;
     }
-    if (result.pattern) {
-      console.log(
-        "🎯 Pattern found! +" + modelData.SCORE_VALUES.patternFound + " points"
-      );
-    }
+    await modelData.processResult(result);
   }
-  console.log("\n🏆 Game Stats:", modelData.getGameStats());
+  return queue.getResults();
 }
 class BinaryPatternProcessor {
   constructor() {
@@ -2475,7 +2830,7 @@ class PatternAnalysisQueue {
       batch.map(async (item) => {
         try {
           const analyzer = new BinaryAnalysis(item.binary);
-          const result = analyzer.analyze();
+          const result = await analyzer.analyze();
           this.metrics.processed++;
           this.metrics.lastProcessed = Date.now();
           return result;
@@ -2625,7 +2980,7 @@ if (require.main === module) {
     .then((results) => console.log("Analysis Results:", results))
     .catch(console.error);
 }
-class PatternDetector {
+class PatternDetectorV4 {
   constructor(binary) {
     this.binary = binary;
     this.confidence = 0;
@@ -2671,7 +3026,7 @@ class PatternDetector {
       .filter(([_, data]) => data.possible)
       .map(([type, data]) => ({ type, score: data.score }));
     const bestMatch = scores.reduce((prev, current) =>
-      current.score > prev.score ? current : prev
+      current.score > prev.score ? prev : current
     );
     this.confidence =
       (bestMatch.score / Math.max(...scores.map((s) => s.score))) * 100;
@@ -2941,13 +3296,15 @@ class AchievementRewards {
       brain = require("brain.js");
       Matrix = require("ml-matrix");
     } catch (err) {
-      console.warn('Optional dependencies (brain.js/ml-matrix) not available:', err.message);
+      console.warn(
+        "Optional dependencies (brain.js/ml-matrix) not available:",
+        err.message
+      );
       brain = null;
       Matrix = null;
     }
   }
 }
-
 module.exports = AchievementRewards;
 let brain;
 let Matrix;
@@ -2955,7 +3312,10 @@ try {
   brain = require("brain.js");
   Matrix = require("ml-matrix");
 } catch (err) {
-  console.warn('Optional dependencies (brain.js/ml-matrix) not available:', err.message);
+  console.warn(
+    "Optional dependencies (brain.js/ml-matrix) not available:",
+    err.message
+  );
   brain = null;
   Matrix = null;
 }
@@ -3090,18 +3450,15 @@ if (require.main === module) {
     });
 }
 module.exports = { runSystemCheck };
-
 const initializeSystem = async () => {
   try {
     // Initialize model manager first without GL dependency
     await modelManager.initialize();
-
     // Run system check without GL requirement
     await runSystemCheck({
       skipGLCheck: true,
-      gl: null
+      gl: null,
     });
-
     console.log("System initialized successfully");
   } catch (error) {
     console.error("System initialization failed:", error);
@@ -3109,59 +3466,223 @@ const initializeSystem = async () => {
     console.warn("Continuing with reduced functionality");
   }
 };
-
 // Update main execution
 if (require.main === module) {
-  initializeSystem()
-    .catch(error => {
-      console.error("Fatal error during initialization:", error);
-      process.exit(1);
-    });
+  initializeSystem().catch((error) => {
+    console.error("Fatal error during initialization:", error);
+    process.exit(1);
+  });
 }
-
 module.exports = { initializeSystem, runSystemCheck };
-
-modelManager.initialize()
-    .catch(error => {
-        console.error('Failed to initialize model:', error);
-        process.exit(1);
-    });
-
+modelManager.initialize().catch((error) => {
+  console.error("Failed to initialize model:", error);
+  process.exit(1);
+});
 class DependencyManager {
-    constructor() {
-        this.optionalDeps = {
-            brain: null,
-            matrix: null,
-            gl: null
-        };
+  constructor() {
+    this.optionalDeps = {
+      brain: null,
+      matrix: null,
+      gl: null,
+    };
+  }
+  async initialize() {
+    try {
+      this.optionalDeps.brain = await this.loadModule("brain.js");
+      this.optionalDeps.matrix = await this.loadModule("ml-matrix");
+      this.optionalDeps.gl = await this.loadModule("gl");
+    } catch (error) {
+      console.warn("Some optional dependencies not available");
     }
-
-    async initialize() {
-        try {
-            this.optionalDeps.brain = await this.loadModule('brain.js');
-            this.optionalDeps.matrix = await this.loadModule('ml-matrix');
-            this.optionalDeps.gl = await this.loadModule('gl');
-        } catch (error) {
-            console.warn('Some optional dependencies not available');
-        }
+  }
+  loadModule(name) {
+    try {
+      return require(name);
+    } catch (err) {
+      console.warn("Optional dependency " + name + " not available");
+      return null;
     }
-
-    loadModule(name) {
-        try {
-            return require(name);
-        } catch (err) {
-            console.warn(`Optional dependency ${name} not available`);
-            return null;
-        }
-    }
+  }
 }
-
 // Remove duplicate brain/Matrix initialization
 // AchievementRewards class is already defined above
 // Extend DependencyManager functionality if needed
-
 // Clean up exports
 module.exports = {
-    AchievementRewards,
-    DependencyManager
+  AchievementRewards,
+  DependencyManager,
 };
+class ModelManagerV2 {
+  constructor() {
+    this.MODEL_PATH = path.join(__dirname, "..", "data", "model.json");
+    this.debug = true; // Enable debugging
+  }
+  async saveModel(analysis) {
+    try {
+      // Log attempt
+      this.log("Attempting to save model...");
+      this.log("Model path: " + this.MODEL_PATH);
+      // Load existing or create new
+      let model = await this.loadModel();
+      if (!model) {
+        this.log("Creating new model...");
+        model = {
+          version: "1.0",
+          lastUpdated: Date.now(),
+          analyses: [],
+        };
+      }
+      // Add new analysis
+      model.analyses.push(analysis);
+      model.lastUpdated = Date.now();
+      // Write file
+      this.log("Writing to file...");
+      await fs.writeFile(this.MODEL_PATH, JSON.stringify(model, null, 2));
+      this.log("Model saved successfully");
+      return model;
+    } catch (error) {
+      console.error("Failed to save model:", error);
+      throw error;
+    }
+  }
+  async loadModel() {
+    try {
+      const data = await fs.readFile(this.MODEL_PATH, "utf8");
+      return JSON.parse(data);
+    } catch (error) {
+      this.log("Load failed: " + error.message);
+      return null;
+    }
+  }
+  log(message) {
+    if (this.debug) {
+      console.log("[ModelManager] " + message);
+    }
+  }
+}
+// Test model updates
+async function testModelUpdate() {
+  const manager = ModelManager.getInstance();
+  const testAnalysis = {
+    id: Date.now().toString(),
+    pattern: "1010101010",
+    timestamp: Date.now(),
+    metrics: {
+      entropy: 0.5,
+      complexity: 0.3,
+    },
+  };
+  await manager.saveModel(testAnalysis);
+}
+// Export and run test
+module.exports = {
+  ...module.exports,
+  ModelManager,
+  testModelUpdate,
+};
+if (require.main === module) {
+  testModelUpdate().catch(console.error);
+}
+class ModelPersistenceV5 {
+  constructor() {
+    this.MODEL_PATH = path.join(__dirname, "..", "data", "model.json");
+    this.pendingChanges = [];
+  }
+  async saveAnalysis(analysis) {
+    try {
+      // Create data directory if it doesn't exist
+      await fs.mkdir(path.dirname(this.MODEL_PATH), { recursive: true });
+      // Load or initialize model
+      let model = await this.loadModel();
+      if (!model) {
+        model = {
+          version: "1.0",
+          lastUpdated: Date.now(),
+          analyses: [],
+        };
+      }
+      // Add new analysis
+      model.analyses.push(analysis);
+      model.lastUpdated = Date.now();
+      // Write atomically
+      await fs.writeFile(this.MODEL_PATH, JSON.stringify(model, null, 2), {
+        encoding: "utf8",
+        flag: "w",
+      });
+      return true;
+    } catch (error) {
+      console.error("Failed to save model:", error);
+      throw error;
+    }
+  }
+  async loadModel() {
+    try {
+      const data = await fs.readFile(this.MODEL_PATH, "utf8");
+      return JSON.parse(data);
+    } catch (error) {
+      return null;
+    }
+  }
+}
+// Update BinaryAnalysis class
+class BinaryAnalysisV2 {
+  constructor(binaryString) {
+    this.input = binaryString;
+    this.persistence = new ModelPersistenceV4();
+  }
+  async analyze() {
+    await this.persistence.initialize();
+    const analysis = {
+      id: require("crypto").randomBytes(16).toString("hex"),
+      timestamp: Date.now(),
+      input: this.input,
+      metrics: this.calculateMetrics(this.input),
+      pattern: this.detectPattern(this.input),
+    };
+    await this.persistence.saveAnalysis(analysis);
+    return analysis;
+  }
+  calculateMetrics(binary) {
+    return {
+      entropy: this.calculateEntropy(binary),
+      complexity: this.calculateComplexity(binary),
+      burstiness: this.calculateBurstiness(binary),
+    };
+  }
+  calculateEntropy(binary) {
+    const freq = new Map();
+    for (const bit of binary) {
+      freq.set(bit, (freq.get(bit) || 0) + 1);
+    }
+    return -Array.from(freq.values())
+      .map((count) => {
+        const p = count / binary.length;
+        return p * Math.log2(p);
+      })
+      .reduce((sum, val) => sum + val, 0);
+  }
+  calculateComplexity(binary) {
+    let transitions = 0;
+    for (let i = 1; i < binary.length; i++) {
+      if (binary[i] !== binary[i - 1]) transitions++;
+    }
+    return transitions / (binary.length - 1);
+  }
+  calculateBurstiness(binary) {
+    const runs = binary.match(/([01])\1*/g) || [];
+    return Math.sqrt(
+      runs.reduce(
+        (acc, run) => acc + Math.pow(run.length - runs.length / 2, 2),
+        0
+      ) / runs.length
+    );
+  }
+  detectPattern(binary) {
+    if (/^(10)+1?$/.test(binary)) return "alternating";
+    if (/^(.{2,8})\1+/.test(binary)) return "periodic";
+    if (this.calculateEntropy(binary) > 0.9) return "random";
+    return "mixed";
+  }
+}
+// ModelManager class is already defined above, no need to redefine it here
+module.exports = ModelManager;

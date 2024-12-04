@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "lastUpdated": 1733348770596,
+  "analyses": [
+    {
+      "id": "97bbb9543e513c80de47ae2cb3508345",
+      "timestamp": 1733348770388,
+      "input": "11110000",
+      "pattern_type": {
+        "type": "periodic",
+        "score": 0.5
+      },
+      "metrics": {
+        "entropy": 1,
+        "complexity": 0.14285714285714285,
+        "burstiness": 3
+      }
+    },
+    {
+      "id": "ed86405a71bb28b820a858fdaaddd3a7",
+      "timestamp": 1733348770491,
+      "input": "10101010101010",
+      "pattern_type": {
+        "type": "alternating",
+        "score": 0.9285714285714286
+      },
+      "metrics": {
+        "entropy": 1,
+        "complexity": 1,
+        "burstiness": 6
+      }
+    },
+    {
+      "id": "b56f33924803079a5b0cd531d4db4d3a",
+      "timestamp": 1733348770595,
+      "input": "1100110011",
+      "pattern_type": {
+        "type": "alternating",
+        "score": 0.4
+      },
+      "metrics": {
+        "entropy": 0.9709505944546686,
+        "complexity": 0.4444444444444444,
+        "burstiness": 0.5
+      }
+    }
+  ]
+}
