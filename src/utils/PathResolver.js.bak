@@ -48,20 +48,11 @@ function resolveModelDir() {
   return path.dirname(resolveModelPath());
 }
 
-function resolveScoresPath() {
-  return path.join(__dirname, "..", "..", "scores", "scores.json");
-}
-
-function resolveHealthPath() {
-  return path.join(__dirname, "..", "..", "health", "health.json");
-}
-
 module.exports = {
   resolveModelPath,
   resolveBackupPath,
-  resolveHealthPath,
+  resolveConfigPath,
   validatePath,
   pathExists,
   resolveModelDir,
-  resolveScoresPath,
 };

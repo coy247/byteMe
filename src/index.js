@@ -1,69 +1,31 @@
 const fs = require("fs");
 const fsPromises = require("fs").promises;
 const path = require("path");
-const { resolveModelPath } = require("./utils/PathResolver");
+const {
+  resolveModelPath,
+  resolveHealthPath,
+  validatePath,
+  pathExists,
+  resolveScoresPath,
+  resolveBackupPath,
+  resolveConfigPath,
+  resolveModelDir,
+} = require("./utils/PathResolver");
+// Ensure path exists
+if (typeof resolveScoresPath !== "function") {
+  throw new Error("resolveScoresPath is not defined in PathResolver");
+}
 const { validateModel } = require("./models/ModelValidator");
 const { FileManager } = require("./utils/FileManager");
-
+const ScoreManager = require("./services/ScoreManager");
 // Constants
-const MODEL_PATH = path.join(__dirname, "../models/patterns/model.json");
-const BACKUP_PATH = path.join(
-  __dirname,
-  "../models/patterns/model.backup.json"
-);
 const PRECISION = 6;
 const MAX_DISPLAY_LENGTH = 100;
-const SCORES_PATH = path.join(__dirname, "..", "data", "scores.json");
-const SERVER_HEALTH_PATH = path.join(
-  __dirname,
-  "..",
-  "data",
-  "server-health.json"
-);
+const MODEL_PATH = resolveModelPath();
+const SCORES_PATH = resolveScoresPath();
+const SERVER_HEALTH_PATH = resolveHealthPath();
 // Move ScoreManager class to the top before other classes that depend on it
-class ScoreManager {
-  constructor() {
-    this.scores = {
-      current: 0,
-      history: [],
-      penalties: [],
-    };
-  }
-  static async create() {
-    const manager = new ScoreManager();
-    await manager.initializeScores();
-    return manager;
-  }
-  async initializeScores() {
-    try {
-      const exists = await fsPromises
-        .access(SCORES_PATH)
-        .then(() => true)
-        .catch(() => false);
-      if (exists) {
-        const data = await fsPromises.readFile(SCORES_PATH, "utf8");
-        this.scores = JSON.parse(data);
-      } else {
-        await fsPromises.writeFile(SCORES_PATH, dd);
-      }
-    } catch (error) {
-      console.error("Error initializing scores:", error);
-      // Continue with default scores if there's an error
-    }
-  }
-  async updateScore(points, reason) {
-    this.scores.current += points;
-    const entry = {
-      timestamp: Date.now(),
-      points,
-      reason,
-      total: this.scores.current,
-    };
-    this.scores.history.push(entry);
-    await this.saveScores();
-    return entry;
-  }
-}
+// ScoreManager is already required at the top of the file
 // Core utility classes
 class WaypointTracker {
   constructor() {
@@ -542,9 +504,7 @@ class ModelRecovery {
     await this.saveScores();
     return penaltyRecord;
   }
-
   // fsPromises already declared at the top of the file
-
   async saveScores() {
     try {
       await fsPromises.writeFile(
@@ -621,7 +581,6 @@ class ModelFileManager {
     }
   }
 }
-
 class ModelManager {
   constructor() {
     if (ModelManager.instance) {
@@ -644,7 +603,13 @@ class ModelManager {
     );
     this.initialized = false;
     this.fileManager = new ModelFileManager();
-    this.MODEL_PATH = resolveModelPath();
+    this.MODEL_PATH = path.join(
+      __dirname,
+      "..",
+      "models",
+      "patterns",
+      "model.json"
+    );
   }
   static getInstance() {
     if (!ModelManager.instance) {
@@ -805,7 +770,6 @@ class BinaryAnalysis {
     this.binary = this.cleanBinary(binary);
     this.validateLength();
   }
-
   calculateComplexity(binary) {
     let transitions = 0;
     for (let i = 1; i < binary.length; i++) {
@@ -825,6 +789,37 @@ class BinaryAnalysis {
         return p * Math.log2(p);
       })
       .reduce((sum, val) => sum + val, 0);
+  }
+  calculatePatternEntropy(binary) {
+    // Enhanced entropy calculation with pattern weights
+    const freq = new Map();
+    const patterns = new Map();
+
+    // Count both individual bits and small patterns
+    for (let i = 0; i < binary.length; i++) {
+      freq.set(binary[i], (freq.get(binary[i]) || 0) + 1);
+      if (i > 0) {
+        const pattern = binary.slice(i - 1, i + 1);
+        patterns.set(pattern, (patterns.get(pattern) || 0) + 1);
+      }
+    }
+
+    // Calculate weighted entropy using both bit frequency and pattern frequency
+    const bitEntropy = -Array.from(freq.values())
+      .map((count) => {
+        const p = count / binary.length;
+        return p * Math.log2(p);
+      })
+      .reduce((sum, val) => sum + val, 0);
+
+    const patternEntropy = -Array.from(patterns.values())
+      .map((count) => {
+        const p = count / (binary.length - 1);
+        return p * Math.log2(p);
+      })
+      .reduce((sum, val) => sum + val, 0);
+
+    return (bitEntropy + patternEntropy) / 2;
   }
   validateInput(binary) {
     if (!binary || typeof binary !== "string") {
@@ -881,7 +876,6 @@ class BinaryAnalysis {
     const burstiness = this.calculateBurstiness();
     return { entropy, complexity, burstiness };
   }
-
   calculateBurstiness() {
     const runs = this.binary.match(/([01])\1*/g) || [];
     return Math.sqrt(
@@ -1311,7 +1305,6 @@ class ModelData {
   calculateComplexity(binary) {
     // Count unique patterns of length 2-4 and weight them by their frequency
     const uniquePatterns = new Set();
-    const weights = { 2: 0.5, 3: 0.3, 4: 0.2 };
     for (let len = 2; len <= 4; len++) {
       for (let i = 0; i <= binary.length - len; i++) {
         uniquePatterns.add(binary.substr(i, len));
@@ -1434,6 +1427,11 @@ if (!Math.std) {
 const TEST_BINARY = "11010011101100";
 // ModelTracker class is already defined above
 // Test suite
+function analyzePatterns(binary) {
+  const analyzer = new BinaryAnalysis(binary);
+  return analyzer.analyze();
+}
+
 function runTests() {
   console.log("Running tests...");
   analyzePatterns(TEST_BINARY);
@@ -2785,7 +2783,7 @@ class GameController {
   async awardPoints(type, context) {
     let points = this.calculatePoints(type, context);
     points *= this.multipliers.combo * this.multipliers.streak;
-    await this.scoreManager.updateScore(points, type);
+    this.scoreManager.updateScore(points, type);
     this.checkAchievements(type, points);
   }
   calculateAnalysisDepth(binary) {
@@ -2885,3 +2883,35 @@ class PatternGameController {
     return this.baseScores.chains * chainLength;
   }
 }
+module.exports = {
+  resolveModelPath,
+  resolveHealthPath,
+  validatePath,
+  pathExists,
+  resolveScoresPath,
+  resolveBackupPath,
+  resolveConfigPath,
+  resolveModelDir,
+};
+class BaseScoreManager {
+  constructor() {
+    this.scores = {
+      current: 0,
+      history: [],
+      penalties: [],
+    };
+  }
+
+  updateScore(points, reason) {
+    this.scores.current += points;
+    this.scores.history.push({
+      points,
+      reason,
+      timestamp: Date.now(),
+    });
+  }
+}
+
+module.exports = BaseScoreManager;
+
+// Removed duplicate ScoreManager class definition

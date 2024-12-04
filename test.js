@@ -155,3 +155,25 @@ const testCases = [
     })
     .join(""),
 ];
+
+class ScoreManager {
+    constructor() {
+        this.scores = {
+            current: 0,
+            history: [],
+            penalties: []
+        };
+    }
+    
+    // Add methods
+    updateScore(points, reason) {
+        this.scores.current += points;
+        this.scores.history.push({
+            points,
+            reason,
+            timestamp: Date.now()
+        });
+    }
+}
+
+module.exports = ScoreManager;

@@ -40,7 +40,7 @@ class ModelManager {
         await this.saveModel();
       }
     } catch (error) {
-      throw new Error(`Failed to load or create model: ${error.message}`);
+      throw new Error("Failed to load or create model: " + error.message);
     }
   }
 
@@ -49,7 +49,7 @@ class ModelManager {
       await this.fileManager.writeModelFile(this.MODEL_PATH, this.model);
       this.lastSave = Date.now();
     } catch (error) {
-      throw new Error(`Failed to save model: ${error.message}`);
+      throw new Error("Failed to save model: " + error.message);
     }
   }
 
@@ -59,12 +59,12 @@ class ModelManager {
       lastUpdated: Date.now(),
       analyses: [],
       metadata: {
-        categories: ['alternating', 'periodic', 'random', 'mixed'],
-        metrics: ['entropy', 'complexity', 'burstiness'],
+        categories: ["alternating", "periodic", "random", "mixed"],
+        metrics: ["entropy", "complexity", "burstiness"],
         thresholds: {
           entropy: 0.9,
           complexity: 0.8,
-          burstiness: 0.7
+          burstiness: 0.7,
         },
       },
     };
@@ -72,14 +72,14 @@ class ModelManager {
 
   async backup() {
     if (!this.initialized) {
-      throw new Error('Model not initialized');
+      throw new Error("Model not initialized");
     }
     try {
       validatePath(this.BACKUP_PATH);
       await this.fileManager.writeModelFile(this.BACKUP_PATH, this.model);
-      console.log('Backup created successfully');
+      console.log("Backup created successfully");
     } catch (error) {
-      throw new Error(`Failed to create backup: ${error.message}`);
+      throw new Error("Failed to create backup: " + error.message);
     }
   }
 
