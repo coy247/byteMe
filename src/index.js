@@ -777,7 +777,6 @@ class BinaryAnalysis {
     }
     return transitions / (binary.length - 1);
   }
-
   calculateEntropy(binary) {
     const freq = new Map();
     for (const bit of binary) {
@@ -794,7 +793,6 @@ class BinaryAnalysis {
     // Enhanced entropy calculation with pattern weights
     const freq = new Map();
     const patterns = new Map();
-
     // Count both individual bits and small patterns
     for (let i = 0; i < binary.length; i++) {
       freq.set(binary[i], (freq.get(binary[i]) || 0) + 1);
@@ -803,7 +801,6 @@ class BinaryAnalysis {
         patterns.set(pattern, (patterns.get(pattern) || 0) + 1);
       }
     }
-
     // Calculate weighted entropy using both bit frequency and pattern frequency
     const bitEntropy = -Array.from(freq.values())
       .map((count) => {
@@ -811,14 +808,12 @@ class BinaryAnalysis {
         return p * Math.log2(p);
       })
       .reduce((sum, val) => sum + val, 0);
-
     const patternEntropy = -Array.from(patterns.values())
       .map((count) => {
         const p = count / (binary.length - 1);
         return p * Math.log2(p);
       })
       .reduce((sum, val) => sum + val, 0);
-
     return (bitEntropy + patternEntropy) / 2;
   }
   validateInput(binary) {
@@ -1431,7 +1426,6 @@ function analyzePatterns(binary) {
   const analyzer = new BinaryAnalysis(binary);
   return analyzer.analyze();
 }
-
 function runTests() {
   console.log("Running tests...");
   analyzePatterns(TEST_BINARY);
@@ -2803,6 +2797,7 @@ class GameController {
     return this.baseScores[type] || 0;
   }
 }
+// Removed duplicate ACHIEVEMENTS declaration
 const ACHIEVEMENTS = {
   patternMaster: {
     condition: (patterns) => patterns.length > 100,
@@ -2901,7 +2896,6 @@ class BaseScoreManager {
       penalties: [],
     };
   }
-
   updateScore(points, reason) {
     this.scores.current += points;
     this.scores.history.push({
@@ -2910,8 +2904,119 @@ class BaseScoreManager {
       timestamp: Date.now(),
     });
   }
+  getScore() {
+    return this.scores.current;
+  }
+}
+module.exports = BaseScoreManager;
+// The ScoreManager class is already defined above, so this duplicate definition is removed.
+class AchievementManager {
+  constructor() {
+    this.achievements = new Map();
+  }
+  addAchievement(name, condition, bonus) {
+    this.achievements.set(name, { condition, bonus });
+  }
+  checkAchievements(context) {
+    const unlocked = [];
+    for (const [name, { condition, bonus }] of this.achievements.entries()) {
+      if (condition(context)) {
+        unlocked.push({ name, bonus });
+      }
+    }
+    return unlocked;
+  }
+}
+module.exports = AchievementManager;
+class AchievementConditions {
+    static checkComplexity(value, threshold) {
+        return value >= threshold;
+    }
+
+    static checkEntropy(value, threshold) {
+        return value >= threshold;
+    }
 }
 
-module.exports = BaseScoreManager;
+module.exports = AchievementConditions;
+class AchievementRewards {
+    static calculateReward(achievement, metrics) {
+        const baseReward = achievement.reward;
+        const multiplier = this.getMultiplier(metrics);
+        return baseReward * multiplier;
+    }
 
-// Removed duplicate ScoreManager class definition
+    static getMultiplier(metrics) {
+        return 1 + (metrics.complexity || 0) * 0.3 + (metrics.entropy || 0) * 0.2;
+    }
+}
+
+module.exports = AchievementRewards;
+const tf = require('@tensorflow/tfjs-node');
+
+class PatternNetwork {
+    constructor() {
+        this.model = tf.sequential({
+            layers: [
+                tf.layers.dense({
+                    inputShape: [10],
+                    units: 32,
+                    activation: 'relu'
+                }),
+                tf.layers.dense({
+                    units: 16,
+                    activation: 'relu'
+                }),
+                tf.layers.dense({
+                    units: 4,
+                    activation: 'softmax'
+                })
+            ]
+        });
+
+        this.patterns = {
+            0: 'alternating',
+            1: 'periodic',
+            2: 'random',
+            3: 'mixed'
+        };
+
+        this.model.compile({
+            optimizer: tf.train.adam(0.001),
+            loss: 'categoricalCrossentropy',
+            metrics: ['accuracy']
+        });
+    }
+
+    preprocess(binary) {
+        return tf.tensor2d([
+            Array.from(binary).map(Number),
+        ]);
+    }
+
+    async predict(binary) {
+        const input = this.preprocess(binary);
+        const prediction = await this.model.predict(input).array();
+        const patternIndex = prediction[0].indexOf(Math.max(...prediction[0]));
+        return {
+            type: this.patterns[patternIndex],
+            confidence: prediction[0][patternIndex]
+        };
+    }
+
+    async train(patterns) {
+        const xs = tf.stack(patterns.map(p => this.preprocess(p.data)));
+        const ys = tf.oneHot(
+            patterns.map(p => Object.values(this.patterns).indexOf(p.type)),
+            Object.keys(this.patterns).length
+        );
+        
+        return this.model.fit(xs, ys, {
+            epochs: 50,
+            batchSize: 32,
+            validationSplit: 0.2
+        });
+    }
+}
+
+module.exports = PatternNetwork;
