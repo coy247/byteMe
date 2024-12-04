@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+
+const { execSync } = require('child_process');
+
+try {
+  const gitUsername = execSync('git config user.name', { encoding: 'utf8' }).trim();
+  const gitEmail = execSync('git config user.email', { encoding: 'utf8' }).trim();
+  const keyId = execSync('git config user.signingkey', { encoding: 'utf8' }).trim();
+  
+  console.log(`✓ Git username: ${gitUsername}`);
+  console.log(`✓ Git email: ${gitEmail}`);
+  console.log(`✓ GPG signing enabled with key: ${keyId}`);
+} catch (error) {
+  console.error('Pre-commit hook failed:', error.message);
+  process.exit(1);
+}
