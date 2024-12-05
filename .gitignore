@@ -42,6 +42,8 @@ out/
 # Logs
 logs/
 *.log
+byteMeDifferenceIndex.txt
+byteMeDifferenceIndexColor.txt
 
 # Testing
 coverage/
