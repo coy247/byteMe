@@ -1,0 +1,32 @@
+const PATTERN_ANALYSIS = {
+  WINDOW_SIZES: [2, 4, 8, 16],
+  MIN_PATTERN_LENGTH: 2,
+  MAX_PATTERN_LENGTH: 16,
+  TOP_PATTERNS_LIMIT: 3,
+};
+const METRICS = {
+  CORRELATION: {
+    HIGH: 0.8,
+    LOW: 0.2,
+  },
+  COMPLEXITY_TYPES: {
+    REPETITIVE: "repetitive",
+    RANDOM: "random",
+    ALTERNATING: "alternating",
+  },
+  ENTROPY: {
+    HIGH: 0.9,
+    LOW: 0.3,
+  },
+};
+const VISUALIZATION = {
+  MAX_DISPLAY_PATTERNS: 10,
+  MAX_RUN_LENGTH: 100,
+  DENSITY_WINDOW: 100,
+  DISPLAY_DECIMALS: 4,
+};
+module.exports = {
+  PATTERN_ANALYSIS,
+  METRICS,
+  VISUALIZATION,
+};
