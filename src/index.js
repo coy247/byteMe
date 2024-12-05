@@ -1133,32 +1133,35 @@ class ModelPersistenceV4 {
     this.METRIC_THRESHOLDS = {
       entropy: 0.0001,
       complexity: 0.0001,
-      burstiness: 0.0001
+      burstiness: 0.0001,
     };
     this.SIMILARITY_THRESHOLD = 0.99;
   }
-
   async saveAnalysis(analysis) {
     try {
-      await fsPromises.mkdir(path.dirname(this.MODEL_PATH), { recursive: true });
+      await fsPromises.mkdir(path.dirname(this.MODEL_PATH), {
+        recursive: true,
+      });
       let model = await this.loadModel();
       if (!model) {
         model = {
           version: "1.0",
           lastUpdated: Date.now(),
-          analyses: []
+          analyses: [],
         };
       }
       model.analyses.push(analysis);
       model.lastUpdated = Date.now();
-      await fsPromises.writeFile(this.MODEL_PATH, JSON.stringify(model, null, 2));
+      await fsPromises.writeFile(
+        this.MODEL_PATH,
+        JSON.stringify(model, null, 2)
+      );
       return true;
     } catch (error) {
       console.error("Failed to save analysis:", error);
       throw error;
     }
   }
-
   async loadModel() {
     try {
       const data = await fsPromises.readFile(this.MODEL_PATH, "utf8");
@@ -1167,49 +1170,48 @@ class ModelPersistenceV4 {
       return null;
     }
   }
-
   isDuplicate(analyses, newAnalysis) {
-    return analyses.some(existing => {
-        // Basic validation
-        if (existing.input !== newAnalysis.input) return false;
-        if (existing.pattern_type !== newAnalysis.pattern_type) return false;
-        
-        // Pattern comparison
-        const patternMatch = this.comparePatterns(existing, newAnalysis);
-        if (!patternMatch) return false;
-
-        // Detailed metrics comparison
-        const metricsMatch = this.compareMetrics(existing.metrics, newAnalysis.metrics);
-        if (!metricsMatch) return false;
-
-        // Structure comparison
-        return this.compareStructure(existing, newAnalysis);
+    return analyses.some((existing) => {
+      // Basic validation
+      if (existing.input !== newAnalysis.input) return false;
+      if (existing.pattern_type !== newAnalysis.pattern_type) return false;
+      // Pattern comparison
+      const patternMatch = this.comparePatterns(existing, newAnalysis);
+      if (!patternMatch) return false;
+      // Detailed metrics comparison
+      const metricsMatch = this.compareMetrics(
+        existing.metrics,
+        newAnalysis.metrics
+      );
+      if (!metricsMatch) return false;
+      // Structure comparison
+      return this.compareStructure(existing, newAnalysis);
     });
   }
-
   compareMetrics(existing, newMetrics) {
     return (
-        Math.abs(existing.entropy - newMetrics.entropy) < this.METRIC_THRESHOLDS.entropy &&
-        Math.abs(existing.complexity - newMetrics.complexity) < this.METRIC_THRESHOLDS.complexity &&
-        Math.abs(existing.burstiness - newMetrics.burstiness) < this.METRIC_THRESHOLDS.burstiness
+      Math.abs(existing.entropy - newMetrics.entropy) <
+        this.METRIC_THRESHOLDS.entropy &&
+      Math.abs(existing.complexity - newMetrics.complexity) <
+        this.METRIC_THRESHOLDS.complexity &&
+      Math.abs(existing.burstiness - newMetrics.burstiness) <
+        this.METRIC_THRESHOLDS.burstiness
     );
   }
-
   comparePatterns(existing, newAnalysis) {
-    if (existing.pattern_type === 'alternating') {
-        return this.compareAlternating(existing.input, newAnalysis.input);
+    if (existing.pattern_type === "alternating") {
+      return this.compareAlternating(existing.input, newAnalysis.input);
     }
-    if (existing.pattern_type === 'periodic') {
-        return this.comparePeriodic(existing.input, newAnalysis.input);
+    if (existing.pattern_type === "periodic") {
+      return this.comparePeriodic(existing.input, newAnalysis.input);
     }
     return existing.input === newAnalysis.input;
   }
-
   compareStructure(existing, newAnalysis) {
     return (
-        existing.input.length === newAnalysis.input.length &&
-        existing.pattern_type === newAnalysis.pattern_type &&
-        typeof existing.metrics === typeof newAnalysis.metrics
+      existing.input.length === newAnalysis.input.length &&
+      existing.pattern_type === newAnalysis.pattern_type &&
+      typeof existing.metrics === typeof newAnalysis.metrics
     );
   }
 }
@@ -1223,17 +1225,20 @@ class BinaryAnalysis {
     this.metrics = new MetricsCalculator();
     this.patterns = new PatternDetector(binaryString);
     this.persistence = new ModelPersistenceV4();
+    this.archiver = new ModelArchiver();
+    this.archiveManager = new ModelArchiver(); // Add this line
+    this.scoreManager = new ScoreManager();
   }
   async analyze() {
     try {
       // Validate input
-      if (!this.validator.isValidBinary(this.input)) {
+      if (!this.isValidBinary(this.input)) {
         throw new Error("Invalid binary input");
       }
       // Calculate metrics
       const metrics = this.metrics.calculate(this.input);
       // Detect patterns
-      const pattern = this.patterns.detect(this.input);
+      const pattern = await this.patterns.detect(this.input);
       const analysis = {
         id: require("crypto").randomBytes(16).toString("hex"),
         timestamp: Date.now(),
@@ -1248,6 +1253,9 @@ class BinaryAnalysis {
       console.error("Analysis failed:", error);
       throw error;
     }
+  }
+  isValidBinary(input) {
+    return /^[01]+$/.test(input);
   }
 }
 module.exports = {
@@ -3686,3 +3694,260 @@ class BinaryAnalysisV2 {
 }
 // ModelManager class is already defined above, no need to redefine it here
 module.exports = ModelManager;
+// Removed duplicate ModelPersistenceV4 class
+class AsyncPatternDetector {
+  constructor() {
+    this.patterns = new Map();
+    this.analysisComplete = false;
+  }
+  async detectPattern(binary) {
+    try {
+      const results = await Promise.all([
+        this.checkAlternating(binary),
+        this.checkPeriodic(binary),
+        this.checkRandom(binary),
+        this.checkComplex(binary),
+        this.checkNested(binary),
+      ]);
+      const [alternating, periodic, random, complex, nested] = results;
+      this.patterns.set("alternating", alternating);
+      this.patterns.set("periodic", periodic);
+      this.patterns.set("random", random);
+      this.patterns.set("complex", complex);
+      this.patterns.set("nested", nested);
+      this.analysisComplete = true;
+      return this.getHighestConfidencePattern();
+    } catch (error) {
+      console.error("Pattern detection failed:", error);
+      throw error;
+    }
+  }
+  async checkAlternating(binary) {
+    const isAlternating = /^(10)+1?$/.test(binary);
+    const confidence = isAlternating ? 1.0 : 0.0;
+    return { detected: isAlternating, confidence };
+  }
+  async checkPeriodic(binary) {
+    const isPeriodic = /^(.{2,8})\1+/.test(binary);
+    const confidence = isPeriodic ? 0.95 : 0.0;
+    return { detected: isPeriodic, confidence };
+  }
+  async checkRandom(binary) {
+    const entropy = await this.calculateEntropy(binary);
+    const isRandom = entropy > 0.9;
+    return { detected: isRandom, confidence: entropy };
+  }
+  getHighestConfidencePattern() {
+    let highest = { type: "unknown", confidence: 0 };
+    this.patterns.forEach((value, key) => {
+      if (value.confidence > highest.confidence) {
+        highest = { type: key, confidence: value.confidence };
+      }
+    });
+    return highest;
+  }
+  isComplete() {
+    return this.analysisComplete;
+  }
+}
+class PatternDetectionManager {
+  constructor() {
+    this.cache = new Map();
+    this.processingQueue = new Map();
+  }
+  async detectPattern(binary) {
+    const cacheKey = this.getCacheKey(binary);
+    if (this.cache.has(cacheKey)) {
+      return this.cache.get(cacheKey);
+    }
+    const detectionPromise = this.processPattern(binary);
+    this.processingQueue.set(cacheKey, detectionPromise);
+    try {
+      const result = await detectionPromise;
+      this.cache.set(cacheKey, result);
+      this.processingQueue.delete(cacheKey);
+      return result;
+    } catch (error) {
+      this.processingQueue.delete(cacheKey);
+      throw error;
+    }
+  }
+  async processPattern(binary) {
+    const patterns = {
+      alternating: await this.checkAlternating(binary),
+      periodic: await this.checkPeriodic(binary),
+      random: await this.checkRandom(binary),
+      complex: await this.checkComplex(binary),
+      nested: await this.checkNested(binary),
+    };
+    return {
+      type: this.determinePatternType(patterns),
+      confidence: this.calculateConfidence(patterns),
+      patterns: patterns,
+    };
+  }
+  determinePatternType(patterns) {
+    if (patterns.alternating.detected) return "alternating";
+    if (patterns.periodic.detected) return "periodic";
+    if (patterns.random.detected) return "random";
+    if (patterns.complex.detected) return "complex";
+    if (patterns.nested.detected) return "nested";
+    return "mixed";
+  }
+  getCacheKey(binary) {
+    return binary + "-" + Date.now();
+  }
+}
+module.exports = PatternDetectionManager;
+class PatternDetectionSystem {
+  constructor(options = {}) {
+    this.queue = new Map();
+    this.cache = new Map();
+    this.results = new Map();
+    this.options = {
+      maxCacheSize: options.maxCacheSize || 1000,
+      cacheExpiry: options.cacheExpiry || 3600000,
+      batchSize: options.batchSize || 100,
+      queueTimeout: options.queueTimeout || 5000,
+    };
+    this.stats = {
+      processed: 0,
+      cached: 0,
+      errors: 0,
+    };
+  }
+  async processPattern(binary) {
+    try {
+      const key = this.generateKey(binary);
+      if (this.isCached(key)) {
+        this.stats.cached++;
+        return this.getFromCache(key);
+      }
+      const result = await this.analyzePattern(binary);
+      this.updateCache(key, result);
+      this.stats.processed++;
+      return result;
+    } catch (error) {
+      this.stats.errors++;
+      throw error;
+    }
+  }
+  isCached(key) {
+    return (
+      this.cache.has(key) &&
+      Date.now() - this.cache.get(key).timestamp < this.options.cacheExpiry
+    );
+  }
+  getFromCache(key) {
+    return this.cache.get(key).data;
+  }
+  updateCache(key, data) {
+    if (this.cache.size >= this.options.maxCacheSize) {
+      const oldestKey = this.cache.keys().next().value;
+      this.cache.delete(oldestKey);
+    }
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+    });
+  }
+  generateKey(binary) {
+    return binary + "_" + Date.now() + "_" + Math.random();
+  }
+}
+module.exports = PatternDetectionSystem;
+class PatternAnalysisSystem {
+  constructor() {
+    this.analysisQueue = new Map();
+    this.patterns = new Set();
+    this.stats = {
+      totalAnalyzed: 0,
+      patternTypes: {},
+      processingTimes: [],
+    };
+    this.THRESHOLDS = {
+      confidence: 0.85,
+      batchSize: 100,
+      queueTimeout: 5000,
+    };
+  }
+  async analyzePattern(binary) {
+    const startTime = performance.now();
+    try {
+      const result = await this.processPattern(binary);
+      this.updateStats(result, performance.now() - startTime);
+      return result;
+    } catch (error) {
+      console.error("Analysis failed:", error);
+      throw error;
+    }
+  }
+  updateStats(result, processingTime) {
+    this.stats.totalAnalyzed++;
+    this.stats.patternTypes[result.type] =
+      (this.stats.patternTypes[result.type] || 0) + 1;
+    this.stats.processingTimes.push(processingTime);
+  }
+  getAnalysisReport() {
+    return {
+      patterns: Array.from(this.patterns),
+      stats: this.stats,
+      averageProcessingTime:
+        this.stats.processingTimes.reduce((a, b) => a + b, 0) /
+        this.stats.processingTimes.length,
+    };
+  }
+}
+module.exports = PatternAnalysisSystem;
+const express = require("express");
+const WebSocket = require("ws");
+class PatternVisualizationSystem {
+  constructor() {
+    this.app = express();
+    this.wss = new WebSocket.Server({ port: 8080 });
+    this.patterns = new Map();
+    this.history = [];
+    this.setupRoutes();
+    this.setupWebSocket();
+  }
+  setupRoutes() {
+    this.app.get("/api/patterns", (req, res) => {
+      res.json(Array.from(this.patterns.values()));
+    });
+    this.app.get("/api/history", (req, res) => {
+      res.json(this.history);
+    });
+    this.app.listen(3000, () => {
+      console.log("Pattern visualization system running on port 3000");
+    });
+  }
+  setupWebSocket() {
+    this.wss.on("connection", (ws) => {
+      ws.on("message", async (message) => {
+        const data = JSON.parse(message);
+        const result = await this.processPattern(data.binary);
+        ws.send(JSON.stringify(result));
+      });
+    });
+  }
+  async processPattern(binary) {
+    const analysis = await this.analyzePattern(binary);
+    this.updateHistory(analysis);
+    this.broadcastUpdate(analysis);
+    return analysis;
+  }
+  updateHistory(analysis) {
+    this.history.push({
+      ...analysis,
+      timestamp: Date.now(),
+    });
+  }
+  broadcastUpdate(analysis) {
+    this.wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(analysis));
+      }
+    });
+  }
+}
+module.exports = { PatternVisualizationSystem };
