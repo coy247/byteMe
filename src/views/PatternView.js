@@ -14,5 +14,8 @@ class PatternView {
         }))
       : [];
   }
+  displayResult(result) {
+    console.log(JSON.stringify(result, null, 2));
+  }
 }
 module.exports = PatternView;

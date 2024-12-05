@@ -5,13 +5,15 @@ class PatternModel {
     }
     return {
       hierarchical: this.findHierarchicalPatterns(binary),
-      occurrences: this.findPatternOccurrences(binary),
+      occurrences: this.getPatternOccurrences(binary),
     };
   }
+
   findHierarchicalPatterns(binary) {
     const sizes = [2, 4, 8, 16];
     return sizes.map((size) => this.analyzePatternSize(binary, size));
   }
+
   analyzePatternSize(binary, size) {
     const patterns = {};
     for (let i = 0; i <= binary.length - size; i++) {
@@ -28,17 +30,93 @@ class PatternModel {
       mostCommon,
     };
   }
-  findPatternOccurrences(binary) {
-    const occurrences = {};
-    const maxSize = Math.min(16, binary.length);
-    for (let size = 2; size <= maxSize; size++) {
+
+  analyzeComplete(binary) {
+    const metrics = this.calculateMetrics(binary);
+    const patterns = this.analyzePatterns(binary);
+    const runLengths = this.getRunLengths(binary);
+    const density = this.getPatternDensity(binary);
+    
+    const data = {
+      patternStats: {
+        entropy: metrics.entropy,
+        longestRun: Math.max(...runLengths),
+        alternating: metrics.alternatingRate,
+        runs: runLengths.length / binary.length,
+        burstiness: this.calculateBurstiness(runLengths),
+        correlation: this.calculateCorrelation(binary),
+        patternOccurrences: this.getPatternOccurrences(binary),
+        hierarchicalPatterns: patterns.hierarchical
+      },
+      complexity: {
+        level: metrics.entropy * (1 - metrics.correlation),
+        type: this.determineComplexity(metrics).type
+      },
+      visualData: {
+        runLengths: runLengths,
+        patternDensity: density,
+        transitions: metrics.alternatingRate,
+        slidingWindowAnalysis: patterns.hierarchical
+      },
+      patternSimilarity: {
+        selfSimilarity: metrics.correlation,
+        symmetry: this.calculateSymmetry(binary),
+        periodicityScore: this.findPeriodicity(binary)
+      },
+      X_ratio: this.calculateXRatio(binary),
+      Y_ratio: this.calculateYRatio(binary)
+    };
+
+    return this.createResult('default', data);
+  }
+
+  createResult(type, data) {
+    const base = {
+      isInfinite: type === 'infinite',
+      isZero: type === 'zero',
+      pattern_metrics: data.patternStats,
+      error_check: true
+    };
+
+    switch(type) {
+      case 'infinite':
+        return { ...base, X_ratio: 0, Y_ratio: 0 };
+      case 'zero':
+        return { ...base, X_ratio: Infinity, Y_ratio: Infinity };
+      default:
+        return {
+          ...base,
+          ...data,
+          pattern_complexity: data.complexity
+        };
+    }
+  }
+
+  getRunLengths(binary) {
+    return (binary.match(/([01])\1*/g) || []).map(run => run.length);
+  }
+
+  getPatternDensity(binary, windowSize = 100) {
+    const density = [];
+    for (let i = 0; i <= binary.length - windowSize; i++) {
+      const window = binary.slice(i, i + windowSize);
+      const patterns = this.findPatternOccurrences(window);
+      density.push(Object.keys(patterns).length / windowSize);
+    }
+    return density;
+  }
+
+  getPatternOccurrences(binary) {
+    const patterns = {};
+    [2, 3, 4].forEach(size => {
       for (let i = 0; i <= binary.length - size; i++) {
         const pattern = binary.substr(i, size);
-        occurrences[pattern] = (occurrences[pattern] || 0) + 1;
+        patterns[pattern] = (patterns[pattern] || 0) + 1;
       }
-    }
-    return occurrences;
+    });
+    return patterns;
   }
+
   findPeriodicity(binary) {
     let bestScore = 0;
     let bestPeriod = 1;
@@ -57,8 +135,21 @@ class PatternModel {
     return { score: bestScore, period: bestPeriod };
   }
   calculateBurstiness(binary) {
+    if (Array.isArray(binary)) {
+      // If input is already an array of run lengths
+      const lengths = binary;
+      if (lengths.length === 0) return 0;
+      const mean = lengths.reduce((a, b) => a + b) / lengths.length;
+      const variance = lengths.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / lengths.length;
+      return Math.sqrt(variance);
+    }
+    // If input is a binary string
     const runs = binary.match(/([01])\1*/g) || [];
-    return Math.std(runs.map((r) => r.length)) || 0;
+    const lengths = runs.map((r) => r.length);
+    if (lengths.length === 0) return 0;
+    const mean = lengths.reduce((a, b) => a + b) / lengths.length;
+    const variance = lengths.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / lengths.length;
+    return Math.sqrt(variance);
   }
   calculateCorrelation(binary) {
     const arr = binary.split("").map(Number);
@@ -176,6 +267,14 @@ class PatternModel {
       correlation: this.calculateCorrelation(binary),
     };
   }
+  calculateFrequencies(binary) {
+    const freq = {};
+    for (const char of binary) {
+      freq[char] = (freq[char] || 0) / binary.length + 1/binary.length;
+    }
+    return freq;
+  }
+
   calculateEntropy(binary) {
     const freq = this.calculateFrequencies(binary);
     return -Object.values(freq).reduce((sum, f) => sum + f * Math.log2(f), 0);
@@ -288,101 +387,6 @@ class PatternModel {
     }
     return transitions / binary.length;
   }
-  analyzeComplete(binary) {
-    const metrics = this.calculateMetrics(binary);
-    const patterns = this.analyzePatterns(binary);
-    const runLengths = this.getRunLengths(binary);
-    const density = this.getPatternDensity(binary);
-    
-    return {
-      isInfinite: false,
-      isZero: false,
-      pattern_metrics: {
-        entropy: metrics.entropy,
-        longestRun: Math.max(...runLengths),
-        alternating: metrics.alternatingRate,
-        runs: runLengths.length / binary.length,
-        burstiness: this.calculateBurstiness(runLengths),
-        correlation: this.calculateCorrelation(binary),
-        patternOccurrences: this.getPatternOccurrences(binary),
-        hierarchicalPatterns: patterns.hierarchical
-      },
-      error_check: true,
-      patternStats: {
-        entropy: metrics.entropy,
-        longestRun: Math.max(...runLengths),
-        alternating: metrics.alternatingRate,
-        runs: runLengths.length / binary.length,
-        burstiness: this.calculateBurstiness(runLengths),
-        correlation: this.calculateCorrelation(binary),
-        patternOccurrences: this.getPatternOccurrences(binary),
-        hierarchicalPatterns: patterns.hierarchical
-      },
-      complexity: {
-        level: metrics.entropy * (1 - metrics.correlation),
-        type: this.determinePatternType(metrics)
-      },
-      visualData: {
-        runLengths: runLengths,
-        patternDensity: density,
-        transitions: metrics.alternatingRate,
-        slidingWindowAnalysis: patterns.hierarchical
-      },
-      patternSimilarity: {
-        selfSimilarity: metrics.correlation,
-        symmetry: this.calculateSymmetry(binary),
-        periodicityScore: this.calculatePeriodicity(binary)
-      },
-      X_ratio: this.calculateXRatio(binary),
-      Y_ratio: this.calculateYRatio(binary),
-      pattern_complexity: {
-        level: metrics.entropy * (1 - metrics.correlation),
-        type: this.determinePatternType(metrics)
-      }
-    };
-  }
-
-  getRunLengths(binary) {
-    return (binary.match(/([01])\1*/g) || []).map(run => run.length);
-  }
-
-  getPatternDensity(binary, windowSize = 100) {
-    const density = [];
-    for (let i = 0; i <= binary.length - windowSize; i++) {
-      const window = binary.slice(i, i + windowSize);
-      const patterns = this.findPatternOccurrences(window);
-      density.push(Object.keys(patterns).length / windowSize);
-    }
-    return density;
-  }
-
-  getPatternOccurrences(binary) {
-    const patterns = {};
-    [2,3,4].forEach(size => {
-      for (let i = 0; i <= binary.length - size; i++) {
-        const pattern = binary.substr(i, size);
-        patterns[pattern] = (patterns[pattern] || 0) + 1;
-      }
-    });
-    return patterns;
-  }
-
-  calculatePatternDensity(binary, windowSize) {
-    const density = [];
-    for (let i = 0; i <= binary.length - windowSize; i++) {
-      const window = binary.slice(i, i + windowSize);
-      const patterns = this.findPatternOccurrences(window);
-      density.push(Object.keys(patterns).length / windowSize);
-    }
-    return density;
-  }
-  calculateTransitionRate(binary) {
-    let transitions = 0;
-    for (let i = 1; i < binary.length; i++) {
-      if (binary[i] !== binary[i - 1]) transitions++;
-    }
-    return transitions / (binary.length - 1);
-  }
   calculateSelfSimilarity(binary) {
     const patterns = this.findPatternOccurrences(binary);
     const uniquePatterns = Object.keys(patterns).length;
@@ -403,7 +407,7 @@ class PatternModel {
     return ones / binary.length;
   }
   calculateYRatio(binary) {
-    const transitions = this.calculateTransitionRate(binary);
+    const transitions = this.calculateTransitions(binary);
     return 1 - Math.abs(0.5 - transitions);
   }
   findRunLengths(binary) {
