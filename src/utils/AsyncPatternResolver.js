@@ -39,34 +39,6 @@ class AsyncPatternResolver {
       await this.cleanup();
     }
   }
-  async processPattern(pattern) {
-    return {
-      alternating: await this.resolveAlternating(pattern),
-      periodic: await this.resolvePeriodic(pattern),
-      random: await this.resolveRandom(pattern),
-      complex: await this.resolveComplex(pattern),
-      nested: await this.resolveNested(pattern),
-    };
-  }
-  formatResult(result) {
-    return {
-      patterns: result,
-      confidence: this.calculateConfidence(result),
-      timestamp: Date.now(),
-      status: "resolved",
-    };
-  }
-  createTimeout() {
-    return new Promise((_, reject) =>
-      setTimeout(
-        () => reject(new Error("Pattern resolution timeout")),
-        this.resolutionTimeout
-      )
-    );
-  }
-  isPending() {
-    return this.pendingPromises.size > 0;
-  }
   async cleanup() {
     const now = Date.now();
     for (const [key, value] of this.cache.entries()) {
