@@ -1,8 +1,15 @@
+// Lint rule not fired.
+// Fixed output follows:
+// --------------------------------------------------------------------------------
 const fs = require("fs").promises;
 const path = require("path");
 class ByteMan {
   constructor() {
-    this.commands = new Map();
+    this.commands = new Map([
+      ["man", this.showHelp.bind(this)],
+      ["analyze", this.analyze.bind(this)],
+      ["train", this.train.bind(this)],
+    ]);
     this.examples = new Map();
     this.features = {
       analysis: {
@@ -26,6 +33,13 @@ class ByteMan {
         description: "Track and manage pattern analysis scores",
       },
     };
+  }
+  async execute(command, args) {
+    const cmd = this.commands.get(command);
+    if (!cmd) {
+      throw new Error("Unknown command: " + command);
+    }
+    return cmd(args);
   }
   async showHelp(command) {
     if (command && this.features[command]) {

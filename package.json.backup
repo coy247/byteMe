@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node src/index.js",
-    "test": "jest",
-    "cli": "node --no-deprecation ./bin/byteme"
+    "test": "jest"
   },
   "dependencies": {
     "@tensorflow/tfjs-node": "^4.15.0",
