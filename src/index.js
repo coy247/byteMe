@@ -11,10 +11,10 @@ const {
   resolveConfigPath,
   resolveModelDir,
 } = require("./utils/PathResolver");
-const ModelArchiveManager = require('./models/ModelArchiveManager');
-const PatternDetector = require('./models/PatternDetector');
-const ScoreManager = require('./services/ScoreManager');
-const PathResolver = require('./utils/PathResolver');
+const ModelArchiveManager = require("./models/ModelArchiveManager");
+const PatternDetector = require("./models/PatternDetector");
+const ScoreManager = require("./services/ScoreManager");
+const PathResolver = require("./utils/PathResolver");
 // Ensure path exists
 if (typeof resolveScoresPath !== "function") {
   throw new Error("resolveScoresPath is not defined in PathResolver");
@@ -2564,50 +2564,78 @@ class PerformanceMonitor {
 }
 const additionalTestCases = [
   // Quantum Superposition Pattern - Based on quantum state superposition
-  Array(16384).fill(0).map((_, i) => {
-    const phi = (1 + Math.sqrt(5)) / 2; // Golden ratio
-    const state = Math.sin(i * phi) * Math.cos(i * Math.sqrt(2)) * 
-                 Math.tan(i * Math.sqrt(3)) * Math.sinh(i/1000) * 
-                 Math.cosh(i/500) * Math.tanh(i * Math.sqrt(7));
-    return state > 0 ? "1" : "0";
-  }).join(""),
-  
+  Array(16384)
+    .fill(0)
+    .map((_, i) => {
+      const phi = (1 + Math.sqrt(5)) / 2; // Golden ratio
+      const state =
+        Math.sin(i * phi) *
+        Math.cos(i * Math.sqrt(2)) *
+        Math.tan(i * Math.sqrt(3)) *
+        Math.sinh(i / 1000) *
+        Math.cosh(i / 500) *
+        Math.tanh(i * Math.sqrt(7));
+      return state > 0 ? "1" : "0";
+    })
+    .join(""),
   // Quantum Entanglement Pattern - Simulating quantum entanglement
-  Array(12288).fill(0).map((_, i) => {
-    const entanglement = Math.sin(i * Math.PI * Math.sqrt(53)) * 
-                        Math.cos(i * Math.E * Math.sqrt(59)) * 
-                        Math.tan(i * Math.SQRT2 * Math.log10(i+1)) *
-                        Math.sinh(i/373) * Math.cosh(i/477) * 
-                        Math.pow(Math.abs(Math.atan(i * Math.sqrt(61))), 3) *
-                        Math.sin(Math.sqrt(i));
-    return entanglement > 0 ? "1" : "0";
-  }).join(""),
-
+  Array(12288)
+    .fill(0)
+    .map((_, i) => {
+      const entanglement =
+        Math.sin(i * Math.PI * Math.sqrt(53)) *
+        Math.cos(i * Math.E * Math.sqrt(59)) *
+        Math.tan(i * Math.SQRT2 * Math.log10(i + 1)) *
+        Math.sinh(i / 373) *
+        Math.cosh(i / 477) *
+        Math.pow(Math.abs(Math.atan(i * Math.sqrt(61))), 3) *
+        Math.sin(Math.sqrt(i));
+      return entanglement > 0 ? "1" : "0";
+    })
+    .join(""),
   // Quantum Decoherence Pattern - Based on quantum decoherence theory
-  Array(8192).fill(0).map((_, i) => {
-    const decoherence = Math.sin(i * Math.sqrt(67)) * Math.cos(i * Math.sqrt(71)) *
-                       Math.tan(i/89) * Math.sinh(i/97) * 
-                       Math.pow(Math.abs(Math.cos(i * Math.sqrt(101))), 2) *
-                       Math.log(i + Math.E) * Math.exp(-i/4096);
-    return (decoherence + Math.sin(i * Math.PI/45)) % 1 > 0.5 ? "1" : "0";
-  }).join(""),
-
+  Array(8192)
+    .fill(0)
+    .map((_, i) => {
+      const decoherence =
+        Math.sin(i * Math.sqrt(67)) *
+        Math.cos(i * Math.sqrt(71)) *
+        Math.tan(i / 89) *
+        Math.sinh(i / 97) *
+        Math.pow(Math.abs(Math.cos(i * Math.sqrt(101))), 2) *
+        Math.log(i + Math.E) *
+        Math.exp(-i / 4096);
+      return (decoherence + Math.sin((i * Math.PI) / 45)) % 1 > 0.5 ? "1" : "0";
+    })
+    .join(""),
   // Quantum Tunneling Pattern - Simulating quantum tunneling effect
-  Array(10240).fill(0).map((_, i) => {
-    const barrier = Math.sin(i * Math.sqrt(103)) * Math.cos(i * Math.sqrt(107)) *
-                   Math.tan(i/113) * Math.sinh(i/127) * 
-                   Math.pow(Math.abs(Math.sin(i * Math.sqrt(131))), 3) *
-                   Math.tanh(i * Math.SQRT1_2) * Math.exp(-i/5120);
-    return barrier * Math.log(i + 2) + Math.sin(i * Math.PI/60) > 0 ? "1" : "0";
-  }).join(""),
-
+  Array(10240)
+    .fill(0)
+    .map((_, i) => {
+      const barrier =
+        Math.sin(i * Math.sqrt(103)) *
+        Math.cos(i * Math.sqrt(107)) *
+        Math.tan(i / 113) *
+        Math.sinh(i / 127) *
+        Math.pow(Math.abs(Math.sin(i * Math.sqrt(131))), 3) *
+        Math.tanh(i * Math.SQRT1_2) *
+        Math.exp(-i / 5120);
+      return barrier * Math.log(i + 2) + Math.sin((i * Math.PI) / 60) > 0
+        ? "1"
+        : "0";
+    })
+    .join(""),
   // Quantum Interference Pattern - Based on quantum wave interference
-  Array(14336).fill(0).map((_, i) => {
-    const wave1 = Math.sin(i * Math.sqrt(137)) * Math.cos(i * Math.sqrt(139));
-    const wave2 = Math.tan(i/149) * Math.sinh(i/151) * Math.cosh(i/157);
-    const interference = wave1 * wave2 * Math.pow(Math.abs(Math.cos(i * Math.sqrt(163))), 4);
-    return interference * Math.exp(-i/7168) > 0 ? "1" : "0";
-  }).join("")
+  Array(14336)
+    .fill(0)
+    .map((_, i) => {
+      const wave1 = Math.sin(i * Math.sqrt(137)) * Math.cos(i * Math.sqrt(139));
+      const wave2 = Math.tan(i / 149) * Math.sinh(i / 151) * Math.cosh(i / 157);
+      const interference =
+        wave1 * wave2 * Math.pow(Math.abs(Math.cos(i * Math.sqrt(163))), 4);
+      return interference * Math.exp(-i / 7168) > 0 ? "1" : "0";
+    })
+    .join(""),
 ];
 additionalTestCases.forEach((binary) => {
   const processor = new DataProcessor();
@@ -3975,73 +4003,65 @@ class PatternVisualizationSystem {
   }
 }
 module.exports = { PatternVisualizationSystem };
-
 class BinaryAnalysisManager {
-    constructor() {
-        this.STATE = {
-            ANALYZING: 'analyzing',
-            QUEUE_COMPLETE: 'queue_complete',
-            PARK_OPEN: 'park_open',
-            PARK_CLOSING: 'park_closing',
-            RESTARTING: 'restarting'
-        };
-        this.currentState = this.STATE.ANALYZING;
-        this.parkStatus = null;
-        this.queueSnapshot = null;
+  constructor() {
+    this.ready = false;
+    this.initPromise = null;
+    this.queue = [];
+    this.processing = false;
+  }
+  async initialize() {
+    if (this.initPromise) return this.initPromise;
+    this.initPromise = new Promise(async (resolve, reject) => {
+      try {
+        await this.scoreManager.initialize();
+        await this.modelValidator.initialize();
+        await this.patternDetector.initialize();
+        this.ready = true;
+        resolve(true);
+      } catch (error) {
+        reject(error);
+      }
+    });
+    return this.initPromise;
+  }
+  async analyze(binary) {
+    if (!this.ready) {
+      await this.initialize();
     }
-
-    async restartAnalysis() {
-        try {
-            if (this.currentState !== this.STATE.QUEUE_COMPLETE) {
-                throw new Error('Can only restart from Queue Complete state');
-            }
-
-            // Save park state
-            this.parkStatus = {
-                timestamp: Date.now(),
-                achievements: [...this.achievements],
-                scores: this.currentScores,
-                progress: this.trainingProgress
-            };
-
-            // Notify park closure
-            this.emit('parkClosing', {
-                message: '🎪 Dream Park taking a brief intermission! 🎭',
-                status: 'temporary',
-                savingProgress: true
-            });
-
-            // Reset analysis state
-            this.currentState = this.STATE.RESTARTING;
-            this.resetAnalysisQueue();
-
-            // Restart analysis
-            await this.initializeAnalysis();
-            
-            return {
-                status: 'restarted',
-                timestamp: Date.now(),
-                previousParkStatus: this.parkStatus
-            };
-        } catch (error) {
-            console.error('Restart failed:', error);
-            throw error;
+    return new Promise(async (resolve, reject) => {
+      try {
+        this.queue.push({ binary, resolve, reject });
+        if (!this.processing) {
+          await this.processQueue();
         }
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+  async processQueue() {
+    if (this.processing || this.queue.length === 0) return;
+    this.processing = true;
+    try {
+      while (this.queue.length > 0) {
+        const { binary, resolve, reject } = this.queue.shift();
+        try {
+          const result = await this.processAnalysis(binary);
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      }
+    } finally {
+      this.processing = false;
     }
-
-    async initializeAnalysis() {
-        this.currentState = this.STATE.ANALYZING;
-        return new BinaryAnalysis().start();
-    }
-
-    resetAnalysisQueue() {
-        this.queueSnapshot = {
-            lastState: this.currentState,
-            timestamp: Date.now()
-        };
-        this.queue = [];
-        this.processing = false;
-    }
+  }
+  async processAnalysis(binary) {
+    const analysis = await this.patternDetector.detect(binary);
+    const validated = await this.modelValidator.validate(analysis);
+    await this.scoreManager.updateScore(validated);
+    return validated;
+  }
 }
-
 module.exports = BinaryAnalysisManager;
