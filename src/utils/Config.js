@@ -100,11 +100,13 @@ class Config {
   }
 }
 module.exports = Config;
+
+const ConfigLoader = require('./ConfigLoader');
 const InitializationService = require("./services/InitializationService");
 const { performanceWizard } = require("./utils/PerformanceUtils");
+
 async function bootstrap() {
-  const config = new Config();
-  await config.load();
+  const config = await ConfigLoader.load();
   const initService = new InitializationService(config);
   const { models, views, controllers } = await initService.initialize();
   performanceWizard.start();

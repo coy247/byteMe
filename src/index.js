@@ -1,9 +1,16 @@
 const fs = require("fs");
 const path = require("path");
 const readline = require("readline");
+const DialogueService = require("./services/DialogueService");
 const MainController = require("./controllers/MainController");
 const AnalysisController = require("./controllers/AnalysisController");
 const VisualizationController = require("./controllers/VisualizationController");
+const ErrorHandler = require("../utils/ErrorHandler");
+const ConfigLoader = require("../utils/ConfigLoader");
+const ApplicationBootstrap = require("../services/ApplicationBootstrap");
+const CommandParser = require("../utils/CommandParser");
+const AppRunner = require("../services/AppRunner");
+// DialogueService already imported at the top of the file
 const {
   performanceWizard,
   reportPerformance,
@@ -60,6 +67,9 @@ const usedMessages = new Set();
 const seenPatterns = new Set();
 const testData = "./inputData.js";
 // Example usage
+const ApplicationFacade = require("./facades/ApplicationFacade");
+const app = new ApplicationFacade();
+app.start();
 performanceWizard.start();
 // Simulate some analysis
 performanceWizard.trackAnalysis(200, 0.95);
@@ -183,9 +193,8 @@ function analyzeBinary(binary) {
     crc32: calculateCRC32(cleanBinary),
     blocks: binaryModel.validateBlockStructure(cleanBinary),
   };
-
   // Advanced pattern detection using sliding window analysis
-  const patternAnalysis = windowSizes.map((size) => {
+  const windowPatternAnalysis = windowSizes.map((size) => {
     const patterns = {};
     for (let i = 0; i <= binary.length - size; i++) {
       const pattern = binary.substr(i, size);
@@ -200,7 +209,6 @@ function analyzeBinary(binary) {
         .slice(0, 3),
     };
   });
-
   // Visual data and pattern analysis
   const analysisData = {
     slidingWindowAnalysis: patternModel.analyzeSlidingWindow(
@@ -215,13 +223,14 @@ function analyzeBinary(binary) {
         (max, run) => Math.max(max, run.length),
         0
       ),
-      alternating: (binary.match(/(01|10)/g) || []).length / (binary.length / 2),
+      alternating:
+        (binary.match(/(01|10)/g) || []).length / (binary.length / 2),
       runs: (binary.match(/([01])\1+/g) || []).length / binary.length,
       burstiness: calculateBurstiness(binary),
       correlation: calculateCorrelation(binary),
       patternOccurrences: findPatternOccurrences(binary),
-      hierarchicalPatterns: patternAnalysis,
-    }
+      hierarchicalPatterns: [], // Initialize empty array, will be populated later
+    },
   };
   // Advanced pattern detection using sliding window analysis
   const patternAnalysis = windowSizes.map((size) => {
@@ -1341,7 +1350,7 @@ function generateFilename(input) {
       });
       console.log("╟" + "─".repeat(58) + "╢");
     });
-    console.log("╚" + "═".repeat(58) + "╝\n");
+    console.log("╚" + "═".peat(58) + "╝\n");
   }
   function formatPatternDensity(density) {
     console.log("\n╔" + "═".repeat(58) + "╗");
@@ -2091,9 +2100,7 @@ function generateFilename(input) {
     maxIterations = 100
   ) {
     let currentConfidence = 0;
-    let iteration = 0;
     let patterns = new Map();
-    const DialogueService = require("./services/DialogueService");
     const dialogueService = new DialogueService();
     console.log("\n" + getUniqueMessage("startup"));
     while (currentConfidence < targetConfidence && iteration < maxIterations) {
@@ -2217,14 +2224,13 @@ const monitoredImproveConfidence = monitorPerformance(
 );
 const baseInstances = require("./initialize");
 const ApplicationController = require("./controllers/ApplicationController");
-const { performanceWizard } = require("./utils/PerformanceUtils");
+// performanceWizard is already imported at the top of the file
 const { Logger } = require("./utils/Logger");
 const applicationController = new ApplicationController({
   performanceWizard,
   logger: new Logger(),
   mainController,
 });
-const DialogueService = require("./services/DialogueService");
 const dialogueService = new DialogueService();
 const TestExecutionService = require("./services/TestExecutionService");
 const ProgressView = require("./views/ProgressView");
@@ -2247,34 +2253,18 @@ process.on("SIGINT", applicationController.shutdown());
 // Start application
 applicationController.start();
 console.log(dialogueService.getRandomMessage("startup"));
-const ApplicationBootstrap = require('./services/ApplicationBootstrap');
-const Config = require('./utils/Config');
-
+// ApplicationBootstrap and Config are already declared above
 async function main() {
-  try {
-    const config = new Config();
-    await config.load();
-
-    const bootstrap = new ApplicationBootstrap(config);
-    const app = await bootstrap.initialize();
-
-    if (process.argv.includes('--test')) {
-      await app.testExecutionService.runTestCaseAnalysis();
-    } else if (process.argv[2]) {
-      await app.confidenceModel.improveConfidenceLevel(process.argv[2]);
-    } else {
-      console.log(app.dialogueService.getRandomMessage('startup'));
-    }
-  } catch (error) {
-    console.error('Application failed to start:', error);
-    process.exit(1);
-  }
+  const config = new Config();
+  await config.load();
+  const modelInitService = new ModelInitializationService(config);
+  const models = modelInitService.initialize();
+  const bootstrap = new ApplicationBootstrap(config, models);
+  const app = await bootstrap.initialize();
+  return app;
 }
-
-main();
-const ConfidenceModel = require("./models/ConfidenceModel");
+module.exports = main();
 const ConfidenceView = require("./views/ConfidenceView");
-const DialogueService = require("./services/DialogueService");
 // Remove improveConfidenceLevel function and use the model
 const confidenceView = new ConfidenceView();
 confidenceView.setupEventListeners(confidenceModel);
@@ -2301,3 +2291,28 @@ const services = {
   modelStorage: serviceFactory.createModelStorage(),
   performance: serviceFactory.createPerformanceWizard(),
 };
+// AppRunner is already imported at the top of the file
+const Config = require("./utils/Config");
+async function main() {
+  try {
+    const config = new Config();
+    await config.load();
+    const bootstrap = new ApplicationBootstrap(config);
+    const app = await bootstrap.initialize();
+    const commandParser = new CommandParser(process.argv);
+    const appRunner = new AppRunner(app);
+    if (commandParser.isTestMode()) {
+      await app.testRunner.runTests();
+    } else if (commandParser.getBinaryInput()) {
+      await app.confidenceModel.improveConfidenceLevel(
+        commandParser.getBinaryInput()
+      );
+    } else {
+      await appRunner.start();
+    }
+  } catch (error) {
+    console.error("Application failed to start:", error);
+    process.exit(1);
+  }
+}
+main();

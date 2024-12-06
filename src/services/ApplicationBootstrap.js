@@ -1,9 +1,15 @@
 const InjectionContainer = require('../utils/InjectionContainer');
+const ModelRegistry = require('../registry/ModelRegistry');
+const ViewRegistry = require('../registry/ViewRegistry');
+const ServiceRegistry = require('../registry/ServiceRegistry');
 
 class ApplicationBootstrap {
   constructor(config) {
     this.config = config;
     this.container = new InjectionContainer();
+    this.modelRegistry = new ModelRegistry().register();
+    this.viewRegistry = new ViewRegistry().register();
+    this.serviceRegistry = new ServiceRegistry().register();
   }
 
   async initialize() {
