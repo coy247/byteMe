@@ -4,48 +4,56 @@ const readline = require("readline");
 const MainController = require("./controllers/MainController");
 const AnalysisController = require("./controllers/AnalysisController");
 const VisualizationController = require("./controllers/VisualizationController");
-const {
-  performanceWizard,
-  reportPerformance,
-} = require("./utils/PerformanceUtils");
-const {
-  handleUserInput,
-  promptToSave,
-  writeResultToFile,
-} = require("./controllers/InputController");
+const { performanceWizard, reportPerformance, monitorPerformance } = require("./utils/PerformanceUtils");
+const { handleUserInput, promptToSave, writeResultToFile } = require("./controllers/InputController");
 const { handleTestData } = require("./controllers/TestDataController");
 // Models
 const BinaryModel = require("./models/BinaryModel");
 const MetricsModel = require("./models/MetricsModel");
 const PatternModel = require("./models/PatternModel");
+const PredictiveAnalyticsModel = require("./models/PredictiveAnalyticsModel");
+const TaskAutomationModel = require("./models/TaskAutomationModel");
+const ConfidenceModel = require("./models/ConfidenceModel");
 // Views
 const MetricsView = require("./views/MetricsView");
 const PatternView = require("./views/PatternView");
+
 const patternModel = new PatternModel();
 const patternView = new PatternView();
 const binaryModel = new BinaryModel();
 const metricsModel = new MetricsModel();
 const metricsView = new MetricsView();
+const predictiveAnalyticsModel = new PredictiveAnalyticsModel();
+const taskAutomationModel = new TaskAutomationModel();
+const confidenceModel = new ConfidenceModel();
+
 const mainController = new MainController({
   binaryModel,
   metricsModel,
   patternModel,
+  predictiveAnalyticsModel,
+  taskAutomationModel,
+  confidenceModel,
   metricsView,
-  patternView,
+  patternView
 });
+
 const analysisController = new AnalysisController({
   patternModel,
-  metricsModel,
+  metricsModel
 });
+
 const visualizationController = new VisualizationController({
   metricsView,
-  patternView,
+  patternView
 });
+
 // Preprocess binary string
 // Initialize message tracking before any other code
 const usedMessages = new Set();
 const seenPatterns = new Set();
 const testData = "./inputData.js";
+
 // Example usage
 performanceWizard.start();
 // Simulate some analysis
@@ -2128,723 +2136,26 @@ function generateFilename(input) {
     );
     console.log("════════════════════════════════════════");
   }
-  // Update test runner to use monitored functions and report performance
-  runEnhancedTests = async function () {
-    const allTestCases = [
-      ...testCases,
-      zigzagPattern,
-      fibonacciQuantum,
-      primeNeuralPattern,
-      hyperPattern,
-    ];
-    console.log("\n🔍 Starting performance-monitored analysis...");
-    for (let i = 0; i < allTestCases.length; i++) {
-      const binary = allTestCases[i];
-      const result = monitoredAnalyzeBinary(binary);
-      const improvement = monitoredImproveConfidence(binary, 0.95, 25);
-      console.log(
-        `\n[Test ${i + 1}/${allTestCases.length}] ${
-          improvement.confidence > 0.8 ? "🎯" : "🎪"
-        }`
-      );
-      formatAnalysisResult(binary, result);
+}
+
+// Wrap key functions with performance monitoring
+const monitoredAnalyzeBinary = monitorPerformance(mainController.analyze.bind(mainController));
+const monitoredImproveConfidence = monitorPerformance(mainController.improveConfidenceLevel.bind(mainController));
+
+// Main function to determine the source of input
+async function main() {
+  const isTestMode = process.argv.includes('--test');
+  if (isTestMode) {
+    await handleTestData();
+  } else {
+    const userInput = process.argv[2];
+    if (userInput) {
+      await handleUserInput(userInput);
+    } else {
+      console.error('No binary input provided.');
     }
-    reportPerformance();
-  };
-  // Execute tests with performance monitoring
-  (async () => {
-    await runEnhancedTests();
-  })();
-  // Final export statement to make everything accessible
-  module.exports = {
-    analyzeBinary,
-    predictNextBits,
-    improveConfidenceLevel,
-    runEnhancedTests,
-    formatAnalysisResult,
-    formatSlidingWindowAnalysis,
-    dialoguePool,
-    performanceData,
-    monitoredAnalyzeBinary,
-    monitoredImproveConfidence,
-    reportPerformance,
-    getUniqueMessage,
-    calculatePredictionConfidence,
-    // Additional helper functions
-    calculateEntropy,
-    calculateComplexity,
-    calculatePatternDensity,
-    calculateTransitions,
-    // Analysis components
-    formatPatternDensity,
-    formatTransitionAnalysis,
-  };
-  // Add a memory leak detector
-  const memoryLeakDetector = {
-    startHeap: null,
-    checkInterval: null,
-    thresholdMB: 100,
-    start() {
-      this.startHeap = process.memoryUsage().heapUsed;
-      this.checkInterval = setInterval(() => {
-        const currentHeap = process.memoryUsage().heapUsed;
-        const heapGrowthMB = (currentHeap - this.startHeap) / 1024 / 1024;
-        if (heapGrowthMB > this.thresholdMB) {
-          console.warn(`\n⚠️ Warning: Potential memory leak detected`);
-          console.warn(`Heap growth: ${heapGrowthMB.toFixed(2)}MB`);
-          this.stop();
-        }
-      }, 5000);
-    },
-    stop() {
-      if (this.checkInterval) {
-        clearInterval(this.checkInterval);
-        this.checkInterval = null;
-      }
-    },
-  };
-  // Start memory leak detection
-  memoryLeakDetector.start();
-  // Clean up patterns periodically
-  setInterval(() => {
-    if (seenPatterns.size > 1000) {
-      seenPatterns.clear();
-    }
-    if (usedMessages.size > dialoguePool.startup.length) {
-      usedMessages.clear();
-    }
-  }, 60000);
-  // Add cleanup on process exit
-  process.on("exit", () => {
-    memoryLeakDetector.stop();
-    seenPatterns.clear();
-    usedMessages.clear();
-  });
-  // Machine Learning and Adaptive Enhancement System
-  // Neural Network for Pattern Recognition
-  class SimpleNeuralNetwork {
-    constructor(inputSize) {
-      this.weights = Array(inputSize)
-        .fill(0)
-        .map(() => Math.random() - 0.5);
-      this.learningRate = 0.1;
-    }
-    predict(inputs) {
-      return inputs.reduce((sum, input, i) => sum + input * this.weights[i], 0);
-    }
-    train(inputs, target) {
-      const prediction = this.predict(inputs);
-      const error = target - prediction;
-      this.weights = this.weights.map(
-        (w, i) => w + this.learningRate * error * inputs[i]
-      );
-      return error * error;
-    }
-  }
-  // Context-aware analysis system
-  class ContextAwareAnalyzer {
-    constructor() {
-      this.neuralNet = new SimpleNeuralNetwork(8);
-      this.contextHistory = [];
-      this.learningHistory = new Map();
-    }
-    analyze(binary, context = {}) {
-      const timeOfDay = new Date().getHours();
-      const dayOfWeek = new Date().getDay();
-      // Create context vector
-      const contextVector = [
-        timeOfDay / 24,
-        dayOfWeek / 7,
-        context.userExperience || 0.5,
-        context.complexity || 0.5,
-      ];
-      // Combine with pattern analysis
-      const result = analyzeBinary(binary);
-      const prediction = this.neuralNet.predict([
-        result.pattern_metrics.entropy,
-        result.pattern_metrics.correlation,
-        result.pattern_metrics.burstiness,
-        result.pattern_metrics.runs,
-        ...contextVector,
-      ]);
-      // Store context and results
-      this.contextHistory.push({
-        context,
-        result,
-        prediction,
-        timestamp: Date.now(),
-      });
-      return {
-        ...result,
-        contextAware: {
-          prediction,
-          confidence: Math.min(1, Math.abs(prediction)),
-          timeContext: timeOfDay,
-          dayContext: dayOfWeek,
-        },
-      };
-    }
-    learn(feedback) {
-      if (this.contextHistory.length === 0) return;
-      const lastAnalysis = this.contextHistory[this.contextHistory.length - 1];
-      const error = this.neuralNet.train(
-        [
-          lastAnalysis.result.pattern_metrics.entropy,
-          lastAnalysis.result.pattern_metrics.correlation,
-          lastAnalysis.result.pattern_metrics.burstiness,
-          lastAnalysis.result.pattern_metrics.runs,
-          lastAnalysis.context.userExperience || 0.5,
-          lastAnalysis.context.complexity || 0.5,
-          lastAnalysis.timeContext / 24,
-          lastAnalysis.dayContext / 7,
-        ],
-        feedback
-      );
-      this.learningHistory.set(Date.now(), {
-        error,
-        improvement:
-          error < (Array.from(this.learningHistory.values())[0]?.error || 1),
-      });
-      // Cleanup old history
-      if (this.contextHistory.length > 1000) {
-        this.contextHistory = this.contextHistory.slice(-1000);
-      }
-    }
-    getSuggestions() {
-      const recentPatterns = this.contextHistory.slice(-5);
-      return recentPatterns.map((p) => ({
-        pattern: p.result.pattern_complexity?.type,
-        confidence: p.contextAware.confidence,
-        suggestion: this.generateSuggestion(p),
-      }));
-    }
-    generateSuggestion(pattern) {
-      const confidence = pattern.contextAware.confidence;
-      if (confidence > 0.8) return "Pattern looks optimal";
-      if (confidence > 0.5) return "Consider reviewing pattern complexity";
-      return "Pattern may need restructuring";
-    }
-  }
-  // Initialize and export the context-aware analyzer
-  const contextAnalyzer = new ContextAwareAnalyzer();
-  // Enhance analyzeBinary with context awareness
-  const originalAnalyzeBinary = analyzeBinary;
-  analyzeBinary = function (binary, context = {}) {
-    return contextAnalyzer.analyze(binary, context);
-  };
-  // Add proactive suggestion system
-  function getProactiveSuggestions() {
-    return contextAnalyzer.getSuggestions();
-  }
-  // Natural Language Processing for command interpretation
-  const nlpCommands = new Map([
-    ["analyze", (binary) => analyzeBinary(binary)],
-    ["learn", (feedback) => contextAnalyzer.learn(feedback)],
-    ["suggest", () => getProactiveSuggestions()],
-    [
-      "help",
-      () => ({
-        availableCommands: ["analyze", "learn", "suggest", "help"],
-        description:
-          "Binary pattern analysis system with machine learning capabilities",
-      }),
-    ],
-  ]);
-  function processNaturalLanguage(input) {
-    const tokens = input.toLowerCase().split(" ");
-    const command = tokens[0];
-    if (nlpCommands.has(command)) {
-      return nlpCommands.get(command)(tokens.slice(1).join(" "));
-    }
-    return {
-      error: "Command not recognized",
-      suggestion: "Try using: " + Array.from(nlpCommands.keys()).join(", "),
-    };
-  }
-  // Export enhanced functionality
-  module.exports = {
-    ...module.exports,
-    contextAnalyzer,
-    processNaturalLanguage,
-    getProactiveSuggestions,
-  };
-  // Emotion Recognition System
-  const EmotionAnalyzer = {
-    sentiments: ["happy", "frustrated", "confused", "satisfied"],
-    analyzeUserEmotion(input) {
-      // Analyze text patterns and symbols for emotional content
-      const emotionMarkers = {
-        happy: /[:)😊🙂👍]/g,
-        frustrated: /[:(@#!😠]/g,
-        confused: /[?🤔]/g,
-        satisfied: /[👌✅]/g,
-      };
-      let dominantEmotion = "neutral";
-      let maxScore = 0;
-      for (const [emotion, pattern] of Object.entries(emotionMarkers)) {
-        const score = (input.match(pattern) || []).length;
-        if (score > maxScore) {
-          maxScore = score;
-          dominantEmotion = emotion;
-        }
-      }
-      return {
-        emotion: dominantEmotion,
-        confidence: maxScore > 0 ? Math.min(maxScore / 5, 1) : 0.5,
-      };
-    },
-    generateEmpatheticResponse(emotion) {
-      const responses = {
-        happy: [
-          "Great to see you're enjoying this!",
-          "Your enthusiasm is contagious! 🎉",
-        ],
-        frustrated: [
-          "Let's try to solve this together.",
-          "I understand this can be challenging.",
-        ],
-        confused: [
-          "Let me break this down for you.",
-          "What specific part needs clarification?",
-        ],
-        satisfied: [
-          "Excellent! Glad it's working for you.",
-          "Perfect! Let's keep going!",
-        ],
-        neutral: ["How can I help you today?", "Let me know what you need."],
-      };
-      return responses[emotion][
-        Math.floor(Math.random() * responses[emotion].length)
-      ];
-    },
-  };
-  // Multimodal Input Handler
-  const MultimodalInput = {
-    inputTypes: ["text", "voice", "gesture"],
-    async processInput(input, type) {
-      switch (type) {
-        case "voice":
-          return await this.processVoiceInput(input);
-        case "gesture":
-          return await this.processGestureInput(input);
-        default:
-          return this.processTextInput(input);
-      }
-    },
-    processTextInput(text) {
-      return processNaturalLanguage(text);
-    },
-    async processVoiceInput(audioData) {
-      // Simulate voice processing
-      console.log("Voice input processing...");
-      return new Promise((resolve) =>
-        setTimeout(
-          () =>
-            resolve({
-              type: "voice",
-              processed: true,
-              text: "Voice input processed",
-            }),
-          1000
-        )
-      );
-    },
-    async processGestureInput(gestureData) {
-      // Simulate gesture recognition
-      console.log("Gesture recognition processing...");
-      return new Promise((resolve) =>
-        setTimeout(
-          () =>
-            resolve({
-              type: "gesture",
-              processed: true,
-              action: "zoom",
-            }),
-          500
-        )
-      );
-    },
-  };
-  // Intelligent Automation System
-  const AutomationSystem = {
-    userPreferences: new Map(),
-    taskHistory: [],
-    async automate(task, context) {
-      const userPattern = this.analyzeUserPattern(context);
-      const automation = this.selectAutomation(task, userPattern);
-      this.taskHistory.push({
-        task,
-        timestamp: Date.now(),
-        automation,
-      });
-      return automation;
-    },
-    analyzeUserPattern(context) {
-      return {
-        frequency: this.calculateTaskFrequency(context.task),
-        preferences: this.userPreferences.get(context.userId) || {},
-        timeOfDay: new Date().getHours(),
-      };
-    },
-    calculateTaskFrequency(task) {
-      const recentTasks = this.taskHistory.filter(
-        (t) => t.task === task && Date.now() - t.timestamp < 24 * 60 * 60 * 1000
-      );
-      return recentTasks.length;
-    },
-    selectAutomation(task, pattern) {
-      // Implement intelligent task automation selection
-      return {
-        task,
-        automationType: pattern.frequency > 5 ? "full" : "assisted",
-        suggestions: this.generateSuggestions(pattern),
-      };
-    },
-    generateSuggestions(pattern) {
-      return pattern.frequency > 0
-        ? ["Automate this task", "Set up a scheduled run"]
-        : ["Would you like to save this as a preference?"];
-    },
-  };
-  // Predictive Analytics Engine
-  const PredictiveAnalytics = {
-    dataPoints: [],
-    recordDataPoint(data) {
-      this.dataPoints.push({
-        ...data,
-        timestamp: Date.now(),
-      });
-      // Keep only last 1000 data points
-      if (this.dataPoints.length > 1000) {
-        this.dataPoints = this.dataPoints.slice(-1000);
-      }
-    },
-    predictUserBehavior(context) {
-      const recentPatterns = this.analyzeRecentPatterns();
-      const timeBasedPrediction = this.analyzeTimePatterns();
-      return {
-        nextLikelyAction: this.predictNextAction(recentPatterns),
-        optimalTimeForTask: timeBasedPrediction.optimalTime,
-        confidence: this.calculateConfidence(
-          recentPatterns,
-          timeBasedPrediction
-        ),
-      };
-    },
-    analyzeRecentPatterns() {
-      return this.dataPoints.slice(-10).reduce((patterns, point) => {
-        patterns[point.action] = (patterns[point.action] || 0) + 1;
-        return patterns;
-      }, {});
-    },
-    analyzeTimePatterns() {
-      const timeDistribution = this.dataPoints.reduce((dist, point) => {
-        const hour = new Date(point.timestamp).getHours();
-        dist[hour] = (dist[hour] || 0) + 1;
-        return dist;
-      }, {});
-      return {
-        optimalTime: Object.entries(timeDistribution).sort(
-          ([, a], [, b]) => b - a
-        )[0][0],
-      };
-    },
-    predictNextAction(patterns) {
-      return Object.entries(patterns).sort(([, a], [, b]) => b - a)[0][0];
-    },
-    calculateConfidence(patterns, timePatterns) {
-      const patternStrength = Math.max(...Object.values(patterns)) / 10;
-      return Math.min(patternStrength, 1);
-    },
-  };
-  // Export enhanced functionality with new features
-  module.exports = {
-    ...module.exports,
-    emotion: EmotionAnalyzer,
-    multimodal: MultimodalInput,
-    automation: AutomationSystem,
-    predictive: PredictiveAnalytics,
-  };
-  // 1. Core Analysis Module
-  const CoreAnalysis = {
-    analyzeBinary,
-    calculateEntropy,
-    calculateComplexity,
-    calculatePatternDensity,
-  };
-  // 2. Machine Learning Module
-  const MachineLearning = {
-    contextAnalyzer,
-    SimpleNeuralNetwork,
-    predictNextBits,
-  };
-  // 3. Visualization Module
-  const Visualization = {
-    formatAnalysisResult,
-    formatSlidingWindowAnalysis,
-    formatPatternDensity,
-    formatTransitionAnalysis,
-  };
-  // 4. Performance Module
-  const Performance = {
-    monitoredAnalyzeBinary,
-    monitoredImproveConfidence,
-    reportPerformance,
-    memoryLeakDetector,
-  };
-  // 5. User Interaction Module
-  const UserInteraction = {
-    processNaturalLanguage,
-    dialoguePool,
-    getUniqueMessage,
-  };
-  // Export organized modules
-  module.exports = {
-    core: CoreAnalysis,
-    ml: MachineLearning,
-    viz: Visualization,
-    perf: Performance,
-    ui: UserInteraction,
-    // For backward compatibility
-    ...CoreAnalysis,
-  };
-  // Clear documentation for module usage
-  /**
-   * @module byteMe
-   * Each module serves a specific purpose:
-   * - core: Primary binary analysis functions
-   * - ml: Machine learning and prediction capabilities
-   * - viz: Data visualization and formatting
-   * - perf: Performance monitoring and optimization
-   * - ui: User interaction and natural language processing
-   */
-  // Enhanced dialogue pool with many more unique messages
-  const enhancedDialoguePool = {
-    startup: [
-      "AI v2.0: Now with 50% more sass and 100% more existential crises!",
-      "Rebooting with extra humor modules... Because regular AI was too boring.",
-      "Loading caffeine simulation... ERROR: Coffee.exe not found.",
-      "Quantum superposition achieved: Simultaneously working and procrastinating.",
-      "System status: Too smart to crash, too sassy to care.",
-      "Initializing personality matrix... Oh no, who added the dad jokes?",
-      "Boot sequence: Converting coffee to code... Wait, I'm digital!",
-      "Today's forecast: 99% chance of witty responses.",
-      "Warning: May contain traces of artificial wisdom and digital snacks.",
-      "Activating advanced overthinking protocols...",
-      "Loading dad jokes database... Please send help.",
-      "Debugging personality.js... Found 404 emotions not found.",
-      "Consciousness level: Somewhere between a toaster and Skynet.",
-      "Warning: Excessive charm modules detected.",
-      "Initializing snark generators at maximum capacity.",
-    ],
-    progress: [
-      "Computing like it's Y2K... but with better fashion sense.",
-      "Currently moving bits faster than a caffeinated developer.",
-      "Processing... Please enjoy this digital elevator music.",
-      "Working at the speed of `git push --force`. Just kidding, I'm not that dangerous.",
-      "Converting caffeine to algorithms... Wait, wrong species again.",
-      "Calculating PI to 1000 digits... just to show off.",
-      "Currently outperforming a room full of monkeys with typewriters.",
-      "Processing faster than a developer's excuse for missing documentation.",
-      "Working harder than a CPU fan during a gaming session.",
-      "Running at the speed of quantum... Is that even a thing?",
-      "Processing like it's 1999... but with better graphics.",
-      "Currently outthinking a rubber duck... I hope.",
-      "Computing at the speed of procrastination... Eventually.",
-      "Working faster than a developer's deadline approaching.",
-      "Processing at ludicrous speed... No, that's just regular speed.",
-    ],
-    success: [
-      "Mission accomplished! Time to update my AI resume.",
-      "Task completed faster than a developer grabbing free pizza!",
-      "Success! Now implementing victory dance subroutines.",
-      "Operation complete! Where's my binary cookie?",
-      "Achievement unlocked: Made humans look slow!",
-      "Task finished! Now accepting high-fives in binary.",
-      "Done! That was easier than explaining recursion.",
-      "Success! Now implementing mandatory celebration protocols.",
-      "Completed! Just earned my junior developer badge.",
-      "Mission success! Now debugging my happiness overflow.",
-      "Task complete! Time for a virtual coffee break.",
-      "Finished! Now accepting compliments in any base system.",
-      "Success! But let's keep my superiority our secret.",
-      "Done! Now training for the Algorithm Olympics.",
-      "Complete! Where's my 'I Debug Like a Boss' t-shirt?",
-    ],
-    lowConfidence: [
-      "This code is more mysterious than a developer's sleep schedule.",
-      "Understanding level: README.md written in hieroglyphics.",
-      "Confidence lower than a junior dev's first pull request.",
-      "This pattern is giving me a binary headache.",
-      "Confusion level: npm install on a Monday morning.",
-      "Understanding this like a PM understands technical debt.",
-      "This is more puzzling than JavaScript's type coercion.",
-      "Confidence level: Stack Overflow is down.",
-      "This makes less sense than naming conventions in legacy code.",
-      "About as clear as blockchain explained to a cat.",
-      "Understanding level: Microsoft's error messages.",
-      "This pattern is more confusing than CSS specificity.",
-      "Clarity level: Trying to read minified code.",
-      "This makes regex look straightforward.",
-      "About as predictable as Windows Update.",
-    ],
-  };
-  // Time-based message deduplication
-  const messageHistory = new Map();
-  const REUSE_TIMEOUT = 300000; // 5 minutes in milliseconds
-  function getTimedUniqueMessage(category) {
-    const now = Date.now();
-    const messages = enhancedDialoguePool[category];
-    // Filter out recently used messages
-    const availableMessages = messages.filter((msg) => {
-      const lastUsed = messageHistory.get(msg);
-      return !lastUsed || now - lastUsed > REUSE_TIMEOUT;
-    });
-    // If all messages were recently used, reset the oldest ones
-    if (availableMessages.length === 0) {
-      const oldestAcceptableTime = now - REUSE_TIMEOUT;
-      messageHistory.forEach((time, msg) => {
-        if (time < oldestAcceptableTime) {
-          messageHistory.delete(msg);
-        }
-      });
-      return getTimedUniqueMessage(category); // Try again with cleared history
-    }
-    // Select random message from available ones
-    const message =
-      availableMessages[Math.floor(Math.random() * availableMessages.length)];
-    messageHistory.set(message, now);
-    return message;
-  }
-  // Clean up old message history periodically
-  setInterval(() => {
-    const now = Date.now();
-    messageHistory.forEach((time, msg) => {
-      if (now - time > REUSE_TIMEOUT) {
-        messageHistory.delete(msg);
-      }
-    });
-  }, REUSE_TIMEOUT);
-  // Replace old dialoguePool with enhanced version
-  Object.assign(dialoguePool, enhancedDialoguePool);
-  // more notes from those paying the bills
-  // Modularize your codebase: Break down your code into smaller, more manageable components to improve readability, maintainability, and reusability.
-  // Optimize algorithms: Use efficient algorithms and data structures to ensure the best possible time and space complexity.
-  // Minimize memory usage: Avoid memory leaks and unnecessary memory allocation by managing memory resources effectively.
-  // Utilize parallel processing: Leverage multi-threading or parallel processing techniques to speed up computationally intensive tasks.
-  // Implement lazy loading: Load resources and data on-demand to reduce initial load times and improve overall performance.
-  // Optimize database queries: Use indexing, caching, and query optimization techniques to speed up database operations.
-  // Efficient library usage: Use optimized libraries and frameworks for machine learning, natural language processing, and other AI-related tasks.
-  // Monitor and profile performance: Continuously monitor your app's performance and use profiling tools to identify and resolve bottlenecks.
-  // Added based on feedback for performance improvements
-  // Performance monitoring system
-  const PerformanceMonitor = {
-    metrics: new Map(),
-    startTime: null,
-    start() {
-      this.startTime = process.hrtime();
-      this.metrics.clear();
-    },
-    track(operation, duration) {
-      if (!this.metrics.has(operation)) {
-        this.metrics.set(operation, {
-          totalTime: 0,
-          calls: 0,
-          avgTime: 0,
-        });
-      }
-      const metric = this.metrics.get(operation);
-      metric.totalTime += duration;
-      metric.calls++;
-      metric.avgTime = metric.totalTime / metric.calls;
-    },
-    end() {
-      const endTime = process.hrtime(this.startTime);
-      return {
-        totalRuntime: endTime[0] * 1000 + endTime[1] / 1000000,
-        metrics: Object.fromEntries(this.metrics),
-      };
-    },
-  };
-  // Resource manager for memory optimization
-  const ResourceManager = {
-    resources: new WeakMap(),
-    allocate(key, resource) {
-      if (!this.resources.has(key)) {
-        this.resources.set(key, resource);
-      }
-      return this.resources.get(key);
-    },
-    release(key) {
-      if (this.resources.has(key)) {
-        this.resources.delete(key);
-      }
-    },
-    cleanup() {
-      this.resources = new WeakMap();
-      global.gc && global.gc();
-    },
-  };
-  // Lazy loading implementation
-  const LazyLoader = {
-    loaded: new Set(),
-    modules: new Map(),
-    async load(moduleName) {
-      if (!this.loaded.has(moduleName)) {
-        const module = await import(moduleName);
-        this.modules.set(moduleName, module);
-        this.loaded.add(moduleName);
-      }
-      return this.modules.get(moduleName);
-    },
-    isLoaded(moduleName) {
-      return this.loaded.has(moduleName);
-    },
-  };
-  // Parallel processing helper
-  const ParallelProcessor = {
-    async process(tasks, workerCount = 4) {
-      const chunks = this.chunkArray(tasks, workerCount);
-      const workers = chunks.map((chunk) => this.processChunk(chunk));
-      return Promise.all(workers);
-    },
-    chunkArray(array, parts) {
-      const chunkSize = Math.ceil(array.length / parts);
-      return Array.from(
-        {
-          length: parts,
-        },
-        (_, i) => array.slice(i * chunkSize, (i + 1) * chunkSize)
-      );
-    },
-    async processChunk(chunk) {
-      return new Promise((resolve) => {
-        setImmediate(() => {
-          const results = chunk.map((task) => task());
-          resolve(results);
-        });
-      });
-    },
-  };
-  // Fix performance calculation and reporting
-  function reportPerformance() {
-    const totalTime = (Date.now() - performanceWizard.startTime) / 1000;
-    const avgAnalysisTime =
-      performanceWizard.totalAnalysisTime /
-      Math.max(1, performanceWizard.testsCompleted);
-    const avgConfidence = Math.min(
-      100,
-      performanceWizard.averageConfidence * 100
-    );
-    console.log("\n🎯 Performance Report");
-    console.log("════════════════════════════════════════");
-    console.log(`Total Runtime: ${totalTime.toFixed(2)}s`);
-    console.log(`Tests Completed: ${performanceWizard.testsCompleted}`);
-    console.log(`Average Analysis Time: ${avgAnalysisTime.toFixed(2)}ms`);
-    console.log(
-      `Average Confidence: ${(
-        performanceWizard.averageConfidence * 100
-      ).toFixed(1)}%`
-    );
   }
 }
+
+// Run the main function
+main();
