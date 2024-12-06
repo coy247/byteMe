@@ -109,7 +109,7 @@ class PatternModel {
     }
     const filepath = path.join(outputDir, "model.json");
     fs.writeFileSync(filepath, JSON.stringify(patterns, null, 2));
-    console.log(`Model written to file: ${filepath}`);
+    console.log("Model written to file: " + filepath);
   }
   getRunLengths(binary) {
     return (binary.match(/([01])\1*/g) || []).map((run) => run.length);
@@ -223,6 +223,46 @@ class PatternModel {
     if (metrics.correlation > 0.7) type = "repetitive";
     if (metrics.burstiness > 0.4) type = "alternating";
     return { level, type };
+  }
+  findPatterns(binary, minLength = 2, maxLength = 8) {
+    const patterns = {};
+    for (let len = minLength; len <= maxLength; len++) {
+      for (let i = 0; i <= binary.length - len; i++) {
+        const pattern = binary.substr(i, len);
+        patterns[pattern] = (patterns[pattern] || 0) + 1;
+      }
+    }
+    return patterns;
+  }
+  findRepeating(binary) {
+    return binary.match(/([01]+)\1+/g) || [];
+  }
+  findAlternating(binary) {
+    return binary.match(/(01)+|(10)+/g) || [];
+  }
+  analyzeSlidingWindow(binary, windowSizes) {
+    return windowSizes.map((size) => {
+      const patterns = {};
+      for (let i = 0; i <= binary.length - size; i++) {
+        const pattern = binary.substr(i, size);
+        patterns[pattern] = (patterns[pattern] || 0) + 1;
+      }
+      return {
+        size,
+        patterns,
+        uniquePatterns: Object.keys(patterns).length,
+        mostCommon: Object.entries(patterns)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 3),
+      };
+    });
+  }
+  analyzeSimilarity(binary) {
+    return {
+      selfSimilarity: this.calculateCorrelation(binary),
+      symmetry: this.calculateSymmetry(binary),
+      periodicityScore: this.detectPeriodicity(binary),
+    };
   }
 }
 module.exports = PatternModel;

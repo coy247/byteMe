@@ -181,18 +181,14 @@ function analyzeBinary(binary) {
   const checksum = {
     simple: calculateSimpleChecksum(cleanBinary),
     crc32: calculateCRC32(cleanBinary),
-    blocks: validateBlockStructure(cleanBinary),
+    blocks: binaryModel.validateBlockStructure(cleanBinary),
   };
   // Visual data for analysis
   const visualData = {
-    slidingWindowAnalysis: windowSizes.map((size) => ({
-      windowSize: size,
-      density: Array.from(
-        { length: Math.floor(cleanBinary.length / size) },
-        (_, i) =>
-          cleanBinary.substr(i * size, size).split("1").length - 1 / size
-      ),
-    })),
+    slidingWindowAnalysis: patternModel.analyzeSlidingWindow(
+      cleanBinary,
+      windowSizes
+    ),
     patternDensity: calculatePatternDensity(cleanBinary),
     transitions: calculateTransitions(cleanBinary),
   };
@@ -226,12 +222,23 @@ function analyzeBinary(binary) {
     patternOccurrences: findPatternOccurrences(binary),
     hierarchicalPatterns: patternAnalysis,
   };
-  return {
-    checksum,
-    visualData,
+  const ResultProcessor = require("./services/ResultProcessor");
+  const resultProcessor = new ResultProcessor();
+  // Use models instead of direct function calls
+  const processedBinary = binaryModel.preprocessBinary(binary);
+  const complexity = metricsModel.calculateComplexity(processedBinary, stats);
+  const adjustment = metricsModel.calculateAdjustment(complexity, stats);
+  const visualData = patternView.generateVisualizationData(binary, windowSizes);
+  const patternSimilarity = patternModel.analyzeSimilarity(binary);
+  const result = resultProcessor.processResult(
+    processedBinary,
     stats,
-    error: null,
-  };
+    visualData,
+    patternSimilarity,
+    complexity,
+    adjustment
+  );
+  return result;
 }
 // Add checksum calculation functions
 function calculateSimpleChecksum(binary) {
@@ -1077,9 +1084,11 @@ function generateFilename(input) {
     console.log(`Complexity: ${stars} (${complexity}%)`);
     console.log(`Entropy: ${entropy}`);
     console.log(
-      `Balance: ${((result?.X_ratio || 0) * 100).toFixed(1)}% ones, ${(
-        (result?.Y_ratio || 0) * 100
-      ).toFixed(1)}% zeros`
+      `Balance: ${(result && result.X_ratio ? result.X_ratio * 100 : 0).toFixed(
+        1
+      )}% ones, ${(result && result.Y_ratio ? result.Y_ratio * 100 : 0).toFixed(
+        1
+      )}% zeros`
     );
     console.log("═".repeat(60) + "\n");
   }
@@ -1098,13 +1107,19 @@ function generateFilename(input) {
     // Initialize prediction array
     let prediction = [];
     // Use pattern complexity to determine prediction strategy
-    if (result.pattern_complexity?.type === "alternating") {
+    if (
+      result.pattern_complexity &&
+      result.pattern_complexity.type === "alternating"
+    ) {
       // For alternating patterns, continue the alternation
       const lastBit = lastBits.slice(-1);
       for (let i = 0; i < length; i++) {
         prediction.push(lastBit === "0" ? "1" : "0");
       }
-    } else if (result.pattern_complexity?.type === "run-based") {
+    } else if (
+      result.pattern_complexity &&
+      result.pattern_complexity.type === "run-based"
+    ) {
       // For run-based patterns, analyze run length and continue
       const currentRun = lastBits.match(/([01])\1*$/)[0];
       const runLength = currentRun.length;
@@ -1170,7 +1185,15 @@ function generateFilename(input) {
     console.log("╠" + "═".repeat(58) + "╣");
     // Core Pattern Analysis
     const entropyStars = "★".repeat(
-      Math.min(5, Math.ceil((result?.pattern_metrics?.entropy || 0) * 5))
+      Math.min(
+        5,
+        Math.ceil(
+          ((result &&
+            result.pattern_metrics &&
+            result.pattern_metrics.entropy) ||
+            0) * 5
+        )
+      )
     );
     const entropyValue =
       result?.pattern_metrics?.entropy?.toFixed(3) || "0.000";
@@ -2162,37 +2185,22 @@ const monitoredAnalyzeBinary = monitorPerformance(
 const monitoredImproveConfidence = monitorPerformance(
   mainController.improveConfidenceLevel.bind(mainController)
 );
-const InitializationService = require("./services/InitializationService");
 const baseInstances = require("./initialize");
-const Config = require("./utils/Config");
-async function bootstrap() {
-  const config = new Config();
-  await config.load();
-  const initService = new InitializationService(config);
-  const { models, views, controllers } = await initService.initialize();
-  // Merge base instances with factory-created instances
-  const instances = {
-    ...baseInstances,
-    ...models,
-    ...views,
-    controllers,
-  };
-  return instances;
-}
-module.exports = bootstrap();
-// Main function to determine the source of input
-async function main() {
-  const isTestMode = process.argv.includes("--test");
-  if (isTestMode) {
-    await handleTestData();
-  } else {
-    const userInput = process.argv[2];
-    if (userInput) {
-      await handleUserInput(userInput);
-    } else {
-      console.error("No binary input provided.");
-    }
-  }
-}
-// Run the main function
-main();
+const ApplicationController = require("./controllers/ApplicationController");
+const { performanceWizard } = require("./utils/PerformanceUtils");
+const { Logger } = require("./utils/Logger");
+const applicationController = new ApplicationController({
+  performanceWizard,
+  logger: new Logger(),
+  mainController,
+});
+const DialogueService = require('./services/DialogueService');
+const dialogueService = new DialogueService();
+
+// Handle process signals
+process.on("SIGTERM", () => applicationController.shutdown());
+process.on("SIGINT", () => applicationController.shutdown());
+// Start application
+applicationController.start();
+console.log(dialogueService.getRandomMessage('startup'));
+const confidenceResult = confidenceModel.improveConfidenceLevel(binary);

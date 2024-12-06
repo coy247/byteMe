@@ -1,25 +1,43 @@
 class BinaryModel {
-  constructor(binary) {
-    this.binary = binary;
+  constructor() {
+    this.validBinaryPattern = /^[01]+$/;
   }
-  getBinary() {
-    return this.binary;
+  validate(input) {
+    return this.validBinaryPattern.test(input);
   }
-  validate() {
-    return /^[01]+$/.test(this.binary);
+  sanitize(input) {
+    return input.replace(/[^01]/g, "");
   }
-  analyze() {
-    if (!this.validate()) {
-      return null;
+  toDecimal(binary) {
+    return parseInt(binary, 2);
+  }
+  toBinary(decimal) {
+    return decimal.toString(2);
+  }
+  validateBlockStructure(binary) {
+    const blockSize = 8;
+    const blocks = [];
+    for (let i = 0; i < binary.length; i += blockSize) {
+      blocks.push(binary.slice(i, i + blockSize));
     }
-    const ones = (this.binary.match(/1/g) || []).length;
-    const zeros = (this.binary.match(/0/g) || []).length;
     return {
-      length: this.binary.length,
-      ones,
-      zeros,
-      ratio: ones / zeros || 0,
+      valid: blocks.every(
+        (block) =>
+          block.length === blockSize ||
+          block.length === binary.length % blockSize
+      ),
+      errors: blocks.filter(
+        (block) =>
+          block.length !== blockSize &&
+          block.length !== binary.length % blockSize
+      ).length,
     };
+  }
+  preprocessBinary(binary) {
+    return binary.replace(/[^01]/g, "");
+  }
+  isAllOnes(binary) {
+    return /^1+$/.test(binary);
   }
 }
 module.exports = BinaryModel;
