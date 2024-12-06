@@ -64,6 +64,7 @@ class PatternModel {
       Y_ratio: this.calculateYRatio(binary)
     };
 
+    console.log('PatternModel analyzeComplete result:', JSON.stringify(data, null, 2));
     return this.createResult('normal', data);
   }
 

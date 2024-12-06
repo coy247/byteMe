@@ -26,7 +26,7 @@ class VisualizationController {
         patterns: this.patternView.render(data.patterns),
       };
       // Output results
-      console.log(JSON.stringify(visualization, null, 2));
+      console.log('VisualizationController displayResults:', JSON.stringify(visualization, null, 2));
       return visualization;
     } catch (error) {
       console.error("Visualization failed:", error);
@@ -50,6 +50,7 @@ class VisualizationController {
         mostCommon: pattern.mostCommon
       })),
     };
+    console.log('VisualizationController visualize data:', JSON.stringify(data, null, 2));
     return this.displayResults(data);
   }
 }

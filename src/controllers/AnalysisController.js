@@ -7,11 +7,11 @@ class AnalysisController {
   constructor({ patternModel, metricsModel }) {
     this.patternModel = patternModel;
     this.metricsModel = metricsModel;
-    this.visualizationController = new VisualizationController();
   }
 
   async analyze(binary) {
     const analysisResult = this.patternModel.analyzeComplete(binary);
+    console.log('AnalysisController analyze result:', JSON.stringify(analysisResult, null, 2));
     return analysisResult;
   }
 

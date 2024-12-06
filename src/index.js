@@ -53,7 +53,9 @@ function colorizeJson(json) {
 // Function to analyze binary strings using mainController
 async function analyzeBinary(binary) {
   const cleanBinary = preprocessBinary(binary);
-  return await mainController.analyze(cleanBinary);
+  const result = await mainController.analyze(cleanBinary);
+  console.log('analyzeBinary result:', JSON.stringify(result, null, 2));
+  return result;
 }
 
 // Run test cases
