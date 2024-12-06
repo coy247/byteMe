@@ -71,3 +71,15 @@ testBinaries.forEach(async (binary) => {
     console.error('Error updating model:', error);
   }
 });
+
+// Example usage of visualizationController and analysisController
+async function runAnalysisAndVisualization(binary) {
+  const cleanBinary = preprocessBinary(binary);
+  const analysisResult = await analysisController.analyze(cleanBinary);
+  visualizationController.visualize(analysisResult);
+}
+
+// Run analysis and visualization for test binaries
+testBinaries.forEach(async (binary) => {
+  await runAnalysisAndVisualization(binary);
+});

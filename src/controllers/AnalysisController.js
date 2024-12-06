@@ -19,7 +19,11 @@ class AnalysisController {
     try {
       // Validate result
       if (!analysisResult || !analysisResult.pattern_metrics) {
-        throw new Error("Invalid analysis result");
+        return {
+          error: true,
+          message: "Invalid analysis result",
+          data: null
+        };
       }
       // Format for visualization
       const formattedResult = {

@@ -1,10 +1,12 @@
 const MetricsView = require("../views/MetricsView");
 const PatternView = require("../views/PatternView");
+
 class VisualizationController {
   constructor({ metricsView, patternView } = {}) {
     this.metricsView = metricsView || new MetricsView();
     this.patternView = patternView || new PatternView();
   }
+
   displayResults(data) {
     if (!data || !data.metrics || !data.patterns) {
       throw new Error("Invalid visualization data");
@@ -31,5 +33,20 @@ class VisualizationController {
       throw error;
     }
   }
+
+  visualize(analysisResult) {
+    const pattern_metrics = analysisResult?.pattern_metrics || {};
+    const data = {
+      metrics: {
+        runs: analysisResult?.pattern_metrics?.runs || [],
+        correlation: analysisResult?.pattern_metrics?.correlation || 0,
+        alternating: analysisResult?.pattern_metrics?.alternating || 0,
+        burstiness: analysisResult?.pattern_metrics?.burstiness || 0,
+      },
+      patterns: analysisResult?.pattern_metrics?.hierarchicalPatterns || [],
+    };
+    return this.displayResults(data);
+  }
 }
+
 module.exports = VisualizationController;
