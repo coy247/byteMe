@@ -26,11 +26,6 @@ class ApplicationBootstrap {
       .register('confidenceModel', ConfidenceModel, ['patternModel'])
       .register('testExecutionService', TestExecutionService, ['confidenceModel']);
   }
-
-  async runTests() {
-    const testService = this.container.resolve('testExecutionService');
-    await testService.runTestCaseAnalysis();
-  }
 }
 
 module.exports = ApplicationBootstrap;
