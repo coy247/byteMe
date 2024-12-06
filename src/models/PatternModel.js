@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 const {
   validateBlockStructure,
   slidingWindowAnalysis,
@@ -15,8 +15,7 @@ const {
   preprocessBinary,
   convertToBinary,
   revertFromBinary,
-} = require('../utils/PatternUtils');
-
+} = require("../utils/PatternUtils");
 class PatternModel {
   analyzePatterns(binary) {
     if (!binary || typeof binary !== "string") {
@@ -50,21 +49,20 @@ class PatternModel {
   analyzeComplete(binary) {
     const blockValidation = validateBlockStructure(binary);
     const patterns = slidingWindowAnalysis(binary);
-
     const stats = {
       entropy: calculateEntropy(binary),
       longestRun: (binary.match(/([01])\1*/g) || []).reduce(
         (max, run) => Math.max(max, run.length),
         0
       ),
-      alternating: (binary.match(/(01|10)/g) || []).length / (binary.length / 2),
+      alternating:
+        (binary.match(/(01|10)/g) || []).length / (binary.length / 2),
       runs: (binary.match(/([01])\1+/g) || []).length / binary.length,
       burstiness: calculateBurstiness(binary),
       correlation: calculateCorrelation(binary),
       patternOccurrences: findPatternOccurrences(binary),
       hierarchicalPatterns: patterns,
     };
-
     const data = {
       blockValidation,
       slidingWindowAnalysis: patterns,
@@ -77,45 +75,42 @@ class PatternModel {
       X_ratio: this.calculateXRatio(binary),
       Y_ratio: this.calculateYRatio(binary),
     };
-
-    console.log('PatternModel analyzeComplete result:', JSON.stringify(data, null, 2));
+    console.log(
+      "PatternModel analyzeComplete result:",
+      JSON.stringify(data, null, 2)
+    );
     this.savePatternsToFile(patterns); // Save patterns to file
-    return this.createResult('normal', data);
+    return this.createResult("normal", data);
   }
-
   createResult(type, data) {
     const base = {
-      isInfinite: type === 'infinite',
-      isZero: type === 'zero',
+      isInfinite: type === "infinite",
+      isZero: type === "zero",
       pattern_metrics: data.patternStats,
-      error_check: true
+      error_check: true,
     };
-
-    switch(type) {
-      case 'infinite':
+    switch (type) {
+      case "infinite":
         return { ...base, X_ratio: 0, Y_ratio: 0 };
-      case 'zero':
+      case "zero":
         return { ...base, X_ratio: Infinity, Y_ratio: Infinity };
       default:
         return {
           ...base,
           ...data,
-          pattern_complexity: data.complexity
+          pattern_complexity: data.complexity,
         };
     }
   }
-
   savePatternsToFile(patterns) {
-    const outputDir = path.join(__dirname, '../models/patterns');
+    const outputDir = path.join(__dirname, "../models/patterns");
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
-
-    const filepath = path.join(outputDir, 'model.json');
+    const filepath = path.join(outputDir, "model.json");
     fs.writeFileSync(filepath, JSON.stringify(patterns, null, 2));
     console.log(`Model written to file: ${filepath}`);
   }
-
   getRunLengths(binary) {
     return (binary.match(/([01])\1*/g) || []).map((run) => run.length);
   }

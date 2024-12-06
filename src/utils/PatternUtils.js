@@ -16,7 +16,6 @@ function validateBlockStructure(binary) {
     ).length,
   };
 }
-
 function slidingWindowAnalysis(binary) {
   const windowSizes = [2, 4, 8, 16];
   return windowSizes.map((size) => {
@@ -35,11 +34,9 @@ function slidingWindowAnalysis(binary) {
     };
   });
 }
-
 function calculateSimpleChecksum(binary) {
   return binary.split("").reduce((sum, bit) => sum + parseInt(bit, 2), 0);
 }
-
 function calculateCRC32(binary) {
   let crc = 0xffffffff;
   for (let i = 0; i < binary.length; i++) {
@@ -50,7 +47,6 @@ function calculateCRC32(binary) {
   }
   return ~crc >>> 0;
 }
-
 function calculateEntropy(str) {
   const freq = [...str].reduce((f, c) => ({ ...f, [c]: (f[c] || 0) + 1 }), {});
   return Object.values(freq).reduce(
@@ -58,7 +54,6 @@ function calculateEntropy(str) {
     0
   );
 }
-
 function calculateComplexity(str, stats) {
   return {
     level: stats.entropy * (1 + stats.longestRun / str.length),
@@ -70,7 +65,6 @@ function calculateComplexity(str, stats) {
         : "mixed",
   };
 }
-
 function calculatePatternDensity(binary) {
   const windowSize = Math.min(100, binary.length);
   const density = [];
@@ -80,16 +74,13 @@ function calculatePatternDensity(binary) {
   }
   return density;
 }
-
 function calculateTransitions(binary) {
   return (binary.match(/(01|10)/g)?.length || 0) / binary.length;
 }
-
 function calculateBurstiness(binary) {
   const runs = binary.match(/([01])\1*/g) || [];
   return Math.std(runs.map((r) => r.length)) || 0;
 }
-
 function calculateCorrelation(binary) {
   const arr = binary.split("").map(Number);
   return (
@@ -97,7 +88,6 @@ function calculateCorrelation(binary) {
     (binary.length - 1)
   );
 }
-
 function findPatternOccurrences(binary) {
   const patterns = {};
   for (let len = 2; len <= 4; len++) {
@@ -108,25 +98,27 @@ function findPatternOccurrences(binary) {
   }
   return patterns;
 }
-
 function preprocessBinary(binary) {
-  return binary.replace(/[^01]/g, '');
+  return binary.replace(/[^01]/g, "");
 }
-
 function convertToBinary(input) {
   if (/^[01]+$/.test(input)) {
     return input;
   }
-  return input.split('').map(char => char.charCodeAt(0).toString(2).padStart(8, '0')).join('');
+  return input
+    .split("")
+    .map((char) => char.charCodeAt(0).toString(2).padStart(8, "0"))
+    .join("");
 }
-
 function revertFromBinary(binary, originalInput) {
   if (/^[01]+$/.test(originalInput)) {
     return binary;
   }
-  return binary.match(/.{1,8}/g).map(byte => String.fromCharCode(parseInt(byte, 2))).join('');
+  return binary
+    .match(/.{1,8}/g)
+    .map((byte) => String.fromCharCode(parseInt(byte, 2)))
+    .join("");
 }
-
 const performanceWizard = {
   startTime: null,
   totalAnalysisTime: 0,
@@ -146,7 +138,6 @@ const performanceWizard = {
       this.testsCompleted;
   },
 };
-
 function reportPerformance() {
   const totalTime = (Date.now() - performanceWizard.startTime) / 1000;
   const avgAnalysisTime =
@@ -156,7 +147,6 @@ function reportPerformance() {
     100,
     performanceWizard.averageConfidence * 100
   );
-
   console.log("\n🎯 Performance Report");
   console.log("════════════════════════════════════════");
   console.log(`Total Runtime: ${totalTime.toFixed(2)}s`);
@@ -168,7 +158,6 @@ function reportPerformance() {
     )}%`
   );
 }
-
 module.exports = {
   validateBlockStructure,
   slidingWindowAnalysis,
@@ -187,32 +176,3 @@ module.exports = {
   performanceWizard,
   reportPerformance,
 };
-
-const { validateBlockStructure, slidingWindowAnalysis } = require('../utils/PatternUtils');
-
-class PatternModel {
-  analyzeComplete(binary) {
-    const blockValidation = validateBlockStructure(binary);
-    const patterns = slidingWindowAnalysis(binary);
-
-    const data = {
-      blockValidation,
-      slidingWindowAnalysis: patterns,
-      patternSimilarity: {
-        selfSimilarity: this.calculateCorrelation(binary),
-        symmetry: this.calculateSymmetry(binary),
-        periodicityScore: this.findPeriodicity(binary),
-      },
-      X_ratio: this.calculateXRatio(binary),
-      Y_ratio: this.calculateYRatio(binary),
-    };
-
-    console.log('PatternModel analyzeComplete result:', JSON.stringify(data, null, 2));
-    this.savePatternsToFile(patterns); // Save patterns to file
-    return this.createResult('normal', data);
-  }
-
-  // Other methods...
-}
-
-module.exports = PatternModel;
