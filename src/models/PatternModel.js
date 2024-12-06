@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 class PatternModel {
   analyzePatterns(binary) {
     if (!binary || typeof binary !== "string") {
@@ -65,6 +68,7 @@ class PatternModel {
     };
 
     console.log('PatternModel analyzeComplete result:', JSON.stringify(data, null, 2));
+    this.savePatternsToFile(patterns.hierarchical); // Save patterns to file
     return this.createResult('normal', data);
   }
 
@@ -88,6 +92,17 @@ class PatternModel {
           pattern_complexity: data.complexity
         };
     }
+  }
+
+  savePatternsToFile(patterns) {
+    const outputDir = path.join(__dirname, '../models/patterns');
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const filepath = path.join(outputDir, 'model.json');
+    fs.writeFileSync(filepath, JSON.stringify(patterns, null, 2));
+    console.log(`Model written to file: ${filepath}`);
   }
 
   getRunLengths(binary) {

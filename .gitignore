@@ -5,7 +5,6 @@ yarn-debug.log
 yarn-error.log
 package-lock.json
 .npm
-
 # Environment variables
 .env
 .env.local
@@ -37,6 +36,7 @@ Icon
 dist/
 build/
 out/
+output/
 .next/
 
 # Logs
