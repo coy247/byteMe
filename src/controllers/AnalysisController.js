@@ -4,17 +4,17 @@ const BinaryModel = require("../models/BinaryModel");
 const MetricsModel = require("../models/MetricsModel");
 const PatternModel = require("../models/PatternModel");
 class AnalysisController {
-  constructor() {
-    this.binaryModel = null;
-    this.metricsModel = new MetricsModel();
-    this.patternModel = new PatternModel();
+  constructor({ patternModel, metricsModel }) {
+    this.patternModel = patternModel;
+    this.metricsModel = metricsModel;
     this.visualizationController = new VisualizationController();
   }
-  analyze(binary) {
-    this.binaryModel = new BinaryModel(binary);
-    const analysisResult = this.binaryModel.analyze();
-    return this.processResults(analysisResult);
+
+  async analyze(binary) {
+    const analysisResult = this.patternModel.analyzeComplete(binary);
+    return analysisResult;
   }
+
   processResults(analysisResult) {
     try {
       // Validate result
@@ -43,4 +43,5 @@ class AnalysisController {
     }
   }
 }
+
 module.exports = AnalysisController;

@@ -1,10 +1,12 @@
 const EventEmitter = require("events");
 class MainController extends EventEmitter {
-  constructor({ binaryModel, metricsModel, patternModel }) {
+  constructor({ binaryModel, metricsModel, patternModel, metricsView, patternView }) {
     super();
     this.binaryModel = binaryModel;
     this.metricsModel = metricsModel;
     this.patternModel = patternModel;
+    this.metricsView = metricsView;
+    this.patternView = patternView;
   }
   async analyze(binary) {
     try {

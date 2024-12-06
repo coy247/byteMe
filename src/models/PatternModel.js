@@ -33,6 +33,7 @@ class PatternModel {
     const patterns = this.analyzePatterns(binary);
     const runLengths = this.getRunLengths(binary);
     const density = this.getPatternDensity(binary);
+    
     const data = {
       patternStats: {
         entropy: metrics.entropy,
@@ -42,48 +43,52 @@ class PatternModel {
         burstiness: this.calculateBurstiness(runLengths),
         correlation: this.calculateCorrelation(binary),
         patternOccurrences: this.getPatternOccurrences(binary),
-        hierarchicalPatterns: patterns.hierarchical,
+        hierarchicalPatterns: patterns.hierarchical
       },
       complexity: {
         level: metrics.entropy * (1 - metrics.correlation),
-        type: this.determineComplexity(metrics).type,
+        type: this.determineComplexity(metrics).type
       },
       visualData: {
         runLengths: runLengths,
         patternDensity: density,
         transitions: metrics.alternatingRate,
-        slidingWindowAnalysis: patterns.hierarchical,
+        slidingWindowAnalysis: patterns.hierarchical
       },
       patternSimilarity: {
         selfSimilarity: metrics.correlation,
         symmetry: this.calculateSymmetry(binary),
-        periodicityScore: this.findPeriodicity(binary),
+        periodicityScore: this.findPeriodicity(binary)
       },
       X_ratio: this.calculateXRatio(binary),
-      Y_ratio: this.calculateYRatio(binary),
+      Y_ratio: this.calculateYRatio(binary)
     };
-    return this.createResult("normal", data);
+
+    return this.createResult('normal', data);
   }
+
   createResult(type, data) {
     const base = {
-      isInfinite: type === "infinite",
-      isZero: type === "zero",
+      isInfinite: type === 'infinite',
+      isZero: type === 'zero',
       pattern_metrics: data.patternStats,
-      error_check: true,
+      error_check: true
     };
-    switch (type) {
-      case "infinite":
+
+    switch(type) {
+      case 'infinite':
         return { ...base, X_ratio: 0, Y_ratio: 0 };
-      case "zero":
+      case 'zero':
         return { ...base, X_ratio: Infinity, Y_ratio: Infinity };
       default:
         return {
           ...base,
           ...data,
-          pattern_complexity: data.complexity,
+          pattern_complexity: data.complexity
         };
     }
   }
+
   getRunLengths(binary) {
     return (binary.match(/([01])\1*/g) || []).map((run) => run.length);
   }
