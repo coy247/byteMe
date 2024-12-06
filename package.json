@@ -13,5 +13,8 @@
   "license": "ISC",
   "devDependencies": {
     "jscodeshift": "^17.1.1"
+  },
+  "dependencies": {
+    "zlib": "^1.0.5"
   }
 }

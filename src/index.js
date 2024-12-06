@@ -136,6 +136,14 @@ function extractFloat(str) {
     return NaN;
   }
 }
+// Helper function to calculate entropy
+function calculateEntropy(str) {
+  const freq = [...str].reduce((f, c) => ({ ...f, [c]: (f[c] || 0) + 1 }), {});
+  return Object.values(freq).reduce(
+    (e, c) => e - (c / str.length) * Math.log2(c / str.length),
+    0
+  );
+}
 // Function to analyze binary strings
 // Define window sizes for analysis
 const windowSizes = [2, 4, 8, 16];
@@ -157,6 +165,17 @@ function analyzeBinary(binary) {
       `Warning: Non-binary characters were removed. Original length: ${binary.length}, Clean length: ${cleanBinary.length}`
     );
     warningShown.add("nonBinary");
+  }
+  // Helper function to calculate pattern density
+  function calculatePatternDensity(binary) {
+    const windowSize = Math.min(100, binary.length);
+    const density = [];
+    for (let i = 0; i <= binary.length - windowSize; i += windowSize) {
+      const window = binary.substr(i, windowSize);
+      const matches = window.match(/1/g);
+      density.push((matches ? matches.length : 0) / windowSize);
+    }
+    return density;
   }
   // Calculate checksums
   const checksum = {
@@ -262,34 +281,34 @@ const patternAnalysis = windowSizes.map((size) => {
   };
 });
 // Enhanced pattern metrics with visualization data
-const stats = {
-  entropy: calculateEntropy(binary),
-  longestRun:
-    binary
-      .match(/([01])\1*/g)
-      ?.reduce((max, run) => Math.max(max, run.length), 0) || 0,
-  alternating: (binary.match(/(01|10)/g)?.length || 0) / (binary.length / 2),
-  runs: (binary.match(/([01])\1+/g)?.length || 0) / binary.length,
-  burstiness: calculateBurstiness(binary),
-  correlation: calculateCorrelation(binary),
-  patternOccurrences: findPatternOccurrences(binary),
-  hierarchicalPatterns: patternAnalysis,
-};
+function calculateStats(binary) {
+  return {
+    entropy: calculateEntropy(binary),
+    longestRun: (binary.match(/([01])\1*/g) || []).reduce(
+      (max, run) => Math.max(max, run.length),
+      0
+    ),
+    alternating: (binary.match(/(01|10)/g) || []).length / (binary.length / 2),
+    runs: (binary.match(/([01])\1+/g) || []).length / binary.length,
+    burstiness: calculateBurstiness(binary),
+    correlation: calculateCorrelation(binary),
+    patternOccurrences: findPatternOccurrences(binary),
+    hierarchicalPatterns: patternAnalysis,
+  };
+}
 // Data preprocessing and optimization
 const processedBinary = preprocessBinary(binary);
 const complexity = calculateComplexity(processedBinary, stats);
 const adjustment = calculateAdjustment(complexity, stats);
 // Enhanced visualization data with multi-dimensional analysis
 const visualData = {
-  runLengths: binary.match(/([01])\1*/g)?.map((run) => run.length) || [],
+  runLengths: (binary.match(/([01])\1*/g) || []).map((run) => run.length),
   patternDensity: calculatePatternDensity(binary),
   transitions: calculateTransitions(binary),
   slidingWindowAnalysis: windowSizes.map((size) => ({
     windowSize: size,
     density: Array.from(
-      {
-        length: Math.floor(binary.length / size),
-      },
+      { length: Math.floor(binary.length / size) },
       (_, i) => binary.substr(i * size, size).split("1").length - 1 / size
     ),
   })),
@@ -328,10 +347,10 @@ function processResult(
     visualData,
     patternSimilarity,
     X_ratio:
-      ((cleanBinary.match(/1/g)?.length || 0) / cleanBinary.length) *
+      ((cleanBinary.match(/1/g) || []).length / cleanBinary.length) *
       adjustment,
     Y_ratio:
-      ((cleanBinary.match(/0/g)?.length || 0) / cleanBinary.length) *
+      ((cleanBinary.match(/0/g) || []).length / cleanBinary.length) *
       adjustment,
   });
 }
@@ -490,12 +509,13 @@ function generateFilename(input) {
     const density = [];
     for (let i = 0; i <= binary.length - windowSize; i += windowSize) {
       const window = binary.substr(i, windowSize);
-      density.push((window.match(/1/g)?.length || 0) / windowSize);
+      const matches = window.match(/1/g);
+      density.push((matches ? matches.length : 0) / windowSize);
     }
     return density;
   }
   function calculateTransitions(binary) {
-    return (binary.match(/(01|10)/g)?.length || 0) / binary.length;
+    return (binary.match(/(01|10)/g) || []).length / binary.length;
   }
   // Add Math.std if not exists
   Math.std = function (arr) {
@@ -687,7 +707,7 @@ function generateFilename(input) {
       console.log(`\nTesting binary: ${binary}`);
       const result = await analyzeBinary(binary, binary);
       console.log(colorizeJson(result));
-      if (result.visualData?.slidingWindowAnalysis) {
+      if (result.visualData && result.visualData.slidingWindowAnalysis) {
         console.log(
           JSON.stringify(result.visualData.slidingWindowAnalysis, null, 2)
         );
@@ -866,7 +886,8 @@ function generateFilename(input) {
       .createHash("md5")
       .update(
         `${result.pattern_metrics.entropy}-${
-          result.pattern_complexity?.type
+          (result.pattern_complexity && result.pattern_complexity.type) ||
+          "unknown"
         }-${binary.slice(0, 100)}`
       )
       .digest("hex");
@@ -1017,22 +1038,47 @@ function generateFilename(input) {
   // Enhanced formatting function for more user-friendly output
   function formatAnalysisResult(binary, result) {
     const stars = "★".repeat(
-      Math.min(5, Math.ceil((result?.pattern_metrics?.entropy || 0) * 5))
+      Math.min(
+        5,
+        Math.ceil(
+          ((result &&
+            result.pattern_metrics &&
+            result.pattern_metrics.entropy) ||
+            0) * 5
+        )
+      )
     );
-    const complexity = Math.ceil(result?.pattern_complexity?.level * 100) || 0;
-    const entropy = result?.pattern_metrics?.entropy?.toFixed(2) || "N/A";
+    const complexity = Math.ceil(
+      (result &&
+        result.pattern_complexity &&
+        result.pattern_complexity.level * 100) ||
+        0
+    );
+    const entropy =
+      (result &&
+        result.pattern_metrics &&
+        result.pattern_metrics.entropy &&
+        result.pattern_metrics.entropy.toFixed(2)) ||
+      "N/A";
     console.log("\n" + "═".repeat(60));
     console.log(`Pattern Analysis Summary`);
     console.log("═".repeat(60));
     console.log(
       `Sample: ${binary.substring(0, 30)}... (${binary.length} bits)`
     );
-    console.log(`Type: ${result?.pattern_complexity?.type || "unknown"}`);
+    console.log(
+      `Type: ${
+        (result &&
+          result.pattern_complexity &&
+          result.pattern_complexity.type) ||
+        "unknown"
+      }`
+    );
     console.log(`Complexity: ${stars} (${complexity}%)`);
     console.log(`Entropy: ${entropy}`);
     console.log(
-      `Balance: ${(result?.X_ratio || 0 * 100).toFixed(1)}% ones, ${(
-        result?.Y_ratio || 0 * 100
+      `Balance: ${((result?.X_ratio || 0) * 100).toFixed(1)}% ones, ${(
+        (result?.Y_ratio || 0) * 100
       ).toFixed(1)}% zeros`
     );
     console.log("═".repeat(60) + "\n");
@@ -2116,6 +2162,24 @@ const monitoredAnalyzeBinary = monitorPerformance(
 const monitoredImproveConfidence = monitorPerformance(
   mainController.improveConfidenceLevel.bind(mainController)
 );
+const InitializationService = require("./services/InitializationService");
+const baseInstances = require("./initialize");
+const Config = require("./utils/Config");
+async function bootstrap() {
+  const config = new Config();
+  await config.load();
+  const initService = new InitializationService(config);
+  const { models, views, controllers } = await initService.initialize();
+  // Merge base instances with factory-created instances
+  const instances = {
+    ...baseInstances,
+    ...models,
+    ...views,
+    controllers,
+  };
+  return instances;
+}
+module.exports = bootstrap();
 // Main function to determine the source of input
 async function main() {
   const isTestMode = process.argv.includes("--test");
