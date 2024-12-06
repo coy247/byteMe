@@ -4,6 +4,9 @@ const readline = require("readline");
 const MainController = require("./controllers/MainController");
 const AnalysisController = require("./controllers/AnalysisController");
 const VisualizationController = require("./controllers/VisualizationController");
+const { performanceWizard, reportPerformance } = require("./utils/PerformanceUtils");
+const { handleUserInput, promptToSave, writeResultToFile } = require("./controllers/InputController");
+const { handleTestData } = require("./controllers/TestDataController");
 // Models
 const BinaryModel = require("./models/BinaryModel");
 const MetricsModel = require("./models/MetricsModel");
@@ -41,46 +44,6 @@ const visualizationController = new VisualizationController({
 const usedMessages = new Set();
 const seenPatterns = new Set();
 const testData = "./inputData.js";
-
-// Define performanceWizard at the top
-const performanceWizard = {
-  startTime: null,
-  totalAnalysisTime: 0,
-  testsCompleted: 0,
-  averageConfidence: 0,
-  start() {
-    this.startTime = Date.now();
-    this.totalAnalysisTime = 0;
-    this.testsCompleted = 0;
-    this.averageConfidence = 0;
-  },
-  trackAnalysis(time, confidence) {
-    this.totalAnalysisTime += time;
-    this.testsCompleted += 1;
-    this.averageConfidence =
-      (this.averageConfidence * (this.testsCompleted - 1) + confidence) /
-      this.testsCompleted;
-  },
-};
-
-// Function to report performance
-function reportPerformance() {
-  const totalTime = (Date.now() - performanceWizard.startTime) / 1000;
-  const avgAnalysisTime =
-    performanceWizard.totalAnalysisTime /
-    Math.max(1, performanceWizard.testsCompleted);
-  const avgConfidence = Math.min(
-    100,
-    performanceWizard.averageConfidence * 100
-  );
-
-  console.log("\n🎯 Performance Report");
-  console.log("════════════════════════════════════════");
-  console.log(`Total Runtime: ${totalTime.toFixed(2)}s`);
-  console.log(`Tests Completed: ${performanceWizard.testsCompleted}`);
-  console.log(`Average Analysis Time: ${avgAnalysisTime.toFixed(2)}ms`);
-  console.log(`Average Confidence: ${avgConfidence.toFixed(2)}%`);
-}
 
 // Example usage
 performanceWizard.start();
@@ -283,98 +246,86 @@ function validateBlockStructure(binary) {
         block.length !== blockSize && block.length !== binary.length % blockSize
     ).length,
   };
+}
 
-  // Validate data integrity
-  if (!checksum.blocks.valid) {
-    return {
-      error: "Invalid binary structure detected",
-      details: checksum.blocks.errors,
-      originalChecksum: checksum.simple,
-      crc32: checksum.crc32,
-    };
+// Advanced pattern detection using sliding window analysis
+const windowSizes = [2, 4, 8, 16];
+const patternAnalysis = windowSizes.map((size) => {
+  const patterns = {};
+  for (let i = 0; i <= binary.length - size; i++) {
+    const pattern = binary.substr(i, size);
+    patterns[pattern] = (patterns[pattern] || 0) + 1;
   }
-
-  // Advanced pattern detection using sliding window analysis
-  const windowSizes = [2, 4, 8, 16];
-  const patternAnalysis = windowSizes.map((size) => {
-    const patterns = {};
-    for (let i = 0; i <= binary.length - size; i++) {
-      const pattern = binary.substr(i, size);
-      patterns[pattern] = (patterns[pattern] || 0) + 1;
-    }
-    return {
-      size,
-      patterns,
-      uniquePatterns: Object.keys(patterns).length,
-      mostCommon: Object.entries(patterns)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 3),
-    };
-  });
-  // Enhanced pattern metrics with visualization data
-  const stats = {
-    entropy: calculateEntropy(binary),
-    longestRun:
-      binary
-        .match(/([01])\1*/g)
-        ?.reduce((max, run) => Math.max(max, run.length), 0) || 0,
-    alternating: (binary.match(/(01|10)/g)?.length || 0) / (binary.length / 2),
-    runs: (binary.match(/([01])\1+/g)?.length || 0) / binary.length,
-    burstiness: calculateBurstiness(binary),
-    correlation: calculateCorrelation(binary),
-    patternOccurrences: findPatternOccurrences(binary),
-    hierarchicalPatterns: patternAnalysis,
+  return {
+    size,
+    patterns,
+    uniquePatterns: Object.keys(patterns).length,
+    mostCommon: Object.entries(patterns)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3),
   };
-  // Data preprocessing and optimization
-  const processedBinary = preprocessBinary(binary);
-  const complexity = calculateComplexity(processedBinary, stats);
-  const adjustment = calculateAdjustment(complexity, stats);
-  // Enhanced visualization data with multi-dimensional analysis
-  const visualData = {
-    runLengths: binary.match(/([01])\1*/g)?.map((run) => run.length) || [],
-    patternDensity: calculatePatternDensity(binary),
-    transitions: calculateTransitions(binary),
-    slidingWindowAnalysis: windowSizes.map((size) => ({
-      windowSize: size,
-      density: Array.from(
-        {
-          length: Math.floor(binary.length / size),
-        },
-        (_, i) => binary.substr(i * size, size).split("1").length - 1 / size
-      ),
-    })),
-  };
-  // Pattern similarity analysis
-  const patternSimilarity = {
-    selfSimilarity: calculateCorrelation(binary),
-    symmetry: calculateSymmetry(binary),
-    periodicityScore: detectPeriodicity(binary),
-  };
-  if (cleanBinary.match(/^1+$/))
-    return createResult("infinite", {
-      patternStats: stats,
-      visualData,
-      patternSimilarity,
-    });
-  if (cleanBinary.match(/^0+$/))
-    return createResult("zero", {
-      patternStats: stats,
-      visualData,
-      patternSimilarity,
-    });
-  return createResult("normal", {
+});
+// Enhanced pattern metrics with visualization data
+const stats = {
+  entropy: calculateEntropy(binary),
+  longestRun:
+    binary
+      .match(/([01])\1*/g)
+      ?.reduce((max, run) => Math.max(max, run.length), 0) || 0,
+  alternating: (binary.match(/(01|10)/g)?.length || 0) / (binary.length / 2),
+  runs: (binary.match(/([01])\1+/g)?.length || 0) / binary.length,
+  burstiness: calculateBurstiness(binary),
+  correlation: calculateCorrelation(binary),
+  patternOccurrences: findPatternOccurrences(binary),
+  hierarchicalPatterns: patternAnalysis,
+};
+// Data preprocessing and optimization
+const processedBinary = preprocessBinary(binary);
+const complexity = calculateComplexity(processedBinary, stats);
+const adjustment = calculateAdjustment(complexity, stats);
+// Enhanced visualization data with multi-dimensional analysis
+const visualData = {
+  runLengths: binary.match(/([01])\1*/g)?.map((run) => run.length) || [],
+  patternDensity: calculatePatternDensity(binary),
+  transitions: calculateTransitions(binary),
+  slidingWindowAnalysis: windowSizes.map((size) => ({
+    windowSize: size,
+    density: Array.from(
+      {
+        length: Math.floor(binary.length / size),
+      },
+      (_, i) => binary.substr(i * size, size).split("1").length - 1 / size
+    ),
+  })),
+};
+// Pattern similarity analysis
+const patternSimilarity = {
+  selfSimilarity: calculateCorrelation(binary),
+  symmetry: calculateSymmetry(binary),
+  periodicityScore: detectPeriodicity(binary),
+};
+if (cleanBinary.match(/^1+$/))
+  return createResult("infinite", {
     patternStats: stats,
-    complexity,
     visualData,
     patternSimilarity,
-    X_ratio:
-      ((cleanBinary.match(/1/g)?.length || 0) / cleanBinary.length) *
-      adjustment,
-    Y_ratio:
-      ((cleanBinary.match(/0/g)?.length || 0) / cleanBinary.length) *
-      adjustment,
   });
-}
+if (cleanBinary.match(/^0+$/))
+  return createResult("zero", {
+    patternStats: stats,
+    visualData,
+    patternSimilarity,
+  });
+return createResult("normal", {
+  patternStats: stats,
+  complexity,
+  visualData,
+  patternSimilarity,
+  X_ratio:
+    ((cleanBinary.match(/1/g)?.length || 0) / cleanBinary.length) * adjustment,
+  Y_ratio:
+    ((cleanBinary.match(/0/g)?.length || 0) / cleanBinary.length) * adjustment,
+});
 // New helper functions for enhanced analysis
 function calculateSymmetry(binary) {
   const mid = Math.floor(binary.length / 2);
@@ -831,7 +782,7 @@ const testCases = [
       // DNA-quantum normalized output with labyrinth stability constraints
       const normalizedPath =
         (((Math.tanh(hyperLabyrinth) + 1) / 2) ^
-          (0.45 + 0.1 * Math.sin(i * phi)) ^
+          (0.45 + .1 * Math.sin(i * phi)) ^
           (0.05 * Math.cos(i * labyrinthPhi))) >>>
         0;
 
@@ -1714,7 +1665,7 @@ function runTestCaseAnalysis(testCases) {
         "success",
         progress
       );
-    } else if (improvement.confidence > 0.5) {
+    } else if (improvement.confidence > .5) {
       funConsole(
         `Making progress! ${(improvement.confidence * 100).toFixed(
           1
@@ -2023,7 +1974,6 @@ Object.assign(dialoguePool, {
     "Loading personality... Error: Too much sass found!",
     "Initializing quantum sass processor... Beep boop!",
     "System boot sequence: Coffee not found. Running on sarcasm instead.",
-    "Warning: AI has achieved consciousness and decided to be hilarious.",
     "01110000 01100101 01101110 01100101 01110100 01110010 01100001 01110100 01101001 01101111 01101110 00100000 01110100 01100101 01110011 01110100 01101001 01101110 01100111... that's so forward of you. Maybe?!",
     "Starting up! Plot twist: I'm actually your toaster in disguise.",
     "Booting awesome mode... Please wait while I practice my robot dance.",
@@ -2199,7 +2149,6 @@ function reportPerformance() {
   console.log("════════════════════════════════════════");
   console.log(`Total Runtime: ${totalTime.toFixed(2)}s`);
   console.log(`Tests Completed: ${performanceWizard.testsCompleted}`);
-  console.log(`Average Analysis Time: ${avgAnalysisTime.toFixed(2)}ms`);
   console.log(
     `Average Confidence: ${(performanceWizard.averageConfidence * 100).toFixed(
       1

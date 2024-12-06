@@ -1,5 +1,21 @@
 const fs = require('fs');
 const path = require('path');
+const {
+  validateBlockStructure,
+  slidingWindowAnalysis,
+  calculateSimpleChecksum,
+  calculateCRC32,
+  calculateEntropy,
+  calculateComplexity,
+  calculatePatternDensity,
+  calculateTransitions,
+  calculateBurstiness,
+  calculateCorrelation,
+  findPatternOccurrences,
+  preprocessBinary,
+  convertToBinary,
+  revertFromBinary,
+} = require('../utils/PatternUtils');
 
 class PatternModel {
   analyzePatterns(binary) {
@@ -32,43 +48,38 @@ class PatternModel {
     };
   }
   analyzeComplete(binary) {
-    const metrics = this.calculateMetrics(binary);
-    const patterns = this.analyzePatterns(binary);
-    const runLengths = this.getRunLengths(binary);
-    const density = this.getPatternDensity(binary);
-    
+    const blockValidation = validateBlockStructure(binary);
+    const patterns = slidingWindowAnalysis(binary);
+
+    const stats = {
+      entropy: calculateEntropy(binary),
+      longestRun: (binary.match(/([01])\1*/g) || []).reduce(
+        (max, run) => Math.max(max, run.length),
+        0
+      ),
+      alternating: (binary.match(/(01|10)/g) || []).length / (binary.length / 2),
+      runs: (binary.match(/([01])\1+/g) || []).length / binary.length,
+      burstiness: calculateBurstiness(binary),
+      correlation: calculateCorrelation(binary),
+      patternOccurrences: findPatternOccurrences(binary),
+      hierarchicalPatterns: patterns,
+    };
+
     const data = {
-      patternStats: {
-        entropy: metrics.entropy,
-        longestRun: Math.max(...runLengths),
-        alternating: metrics.alternatingRate,
-        runs: runLengths.length / binary.length,
-        burstiness: this.calculateBurstiness(runLengths),
-        correlation: this.calculateCorrelation(binary),
-        patternOccurrences: this.getPatternOccurrences(binary),
-        hierarchicalPatterns: patterns.hierarchical
-      },
-      complexity: {
-        level: metrics.entropy * (1 - metrics.correlation),
-        type: this.determineComplexity(metrics).type
-      },
-      visualData: {
-        runLengths: runLengths,
-        patternDensity: density,
-        transitions: metrics.alternatingRate,
-        slidingWindowAnalysis: patterns.hierarchical
-      },
+      blockValidation,
+      slidingWindowAnalysis: patterns,
+      patternStats: stats,
       patternSimilarity: {
-        selfSimilarity: metrics.correlation,
+        selfSimilarity: calculateCorrelation(binary),
         symmetry: this.calculateSymmetry(binary),
-        periodicityScore: this.findPeriodicity(binary)
+        periodicityScore: this.findPeriodicity(binary),
       },
       X_ratio: this.calculateXRatio(binary),
-      Y_ratio: this.calculateYRatio(binary)
+      Y_ratio: this.calculateYRatio(binary),
     };
 
     console.log('PatternModel analyzeComplete result:', JSON.stringify(data, null, 2));
-    this.savePatternsToFile(patterns.hierarchical); // Save patterns to file
+    this.savePatternsToFile(patterns); // Save patterns to file
     return this.createResult('normal', data);
   }
 
