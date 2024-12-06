@@ -1,0 +1,28 @@
+[
+  {
+    "id": "2a17d51f0e6b450fa30ecfd3284f0b1f",
+    "timestamp": 1733427249268,
+    "pattern": {
+      "level": 1.5,
+      "type": "mixed"
+    },
+    "metrics": {
+      "entropy": 1,
+      "complexity": 1.5,
+      "burstiness": 0
+    }
+  },
+  {
+    "id": "4d5dbd1b8b0627815f8978f84419b12b",
+    "timestamp": 1733425755532,
+    "pattern": {
+      "level": 1.1651407133456022,
+      "type": "alternating"
+    },
+    "metrics": {
+      "entropy": 0.9709505944546686,
+      "complexity": 1.1651407133456022,
+      "burstiness": 0
+    }
+  }
+]
