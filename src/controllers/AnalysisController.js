@@ -22,7 +22,7 @@ class AnalysisController {
         return {
           error: true,
           message: "Invalid analysis result",
-          data: null
+          data: null,
         };
       }
       // Format for visualization
