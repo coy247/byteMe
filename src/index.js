@@ -4,8 +4,16 @@ const readline = require("readline");
 const MainController = require("./controllers/MainController");
 const AnalysisController = require("./controllers/AnalysisController");
 const VisualizationController = require("./controllers/VisualizationController");
-const { performanceWizard, reportPerformance, monitorPerformance } = require("./utils/PerformanceUtils");
-const { handleUserInput, promptToSave, writeResultToFile } = require("./controllers/InputController");
+const {
+  performanceWizard,
+  reportPerformance,
+  monitorPerformance,
+} = require("./utils/PerformanceUtils");
+const {
+  handleUserInput,
+  promptToSave,
+  writeResultToFile,
+} = require("./controllers/InputController");
 const { handleTestData } = require("./controllers/TestDataController");
 // Models
 const BinaryModel = require("./models/BinaryModel");
@@ -17,7 +25,8 @@ const ConfidenceModel = require("./models/ConfidenceModel");
 // Views
 const MetricsView = require("./views/MetricsView");
 const PatternView = require("./views/PatternView");
-
+const ModelStorage = require("./services/ModelStorage");
+const ModelData = require("./models/ModelData");
 const patternModel = new PatternModel();
 const patternView = new PatternView();
 const binaryModel = new BinaryModel();
@@ -26,7 +35,6 @@ const metricsView = new MetricsView();
 const predictiveAnalyticsModel = new PredictiveAnalyticsModel();
 const taskAutomationModel = new TaskAutomationModel();
 const confidenceModel = new ConfidenceModel();
-
 const mainController = new MainController({
   binaryModel,
   metricsModel,
@@ -35,25 +43,22 @@ const mainController = new MainController({
   taskAutomationModel,
   confidenceModel,
   metricsView,
-  patternView
+  patternView,
 });
-
 const analysisController = new AnalysisController({
   patternModel,
-  metricsModel
+  metricsModel,
 });
-
 const visualizationController = new VisualizationController({
   metricsView,
-  patternView
+  patternView,
 });
-
+const modelStorage = new ModelStorage(process.cwd());
 // Preprocess binary string
 // Initialize message tracking before any other code
 const usedMessages = new Set();
 const seenPatterns = new Set();
 const testData = "./inputData.js";
-
 // Example usage
 performanceWizard.start();
 // Simulate some analysis
@@ -825,48 +830,15 @@ function generateFilename(input) {
     }
   });
   // Function to manage model output and storage
-  function updateModelData(binary, analysisResult) {
-    const baseModelPath = "./models";
-    const normalizedPath = "patterns"; // Standard folder name
-    const modelPath = `${baseModelPath}/${normalizedPath}`;
-    const modelData = {
-      id: generateUniqueId(binary, analysisResult),
-      timestamp: Date.now(),
-      pattern_type: analysisResult.pattern_complexity?.type || "unknown",
-      metrics: {
-        entropy: analysisResult.pattern_metrics.entropy,
-        complexity: analysisResult.pattern_complexity?.level || 0,
-        burstiness: analysisResult.pattern_metrics.burstiness,
-      },
-      summary: `Pattern analyzed: ${
-        analysisResult.pattern_complexity?.type
-      } with entropy ${analysisResult.pattern_metrics.entropy.toFixed(4)}`,
-    };
-    // Clean up duplicate folders
-    cleanupModelFolders(baseModelPath, normalizedPath);
-    // Ensure model directory exists
-    if (!fs.existsSync(modelPath)) {
-      fs.mkdirSync(modelPath, {
-        recursive: true,
-      });
+  async function updateModelData(data) {
+    const modelData = new ModelData(data);
+    if (!modelData.validate()) {
+      throw new Error("Invalid model data");
     }
-    // Update model file
-    const modelFile = `${modelPath}/model.json`;
-    let existingData = [];
-    try {
-      existingData = JSON.parse(fs.readFileSync(modelFile, "utf8"));
-      // Remove duplicates based on id
-      existingData = existingData.filter((item) => item.id !== modelData.id);
-    } catch (e) {
-      /* Handle first run */
-    }
-    existingData.push(modelData);
-    // Keep only latest 1000 entries and sort by timestamp
-    existingData = existingData
-      .slice(-1000)
-      .sort((a, b) => b.timestamp - a.timestamp);
-    fs.writeFileSync(modelFile, JSON.stringify(existingData, null, 2));
-    return modelData.summary;
+    return await modelStorage.saveModel(modelData);
+  }
+  async function mergeModelFiles(target, source) {
+    return await modelStorage.mergeModels(target, source);
   }
   function mergeJsonFiles(target, source) {
     let targetData = [];
@@ -2137,14 +2109,16 @@ function generateFilename(input) {
     console.log("════════════════════════════════════════");
   }
 }
-
 // Wrap key functions with performance monitoring
-const monitoredAnalyzeBinary = monitorPerformance(mainController.analyze.bind(mainController));
-const monitoredImproveConfidence = monitorPerformance(mainController.improveConfidenceLevel.bind(mainController));
-
+const monitoredAnalyzeBinary = monitorPerformance(
+  mainController.analyze.bind(mainController)
+);
+const monitoredImproveConfidence = monitorPerformance(
+  mainController.improveConfidenceLevel.bind(mainController)
+);
 // Main function to determine the source of input
 async function main() {
-  const isTestMode = process.argv.includes('--test');
+  const isTestMode = process.argv.includes("--test");
   if (isTestMode) {
     await handleTestData();
   } else {
@@ -2152,10 +2126,9 @@ async function main() {
     if (userInput) {
       await handleUserInput(userInput);
     } else {
-      console.error('No binary input provided.');
+      console.error("No binary input provided.");
     }
   }
 }
-
 // Run the main function
 main();
