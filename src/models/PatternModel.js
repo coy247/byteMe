@@ -33,6 +33,7 @@ class PatternModel {
     const patterns = this.analyzePatterns(binary);
     const runLengths = this.getRunLengths(binary);
     const density = this.getPatternDensity(binary);
+    
     const data = {
       patternStats: {
         entropy: metrics.entropy,
@@ -42,27 +43,28 @@ class PatternModel {
         burstiness: this.calculateBurstiness(runLengths),
         correlation: this.calculateCorrelation(binary),
         patternOccurrences: this.getPatternOccurrences(binary),
-        hierarchicalPatterns: patterns.hierarchical,
+        hierarchicalPatterns: patterns.hierarchical
       },
       complexity: {
         level: metrics.entropy * (1 - metrics.correlation),
-        type: this.determineComplexity(metrics).type,
+        type: this.determineComplexity(metrics).type
       },
       visualData: {
         runLengths: runLengths,
         patternDensity: density,
         transitions: metrics.alternatingRate,
-        slidingWindowAnalysis: patterns.hierarchical,
+        slidingWindowAnalysis: patterns.hierarchical
       },
       patternSimilarity: {
         selfSimilarity: metrics.correlation,
         symmetry: this.calculateSymmetry(binary),
-        periodicityScore: this.findPeriodicity(binary),
+        periodicityScore: this.findPeriodicity(binary)
       },
       X_ratio: this.calculateXRatio(binary),
-      Y_ratio: this.calculateYRatio(binary),
+      Y_ratio: this.calculateYRatio(binary)
     };
-    return this.createResult("default", data);
+
+    return this.createResult('normal', data);
   }
   createResult(type, data) {
     const base = {
