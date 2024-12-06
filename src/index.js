@@ -25,7 +25,7 @@ const ConfidenceModel = require("./models/ConfidenceModel");
 // Views
 const MetricsView = require("./views/MetricsView");
 const PatternView = require("./views/PatternView");
-const ModelStorage = require("./services/ModelStorage");
+const ModelStorage = require("./services/ModelStorageService");
 const ModelData = require("./models/ModelData");
 const patternModel = new PatternModel();
 const patternView = new PatternView();
@@ -183,14 +183,45 @@ function analyzeBinary(binary) {
     crc32: calculateCRC32(cleanBinary),
     blocks: binaryModel.validateBlockStructure(cleanBinary),
   };
-  // Visual data for analysis
-  const visualData = {
+
+  // Advanced pattern detection using sliding window analysis
+  const patternAnalysis = windowSizes.map((size) => {
+    const patterns = {};
+    for (let i = 0; i <= binary.length - size; i++) {
+      const pattern = binary.substr(i, size);
+      patterns[pattern] = (patterns[pattern] || 0) + 1;
+    }
+    return {
+      size,
+      patterns,
+      uniquePatterns: Object.keys(patterns).length,
+      mostCommon: Object.entries(patterns)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3),
+    };
+  });
+
+  // Visual data and pattern analysis
+  const analysisData = {
     slidingWindowAnalysis: patternModel.analyzeSlidingWindow(
       cleanBinary,
       windowSizes
     ),
     patternDensity: calculatePatternDensity(cleanBinary),
     transitions: calculateTransitions(cleanBinary),
+    stats: {
+      entropy: calculateEntropy(binary),
+      longestRun: (binary.match(/([01])\1*/g) || []).reduce(
+        (max, run) => Math.max(max, run.length),
+        0
+      ),
+      alternating: (binary.match(/(01|10)/g) || []).length / (binary.length / 2),
+      runs: (binary.match(/([01])\1+/g) || []).length / binary.length,
+      burstiness: calculateBurstiness(binary),
+      correlation: calculateCorrelation(binary),
+      patternOccurrences: findPatternOccurrences(binary),
+      hierarchicalPatterns: patternAnalysis,
+    }
   };
   // Advanced pattern detection using sliding window analysis
   const patternAnalysis = windowSizes.map((size) => {
@@ -222,7 +253,7 @@ function analyzeBinary(binary) {
     patternOccurrences: findPatternOccurrences(binary),
     hierarchicalPatterns: patternAnalysis,
   };
-  const ResultProcessor = require("./services/ResultProcessor");
+  const ResultProcessor = require("./services/ResultProcessorService");
   const resultProcessor = new ResultProcessor();
   // Use models instead of direct function calls
   const processedBinary = binaryModel.preprocessBinary(binary);
@@ -2062,6 +2093,8 @@ function generateFilename(input) {
     let currentConfidence = 0;
     let iteration = 0;
     let patterns = new Map();
+    const DialogueService = require("./services/DialogueService");
+    const dialogueService = new DialogueService();
     console.log("\n" + getUniqueMessage("startup"));
     while (currentConfidence < targetConfidence && iteration < maxIterations) {
       iteration++;
@@ -2074,11 +2107,8 @@ function generateFilename(input) {
       }
       if (newConfidence > currentConfidence + 0.2) {
         // Only on significant improvements
-        console.log(
-          getUniqueMessage(
-            newConfidence > 0.7 ? "highConfidence" : "lowConfidence"
-          )
-        );
+        const message = dialogueService.getConfidenceMessage(newConfidence);
+        console.log(message);
       }
       currentConfidence = newConfidence;
     }
@@ -2194,13 +2224,80 @@ const applicationController = new ApplicationController({
   logger: new Logger(),
   mainController,
 });
-const DialogueService = require('./services/DialogueService');
+const DialogueService = require("./services/DialogueService");
 const dialogueService = new DialogueService();
-
+const TestExecutionService = require("./services/TestExecutionService");
+const ProgressView = require("./views/ProgressView");
+const progressView = new ProgressView();
+const testExecutionService = new TestExecutionService(
+  analysisController,
+  progressView
+);
+const testCases = [
+  zigzagPattern,
+  fibonacciQuantum,
+  primeNeuralPattern,
+  hyperPattern,
+];
+await testExecutionService.runTestCaseAnalysis(testCases);
+const confidenceResult = await confidenceModel.improveConfidenceLevel(binary);
 // Handle process signals
 process.on("SIGTERM", () => applicationController.shutdown());
-process.on("SIGINT", () => applicationController.shutdown());
+process.on("SIGINT", applicationController.shutdown());
 // Start application
 applicationController.start();
-console.log(dialogueService.getRandomMessage('startup'));
-const confidenceResult = confidenceModel.improveConfidenceLevel(binary);
+console.log(dialogueService.getRandomMessage("startup"));
+const ApplicationBootstrap = require('./services/ApplicationBootstrap');
+const Config = require('./utils/Config');
+
+async function main() {
+  try {
+    const config = new Config();
+    await config.load();
+
+    const bootstrap = new ApplicationBootstrap(config);
+    const app = await bootstrap.initialize();
+
+    if (process.argv.includes('--test')) {
+      await app.testExecutionService.runTestCaseAnalysis();
+    } else if (process.argv[2]) {
+      await app.confidenceModel.improveConfidenceLevel(process.argv[2]);
+    } else {
+      console.log(app.dialogueService.getRandomMessage('startup'));
+    }
+  } catch (error) {
+    console.error('Application failed to start:', error);
+    process.exit(1);
+  }
+}
+
+main();
+const ConfidenceModel = require("./models/ConfidenceModel");
+const ConfidenceView = require("./views/ConfidenceView");
+const DialogueService = require("./services/DialogueService");
+// Remove improveConfidenceLevel function and use the model
+const confidenceView = new ConfidenceView();
+confidenceView.setupEventListeners(confidenceModel);
+const result = await confidenceModel.improveConfidenceLevel(binary);
+const ModelFactory = require("./factories/ModelFactory");
+const ViewFactory = require("./factories/ViewFactory");
+const ServiceFactory = require("./services/ServiceFactory");
+const modelFactory = new ModelFactory();
+const viewFactory = new ViewFactory();
+const serviceFactory = new ServiceFactory();
+const models = {
+  pattern: modelFactory.createPatternModel(),
+  binary: modelFactory.createBinaryModel(),
+  metrics: modelFactory.createMetricsModel(),
+  predictive: modelFactory.createPredictiveModel(),
+  task: modelFactory.createTaskModel(),
+  confidence: modelFactory.createConfidenceModel(),
+};
+const views = {
+  metrics: viewFactory.createMetricsView(),
+  pattern: viewFactory.createPatternView(),
+};
+const services = {
+  modelStorage: serviceFactory.createModelStorage(),
+  performance: serviceFactory.createPerformanceWizard(),
+};

@@ -4,11 +4,13 @@ const { Logger } = require('../utils/Logger');
 const { Config } = require("../utils/Config");
 
 class ApplicationController {
-  constructor(options = {}) {
-    this.logger = options.logger || new Logger();
-    this.performanceWizard = options.performanceWizard;
-    this.mainController = options.mainController;
+  constructor({ performanceWizard, logger, mainController, testExecutionService }) {
+    this.performanceWizard = performanceWizard;
+    this.logger = logger;
+    this.mainController = mainController;
+    this.testExecutionService = testExecutionService;
     this.config = new Config();
+    this.setupSignalHandlers();
   }
 
   async initialize() {
@@ -22,6 +24,11 @@ class ApplicationController {
       this.logger.error("Uncaught Exception:", error);
       process.exit(1);
     });
+  }
+
+  setupSignalHandlers() {
+    process.on('SIGTERM', () => this.shutdown());
+    process.on('SIGINT', () => this.shutdown());
   }
 
   async start(args = process.argv.slice(2)) {
@@ -57,9 +64,9 @@ class ApplicationController {
     }
   }
 
-  shutdown() {
-    this.logger.info('Shutting down...');
-    this.performanceWizard.reportPerformance();
+  async shutdown() {
+    this.logger.info('Shutting down application...');
+    await this.performanceWizard.stop();
     process.exit(0);
   }
 }
