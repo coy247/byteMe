@@ -42,3 +42,19 @@ Documentation and installation instructions coming soon!
 ## License
 
 This project is open source. License details coming soon.
+
+## Latest Features
+
+### Version 0.1.0
+
+- Initial pattern detection engine
+- Basic visualization toolkit
+- Core API implementation
+- Command-line interface basics
+
+### Upcoming Features
+
+- Enhanced pattern recognition algorithms
+- Advanced data visualization options
+- API documentation
+- Performance optimizations
