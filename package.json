@@ -15,6 +15,7 @@
     "jscodeshift": "^17.1.1"
   },
   "dependencies": {
+    "fs": "0.0.1-security",
     "zlib": "^1.0.5"
   }
 }

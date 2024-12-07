@@ -166,7 +166,6 @@ module.exports = {
   },
   reportPerformance,
 };
-
 // Use the imported monitorPerformance from PerformanceUtils
 // Wrap key functions with performance monitoring
 const monitoredAnalyzeBinary = monitorPerformance(analyzeBinary);
@@ -197,13 +196,7 @@ const testExecutionService = new TestExecutionService(
   analysisController,
   progressView
 );
-const testCases = [
-  zigzagPattern,
-  fibonacciQuantum,
-  primeNeuralPattern,
-  hyperPattern,
-];
-await testExecutionService.runTestCaseAnalysis(testCases);
+const testCases = require("./config/TestCasesConfig");
 const confidenceResult = await confidenceModel.improveConfidenceLevel(binary);
 // Handle process signals
 process.on("SIGTERM", () => applicationController.shutdown());
@@ -212,16 +205,6 @@ process.on("SIGINT", applicationController.shutdown());
 applicationController.start();
 console.log(dialogueService.getRandomMessage("startup"));
 // ApplicationBootstrap and Config are already declared above
-async function main() {
-  const config = new Config();
-  await config.load();
-  const modelInitService = new ModelInitializationService(config);
-  const models = modelInitService.initialize();
-  const bootstrap = new ApplicationBootstrap(config, models);
-  const app = await bootstrap.initialize();
-  return app;
-}
-module.exports = main();
 const ConfidenceView = require("./views/ConfidenceView");
 // Remove improveConfidenceLevel function and use the model
 const confidenceView = new ConfidenceView();
@@ -262,9 +245,10 @@ async function main() {
     if (commandParser.isTestMode()) {
       await app.testRunner.runTests();
     } else if (commandParser.getBinaryInput()) {
-      await app.confidenceModel.improveConfidenceLevel(
+      const confidenceResult = await app.confidenceModel.improveConfidenceLevel(
         commandParser.getBinaryInput()
       );
+      console.log(confidenceResult);
     } else {
       await appRunner.start();
     }
