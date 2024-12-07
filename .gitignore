@@ -85,3 +85,61 @@ bower_components/
 
 # Debug files
 *.map
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.temp
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Configuration files
+config.json
+*.config
+*.conf
+*.ini
+
+# Documentation
+docs/
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+
+# Temporary files
+*.tmp
+*~
+*.swp
+*.swo
+
+# Compiled source
+*.pyc
+*.pyo
+*.pyd
+*.obj
+*.lib
+
+# OS generated files
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Mobile development
+*.apk
+*.aab
+*.ipa
+*.xcarchive
+
+# Web development
+*.min.js
+*.min.css
+.sass-cache/
+.eslintcache
