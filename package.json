@@ -1,6 +1,18 @@
 {
-	"dependencies": {
-		"path": "^0.12.7",
-		"webcrypto": "^0.1.1"
-	}
+  "name": "byteme",
+  "version": "1.0.0",
+  "description": "A binary pattern analysis tool",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "mocha tests"
+  },
+  "dependencies": {
+    "path": "^0.12.7",
+    "webcrypto": "^0.1.1"
+  },
+  "devDependencies": {
+    "mocha": "^9.2.2",
+    "chai": "^4.3.4"
+  }
 }
