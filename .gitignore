@@ -84,3 +84,65 @@ bower_components/
 
 # Debug files
 *.map
+
+# Test patterns
+test/
+tests/
+__tests__/
+*.test.*
+*.spec.*
+test_.gitignore
+test-*.gitignore
+
+# Test coverage
+coverage/
+.nyc_output/
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+
+# Test results
+test-results/
+test-reports/
+junit.xml
+report.xml
+TEST-*.xml
+
+# Test frameworks
+jest.config.js
+jest.setup.js
+karma.conf.js
+mocha.opts
+.mocharc.js
+pytest.ini
+
+# Test snapshots
+__snapshots__/
+*.snap
+
+# Test databases
+*.test.db
+test.sqlite
+test.sqlite3
+
+# Test environments
+.env.test
+.env.testing
+test.env
+
+# Test logs
+test.log
+test-*.log
+
+# Test pattern validation
+testPatternDetection/
+*.testpattern
+.test-patterns/
+
+# Test caches
+.test-cache/
