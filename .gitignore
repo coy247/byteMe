@@ -146,3 +146,138 @@ testPatternDetection/
 
 # Test caches
 .test-cache/
+
+# Package manager files
+package.json
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+.npm
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.test
+.env.testing
+test.env
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+Thumbs.db
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Build outputs
+dist/
+build/
+out/
+output/
+.next/
+
+# Logs
+logs/
+*.log
+test.log
+test-*.log
+
+# Testing and Coverage
+test/
+tests/
+__tests__/
+*.test.*
+*.spec.*
+test_.gitignore
+test-*.gitignore
+coverage/
+.nyc_output/
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+test-results/
+test-reports/
+junit.xml
+report.xml
+TEST-*.xml
+__snapshots__/
+*.snap
+*.test.db
+test.sqlite
+test.sqlite3
+testPatternDetection/
+*.testpattern
+.test-patterns/
+.test-cache/
+
+# Dependency directories
+jspm_packages/
+bower_components/
+
+# Optional cache directories
+.cache/
+.temp/
+.tmp/
+
+# System Files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Media files
+*.mp4
+*.tiff
+*.avi
+*.flv
+*.mov
+*.wmv
+
+# Archives
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Debug files
+*.map
+
+# Test frameworks configs
+jest.config.js
+jest.setup.js
+karma.conf.js
+mocha.opts
+.mocharc.js
+pytest.ini
+
+# Package manager files
+package.json
+pnpm-lock.yaml
