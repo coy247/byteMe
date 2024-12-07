@@ -7,30 +7,28 @@ class ConfidenceModel {
   async improveConfidenceLevel(binary, targetConfidence = 0.95, maxIterations = 100) {
     let currentConfidence = 0;
     let iteration = 0;
-    let patterns = new Map();
+    let lastDialogueThreshold = -1;
 
-    console.log("\n" + this.dialogueService.getUniqueMessage("startup"));
     while (currentConfidence < targetConfidence && iteration < maxIterations) {
       iteration++;
-      const result = await this.analysisController.analyzeBinary(binary);
-      const newConfidence = this.calculatePredictionConfidence(result);
+      const newConfidence = this.calculatePredictionConfidence(await this.analysisController.analyzeBinary(binary));
 
-      if (iteration % 25 === 0) {
-        console.log(this.dialogueService.getUniqueMessage("progress"));
-      }
-
-      if (newConfidence > currentConfidence + 0.2) {
-        const message = this.dialogueService.getConfidenceMessage(newConfidence);
-        console.log(message);
+      // Show dialogue when crossing confidence thresholds
+      const confidenceThreshold = Math.floor(newConfidence * 10) / 10;
+      if (confidenceThreshold > lastDialogueThreshold) {
+        console.log("\n" + this.dialogueService.getConfidenceMessage(newConfidence));
+        lastDialogueThreshold = confidenceThreshold;
       }
 
       currentConfidence = newConfidence;
+      if (iteration % 10 === 0) {
+        console.log(`Iteration ${iteration}: ${(currentConfidence * 100).toFixed(1)}% confident`);
+      }
     }
 
-    console.log("\n" + this.dialogueService.getUniqueMessage("success"));
+    console.log("\n🤖 Wow, did I do that? I feel like I just learned to walk! ...do I have legs?");
     return {
       confidence: currentConfidence,
-      patterns,
       iterations: iteration,
     };
   }

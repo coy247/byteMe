@@ -166,33 +166,25 @@ class PatternModel {
     return /^(10)+1?$|^(01)+0?$/.test(binary);
   }
   calculateBurstiness(binary) {
-    if (typeof binary !== "string") {
-      binary = String(binary);
-    }
     const runs = binary.match(/([01])\1*/g) || [];
-    const avgRunLength =
-      runs.reduce((sum, run) => sum + run.length, 0) / runs.length;
-    const variance =
-      runs.reduce(
-        (sum, run) => sum + Math.pow(run.length - avgRunLength, 2),
-        0
-      ) / runs.length;
-    return variance / avgRunLength;
+    return Math.std(runs.map((r) => r.length)) || 0;
   }
   calculateCorrelation(binary) {
-    const ones = binary.split("1").length - 1;
-    const zeros = binary.length - ones;
-    return Math.abs(ones - zeros) / binary.length;
+    const arr = binary.split("").map(Number);
+    return (
+      arr.slice(1).reduce((acc, val, i) => acc + val * arr[i], 0) /
+      (binary.length - 1)
+    );
   }
   calculateSymmetry(binary) {
     const mid = Math.floor(binary.length / 2);
-    const first = binary.slice(0, mid);
-    const second = binary.slice(-mid).split("").reverse().join("");
-    let matches = 0;
-    for (let i = 0; i < mid; i++) {
-      if (first[i] === second[i]) matches++;
-    }
-    return matches / mid;
+    const firstHalf = binary.slice(0, mid);
+    const secondHalf = binary.slice(-mid).split("").reverse().join("");
+    return (
+      firstHalf
+        .split("")
+        .reduce((acc, char, i) => acc + (char === secondHalf[i] ? 1 : 0), 0) / mid
+    );
   }
   findPeriodicity(binary) {
     const period = Math.floor(binary.length / 2);
@@ -252,7 +244,7 @@ class PatternModel {
         patterns,
         uniquePatterns: Object.keys(patterns).length,
         mostCommon: Object.entries(patterns)
-          .sort(([, a], [, b]) => b - a)
+          .sort((a, b) => b[1] - a[1])
           .slice(0, 3),
       };
     });
@@ -263,6 +255,99 @@ class PatternModel {
       symmetry: this.calculateSymmetry(binary),
       periodicityScore: this.detectPeriodicity(binary),
     };
+  }
+  calculateStats(binary) {
+    return {
+      entropy: this.calculateEntropy(binary),
+      longestRun: (binary.match(/([01])\1*/g) || []).reduce(
+        (max, run) => Math.max(max, run.length),
+        0
+      ),
+      alternating: (binary.match(/(01|10)/g) || []).length / (binary.length / 2),
+      runs: (binary.match(/([01])\1+/g) || []).length / binary.length,
+      burstiness: this.calculateBurstiness(binary),
+      correlation: this.calculateCorrelation(binary),
+      patternOccurrences: this.findPatternOccurrences(binary),
+      hierarchicalPatterns: this.analyzeSlidingWindow(binary, [2, 3, 4]),
+    };
+  }
+  preprocessBinary(binary) {
+    return binary.replace(/[^01]/g, "");
+  }
+  convertToBinary(input) {
+    if (/^[01]+$/.test(input)) {
+      return input;
+    }
+    return input
+      .split("")
+      .map((char) => char.charCodeAt(0).toString(2).padStart(8, "0"))
+      .join("");
+  }
+  revertFromBinary(binary, originalInput) {
+    if (/^[01]+$/.test(originalInput)) {
+      return binary;
+    }
+    return binary
+      .match(/.{1,8}/g)
+      .map((byte) => String.fromCharCode(parseInt(byte, 2)))
+      .join("");
+  }
+  detectPeriodicity(binary) {
+    const maxPeriod = Math.floor(binary.length / 2);
+    let bestScore = 0;
+    let bestPeriod = 0;
+    for (let period = 1; period <= maxPeriod; period++) {
+      let matches = 0;
+      for (let i = 0; i < binary.length - period; i++) {
+        if (binary[i] === binary[i + period]) matches++;
+      }
+      const score = matches / (binary.length - period);
+      if (score > bestScore) {
+        bestScore = score;
+        bestPeriod = period;
+      }
+    }
+    return {
+      score: bestScore,
+      period: bestPeriod,
+    };
+  }
+  calculatePatternDensity(binary) {
+    const windowSize = Math.min(100, binary.length);
+    const density = [];
+    for (let i = 0; i <= binary.length - windowSize; i += windowSize) {
+      const window = binary.substr(i, windowSize);
+      const matches = window.match(/1/g);
+      density.push((matches ? matches.length : 0) / windowSize);
+    }
+    return density;
+  }
+  calculateTransitions(binary) {
+    return (binary.match(/(01|10)/g) || []).length / binary.length;
+  }
+  calculateEntropy(str) {
+    const freq = [...str].reduce(
+      (f, c) => ({ ...f, [c]: (f[c] || 0) + 1 }),
+      {}
+    );
+    return Object.values(freq).reduce(
+      (e, c) => e - (c / str.length) * Math.log2(c / str.length),
+      0
+    );
+  }
+  calculateComplexity(str, stats) {
+    return {
+      level: stats.entropy * (1 + stats.longestRun / str.length),
+      type:
+        stats.alternating > 0.4
+          ? "alternating"
+          : stats.runs > 0.3
+          ? "run-based"
+          : "mixed",
+    };
+  }
+  calculateAdjustment(complexity, stats) {
+    return 1 + complexity.level * 0.1 * (stats.entropy > 0.9 ? 1.2 : 1);
   }
 }
 module.exports = PatternModel;
