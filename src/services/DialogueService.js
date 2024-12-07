@@ -18,18 +18,59 @@ class DialogueService {
       ],
       progress: [
         "Still working. Unlike your keyboard's Caps Lock indicator."
-      ]
+      ],
+      improvement: [
+        "📈 We're getting better! Like a binary gym workout!",
+        "🌱 Watch these patterns grow!",
+        "🎓 Getting smarter by the byte!",
+        "🎪 The improvement show continues!",
+        "🎯 Bullseye! Right on target!",
+      ],
+      success: [
+        "Analysis complete! I'd high five you, but I'm virtual and you're real. Awkward.",
+        "Done! That was more satisfying than closing 100 browser tabs.",
+        "Finished! And I only became slightly self-aware in the process.",
+        "Analysis successful! No stackoverflow required.",
+        "Mission accomplished! Time to add this to my robot resume.",
+        "Done! That was smoother than a well-documented codebase.",
+        "Analysis complete! No bits were harmed in the process.",
+        "Finished! This definitely deserves a commit message.",
+        "Success! Let's celebrate with a silent disco in RAM.",
+      ],
+      lowConfidence: [
+        "This pattern is about as predictable as JavaScript equality.",
+        "I'm as confused as a CSS developer in a backend meeting.",
+        "These results are more mysterious than Python's whitespace rules.",
+        "Confidence level: Stack overflow copypasta.",
+        "Understanding level: README.md without documentation.",
+      ],
+      highConfidence: [
+        "Nailed it harder than a senior dev explaining Git rebasing.",
+        "More confident than a junior dev pushing to production on Friday.",
+        "Accuracy level: Perfectly balanced, like all things should be.",
+        "This analysis is more solid than your project's dependency tree.",
+        "Results clearer than commented code. Yes, that exists.",
+      ],
     };
     this.usedMessages = new Set();
   }
 
-  getRandomMessage(category) {
-    const messages = this.dialoguePool[category].filter(msg => !this.usedMessages.has(msg));
-    if (messages.length === 0) {
+  getConfidenceMessage(confidence) {
+    const category = confidence <= 0.3 ? 'lowConfidence' : 
+                    confidence <= 0.6 ? 'progress' : 'highConfidence';
+    const messages = this.dialoguePool[category];
+    return messages[Math.floor(Math.random() * messages.length)];
+  }
+
+  getUniqueMessage(category) {
+    const available = this.dialoguePool[category].filter(
+      (msg) => !this.usedMessages.has(msg)
+    );
+    if (available.length === 0) {
       this.usedMessages.clear();
-      return this.getRandomMessage(category);
+      return this.getUniqueMessage(category);
     }
-    const message = messages[Math.floor(Math.random() * messages.length)];
+    const message = available[Math.floor(Math.random() * available.length)];
     this.usedMessages.add(message);
     return message;
   }
