@@ -1,11 +1,16 @@
 # Development Environment
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 .npm
-npm-debug.log
 node_modules/
+.pnpm-store/
+.yarn/
 package-lock.json
+pnpm-lock.yaml
+.yarnrc
+.npmrc
+npm-debug.log
 yarn-debug.log
 yarn-error.log
 
@@ -13,56 +18,19 @@ yarn-error.log
 .devcontainer/
 .devcontainer.json
 .idea/
+.idea/**/workspace.xml
 .vscode/
+.history/
+.settings/
 *.code-workspace
+*.sublime-*
 *.swp
 *.swo
 
 # Operating System
-.AppleDouble
 .DS_Store
-Thumbs.db
-
-# Project Specific
-archive/
-models/model.json
-model.json
-notes/
-
-# Build and Output
-dist/
-build/
-out/
-output/
-.next/
-
-# Testing and Coverage
-coverage/
-test-results/
-*.log
-byteMeDifferenceIndex.txt
-byteMeDifferenceIndexColor.txt
-.nyc_output/
-junit.xml
-coverage.xml
-.pytest_cache/
-
-# Cache and Temporary
-.cache/
-.temp/
-.tmp/
-jspm_packages/
-bower_components/
-
-# Binary and Compiled
-*.com
-*.class
-*.dll
-*.exe
-*.o
-*.so
-
-# macOS specific
+.DS_Store?
+.AppleDouble
 .LSOverride
 Icon
 ._*
@@ -73,22 +41,97 @@ Icon
 .Trashes
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
 
-# Logs
-logs/
+# Project Specific
+archive/
+models/model.json
+model.json
+notes/
 
-# System Files
+# Testing and Coverage
+coverage/
+.nyc_output/
+test-results/
+*.log
+junit.xml
+coverage.xml
+.pytest_cache/
+byteMeDifferenceIndex.txt
+byteMeDifferenceIndexColor.txt
+
+# Build and Output
+dist/
+build/
+out/
+output/
+.next/
+.vercel
+.netlify
+*.min.js
+*.min.css
+
+# Cache and Temporary
+.cache/
+.temp/
+.tmp/
+.sass-cache/
+.eslintcache
+jspm_packages/
+bower_components/
+*~
+*.bak
+*.backup
+*.old
+*.orig
+*.temp
+*.tmp
+
+# Compiled Source
+*.com
 *.class
+*.dll
+*.exe
+*.o
+*.so
+*.pyc
+*.pyo
+*.pyd
+*.obj
+*.lib
 
-# Media files
+# Data and Analysis
+*.csv
+*.json
+*.yaml
+*.yml
+*.dat
+*.db
+*.sqlite
+*.sqlite3
+
+# Documentation
+docs/
+docs/_build/
+_site/
+.jekyll-cache/
+.docusaurus/
+*.pdf
+*.doc*
+*.xls*
+*.ppt*
+
+# Media and Archives
 *.mp4
 *.tiff
 *.avi
 *.flv
 *.mov
 *.wmv
-
-# Archives
 *.7z
 *.dmg
 *.gz
@@ -98,121 +141,23 @@ logs/
 *.tar
 *.zip
 
-# Debug files
-*.map
-# Backup files
-*.bak
-*.backup
-*.old
-*.orig
-*.temp
+# Security
+*.pem
+*.key
+*.crt
+*.cer
 
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# Configuration files
-config.json
-*.config
-*.conf
-*.ini
-
-# Documentation
-docs/
-*.pdf
-*.doc
-*.docx
-*.xls
-*.xlsx
-*.ppt
-*.pptx
-docs/_build/
-_site/
-.jekyll-cache/
-.docusaurus/
-
-# Temporary files
-*.tmp
-*~
-*.swp
-*.swo
-
-# Compiled source
-*.pyc
-*.pyo
-*.pyd
-*.obj
-*.lib
-
-# OS generated files
-ehthumbs.db
-desktop.ini
-$RECYCLE.BIN/
-*.lnk
-
-# Mobile development
+# Mobile Development
 *.apk
 *.aab
 *.ipa
 *.xcarchive
 
-# Web development
-*.min.js
-*.min.css
-.sass-cache/
-.eslintcache
-
-# Data and Analysis
-*.csv
-*.json
-!package.json
-*.yaml
-*.yml
-!.github/*.yml
-*.dat
-*.db
-*.sqlite
-
-# Security and Keys
-*.pem
-*.key
-*.crt
-*.cer
-.env.*
-!.env.example
-
-# Dependencies and Lock Files
-package-lock.json
-package.json
-pnpm-lock.yaml
-.pnpm-store/
-.yarn/
-.yarnrc
-.npmrc
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
 
 # Exceptions
 !package.json
 !pnpm-lock.yaml
-
-# Jupyter Notebooks
-.ipynb_checkpoints/
-*.ipynb
-
-# Generated Content
-*.generated.*
-.vercel
-.netlify
-
-# IDE Extensions
-.history/
-.settings/
-*.sublime-*
-.idea/**/workspace.xml
-
-# Temporary and Backups
-*.bak
-*.tmp
-*~
-*.swp
-.DS_Store?
+!.github/*.yml
