@@ -1,0 +1,29 @@
+{
+  "name": "byte-me",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "jest": "^27.0.0"
+  }
+}
+
+module.exports = {
+  testEnvironment: "node",
+  setupFiles: ["<rootDir>/test/setup.js"]
+};
+
+const convertToHex = require('../path/to/convertToHex');
+
+test('convertToHex should convert decimal to hexadecimal', () => {
+  expect(convertToHex(255)).toBe('ff');
+});
+
+test('convertToHex should handle zero', () => {
+  expect(convertToHex(0)).toBe('00');
+});
+
+test('convertToHex should handle negative numbers', () => {
+  expect(convertToHex(-1)).toBe('ff');
+});

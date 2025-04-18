@@ -6,15 +6,32 @@
   "scripts": {
     "start": "node '/Volumes/TOSHIBA EXT/Sites/2024/scienceResearch/byteMe/src/modularized/index.js'",
     "debug": "node --inspect-brk '/Volumes/TOSHIBA EXT/Sites/2024/scienceResearch/byteMe/src/modularized/index.js'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:hex": "jest convertToHex.test.js",
+    "test:predict": "jest predictNextBits.test.js",
+    "test:analysis": "jest analysis.test.js",
+    "test:hex:coverage": "jest convertToHex.test.js --coverage",
+    "test:predict:coverage": "jest predictNextBits.test.js --coverage",
+    "test:analysis:coverage": "jest analysis.test.js --coverage",
+    "test:watch": "jest --watch",
+    "test:watch:hex": "jest convertToHex.test.js --watch",
+    "test:watch:predict": "jest predictNextBits.test.js --watch",
+    "test:watch:analysis": "jest analysis.test.js --watch"
   },
   "keywords": [],
-  "author": "",
+  "author": "Ed Garzaro",
   "license": "ISC",
   "devDependencies": {
+    "jest": "^29.7.0",
     "jscodeshift": "^17.1.1"
   },
   "dependencies": {
     "dotenv": "^16.4.5"
+  },
+  "jest": {
+    "testMatch": [
+      "**/test/**/*.test.js"
+    ]
   }
 }

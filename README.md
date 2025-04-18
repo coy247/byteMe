@@ -21,14 +21,17 @@ ByteMe brings a sense of playfulness to the world of binary data analysis, makin
 ByteMe can be used in a variety of real-world scenarios:
 
 ### Data Analysis
+
 - Uncover patterns and trends in large binary datasets
 - Make more informed decisions based on data insights
 
 ### Scientific Research
+
 - Analyze binary data from experiments or simulations
 - Lead to new discoveries and insights
 
 ### Cybersecurity
+
 - Identify anomalies and potential security threats
 - Enhance the safety and reliability of digital infrastructure
 
