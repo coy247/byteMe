@@ -353,3 +353,56 @@ fn analysis_json_contains_blid_fields() {
     assert!(stdout.contains("\"blid\":"));
     assert!(stdout.contains("\"blid_sha256\":"));
 }
+
+// ---------- 45° walk + hydration (thirds → H₂O) ----------
+
+#[test]
+fn walk_constant_nine_ones_is_water_neutral() {
+    let (code, stdout, _) = run(&["--walk", "--no-color", "111111111"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("raw charge      +9"));
+    assert!(stdout.contains("hydrated charge +0"));
+    assert!(
+        stdout.contains("neutral"),
+        "expected water balance:\n{}",
+        stdout
+    );
+}
+
+#[test]
+fn walk_alternating_marches_at_fifty_percent() {
+    let (code, stdout, _) = run(&["--walk", "--no-color", "010101"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("angle 135.0°"));
+    assert!(stdout.contains("→ 50%"));
+}
+
+#[test]
+fn walk_json_is_valid_and_structured() {
+    let (code, stdout, _) = run(&["--walk", "--json", "010101"]);
+    assert_eq!(code, 0);
+    assert!(is_valid_json(&stdout), "invalid JSON:\n{}", stdout);
+    assert!(stdout.contains("\"quarter\": 50"));
+    assert!(stdout.contains("\"neutral\": true"));
+    assert!(stdout.contains("\"blid\":"));
+}
+
+#[test]
+fn walk_json_origin_walk_has_null_direction() {
+    // "1100" returns to origin: angle and quarter must be null, not NaN.
+    let (code, stdout, _) = run(&["--walk", "--json", "1100"]);
+    assert_eq!(code, 0);
+    assert!(is_valid_json(&stdout), "invalid JSON:\n{}", stdout);
+    assert!(stdout.contains("\"angle_deg\": null"));
+    assert!(stdout.contains("\"quarter\": null"));
+    assert!(!stdout.to_lowercase().contains("nan"));
+}
+
+#[test]
+fn h2o_alias_works() {
+    let (c1, a, _) = run(&["--walk", "--json", "0101"]);
+    let (c2, b, _) = run(&["--h2o", "--json", "0101"]);
+    assert_eq!(c1, 0);
+    assert_eq!(c2, 0);
+    assert_eq!(a, b, "--h2o must be an exact alias of --walk");
+}
