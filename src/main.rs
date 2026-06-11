@@ -45,6 +45,13 @@ fn main() -> ExitCode {
 
     if opts.retro {
         intro::play();
+        // `byteme --retro` alone IS the introduction — the AOL-era boot
+        // sequence as a standalone experience (the Rust heir of the
+        // original `npm run intro`). Exit cleanly instead of demanding
+        // an input that was never the point.
+        if opts.input.is_none() && !opts.demo && !opts.interloop {
+            return ExitCode::SUCCESS;
+        }
     }
 
     let theme = Theme {
