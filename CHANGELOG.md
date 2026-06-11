@@ -5,6 +5,48 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-06-11
+
+Rust rewrite. The Node.js implementation that shipped in `v0.1.0` is
+preserved under `legacy/` for reference and historical reproducibility.
+
+### Added
+
+- **Rust crate** at the repository root (`Cargo.toml`, `src/`): a single
+  static binary `byteme` with no runtime dependencies.
+- **Library API** (`byteme::{binary, encode, metrics, patterns, output}`)
+  for embedding the analyzer in other Rust programs.
+- **Formal CLI output**: Unicode-bordered table with intentional color,
+  one-line summary after the table.
+- **`--verbose`**: per-metric plain-language explanations for learners.
+- **`--json`**: stable machine-readable output (auto-disables color).
+- **`--retro`**: opt-in AOL-era boot sequence — Matrix rain, fake BIOS,
+  Windows 95 / Netscape Navigator / WordPerfect / Internet Explorer
+  loading gags — port of `legacy/src/intro.js`.
+- **`--demo`**: built-in fixture set, useful with `--retro`.
+- **29 Rust unit tests** (`cargo test`) covering binary validation,
+  entropy, run-length analysis, pattern classification, encoding, and
+  CLI argument parsing.
+- **CI now runs**: `cargo fmt --check`, `cargo clippy -D warnings`,
+  `cargo test`, `cargo build --release`, plus a legacy-JS smoke job.
+
+### Changed
+
+- The canonical implementation is now Rust. Use `cargo install --path .`
+  or `cargo run --release -- <input>` instead of `npm start`.
+- The Node.js code, mocha tests, `package.json`, `package-lock.json`,
+  `run.js` moved to `legacy/`. The behavior contract documented there
+  (e.g. all-ones returns `f64::INFINITY` ratio) is honored by the Rust
+  port verbatim.
+
+### Removed
+
+- The TypeScript exploration branch (`feature/typescript-conversion`)
+  is abandoned. The decision to use Rust supersedes it. The branch is
+  preserved as `archive/typescript-exploration` for the record.
+
+[0.2.0]: https://github.com/coy247/byteMe/releases/tag/v0.2.0
+
 ## [0.1.0] - 2026-06-11
 
 First disciplined release. Everything before this tag is the project's

@@ -1,0 +1,124 @@
+name: PR quality gate
+
+# Automatically responds to every pull request by running the SAME
+# preflight/postflight harness used locally, then posting (or updating) a
+# single sticky comment with the verdict. This is how the repo keeps
+# quality and reproducibility on autopilot: a PR that turns the harness
+# red cannot merge clean, and the author sees exactly why without anyone
+# typing a reply.
+
+on:
+  pull_request:
+    branches: [main, develop]
+  # Allow re-running the responder when a maintainer asks.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-quality-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      # Preflight: establishes the baseline and runs every gate. We
+      # capture output and exit code without aborting the job, so the
+      # responder can post a verdict either way.
+      - name: Preflight
+        id: preflight
+        run: |
+          set +e
+          bash verify/preflight.sh 2>&1 | tee /tmp/preflight.txt
+          echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      # Postflight: re-checks and certifies reproducibility. Same capture.
+      - name: Postflight
+        id: postflight
+        run: |
+          set +e
+          bash verify/postflight.sh 2>&1 | tee /tmp/postflight.txt
+          echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Compose verdict
+        id: verdict
+        run: |
+          PRE=${{ steps.preflight.outputs.code }}
+          POST=${{ steps.postflight.outputs.code }}
+          {
+            echo "## ByteMe quality gate"
+            echo
+            if [ "$PRE" = "0" ] && [ "$POST" = "0" ]; then
+              echo "✅ **PASS** — preflight and postflight both green. This PR"
+              echo "is reproducible and stable: fmt, clippy \`-D warnings\`,"
+              echo "the full test suite, and the cross-language convergence"
+              echo "gate all pass."
+            else
+              echo "❌ **NEEDS WORK** — the quality harness is not green."
+              echo "- preflight exit: \`$PRE\`"
+              echo "- postflight exit: \`$POST\`"
+              echo
+              echo "See the job logs. The same checks run locally with"
+              echo "\`bash verify/preflight.sh\` and \`bash verify/postflight.sh\`."
+            fi
+            echo
+            echo "<details><summary>preflight output</summary>"
+            echo
+            echo '```'
+            sed 's/\x1b\[[0-9;]*m//g' /tmp/preflight.txt
+            echo '```'
+            echo "</details>"
+            echo
+            echo "<details><summary>postflight output</summary>"
+            echo
+            echo '```'
+            sed 's/\x1b\[[0-9;]*m//g' /tmp/postflight.txt
+            echo '```'
+            echo "</details>"
+            echo
+            echo "<sub>🤖 automated by .github/workflows/pr-quality.yml — sticky comment, updated each push</sub>"
+          } > /tmp/verdict.md
+
+      - name: Post or update sticky verdict comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/verdict.md', 'utf8');
+            const marker = '## ByteMe quality gate';
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: comments } = await github.rest.issues.listComments(
+              { owner, repo, issue_number });
+            const mine = comments.find(c => c.body && c.body.includes(marker));
+            if (mine) {
+              await github.rest.issues.updateComment(
+                { owner, repo, comment_id: mine.id, body });
+            } else {
+              await github.rest.issues.createComment(
+                { owner, repo, issue_number, body });
+            }
+
+      - name: Enforce gate
+        run: |
+          PRE=${{ steps.preflight.outputs.code }}
+          POST=${{ steps.postflight.outputs.code }}
+          if [ "$PRE" != "0" ] || [ "$POST" != "0" ]; then
+            echo "Quality gate failed (preflight=$PRE postflight=$POST)"; exit 1
+          fi
+          echo "Quality gate passed."

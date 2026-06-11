@@ -75,11 +75,21 @@ rewriting published history is worse than owning it.
 ## Running the project
 
 ```bash
-npm install
-npm start "01001000 01101001"   # analyze a binary string
-npm run intro                    # the retro boot experience 🕹
-npm test                         # run the test suite
+# Rust (canonical, since v0.2.0)
+cargo build --release
+./target/release/byteme "01001000 01101001"   # formal analysis
+./target/release/byteme --retro "Hi!"          # retro boot 🕹
+cargo test                                     # all 29 tests
+
+# Legacy JavaScript (still works, lives under legacy/)
+cd legacy && npm install && npm test
 ```
+
+## Required CI gates
+
+Every PR must pass: `cargo fmt --check`, `cargo clippy --all-targets -D
+warnings`, `cargo test --all-targets`, `cargo build --release`. The legacy
+JS smoke job (`legacy/ npm test`) must also stay green.
 
 ## Signed commits
 

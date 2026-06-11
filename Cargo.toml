@@ -1,0 +1,33 @@
+[package]
+name = "byteme"
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.75"
+description = "A playful binary string pattern analyzer"
+license = "Apache-2.0"
+authors = ["Ed Garzaro"]
+repository = "https://github.com/coy247/byteMe"
+readme = "README.md"
+keywords = ["binary", "pattern-analysis", "cli", "entropy"]
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "byteme"
+path = "src/main.rs"
+
+[lib]
+name = "byteme"
+path = "src/lib.rs"
+
+[dependencies]
+# Intentionally minimal. The whole point of the rewrite is a single
+# fat binary with predictable behavior. New dependencies must justify
+# themselves in the PR description.
+
+[dev-dependencies]
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+codegen-units = 1
