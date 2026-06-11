@@ -298,3 +298,58 @@ fn text_and_equivalent_binary_inputs_converge() {
     };
     assert_eq!(strip(&via_text), strip(&via_bits));
 }
+
+// ---------- BLID + interdimensional loop ----------
+
+#[test]
+fn blid_two_routes_converge_pinned() {
+    // Pinned regression vector: if this changes, the canonical form
+    // byteme/blid/v1 changed — that requires a version bump, not a test edit.
+    let (c1, via_text, _) = run(&["--blid", "Hi"]);
+    let (c2, via_bits, _) = run(&["--blid", "0100100001101001"]);
+    assert_eq!(c1, 0);
+    assert_eq!(c2, 0);
+    assert_eq!(via_text, via_bits, "two routes must converge");
+    assert_eq!(via_text.trim(), "a2fc4a037c913df5", "pinned BLID changed");
+}
+
+#[test]
+fn blid_output_is_exactly_one_line_of_hex() {
+    let (_, stdout, _) = run(&["--blid", "0101"]);
+    let line = stdout.trim();
+    assert_eq!(line.len(), 16);
+    assert!(line.chars().all(|c| c.is_ascii_hexdigit()));
+    assert_eq!(stdout.lines().count(), 1);
+}
+
+#[test]
+fn loop_study_run_blid_pinned() {
+    // The embedded booLang-hardening study (32 vectors + 32 scalars) must
+    // always produce this run BLID. Any drift means the study data or the
+    // canonical record form changed.
+    let (code, stdout, _) = run(&["--loop", "--no-color"]);
+    assert_eq!(code, 0);
+    assert!(
+        stdout.contains("55669eccbbfc4cfa"),
+        "run BLID drifted:\n{}",
+        stdout
+    );
+    assert!(stdout.contains("(32 entries)"));
+}
+
+#[test]
+fn loop_json_is_valid_and_complete() {
+    let (code, stdout, _) = run(&["--loop", "--json"]);
+    assert_eq!(code, 0);
+    assert!(is_valid_json(&stdout), "invalid JSON:\n{}", stdout);
+    assert_eq!(stdout.matches("\"index\":").count(), 32);
+    assert!(stdout.contains("\"run_blid\": \"55669eccbbfc4cfa\""));
+}
+
+#[test]
+fn analysis_json_contains_blid_fields() {
+    let (_, stdout, _) = run(&["--json", "0101"]);
+    assert!(is_valid_json(&stdout));
+    assert!(stdout.contains("\"blid\":"));
+    assert!(stdout.contains("\"blid_sha256\":"));
+}

@@ -62,11 +62,42 @@ the math is the point.
 | *(none)* | Formal Unicode table + one-line summary |
 | `--verbose`, `-v` | Adds plain-language explanations of every metric |
 | `--json` | Machine-readable JSON (pipe to `jq`, etc.) |
+| `--blid` | Print only the content-addressed ID of the input's bits |
+| `--loop` | Import the embedded interdimensional-loop study set |
 | `--retro` | Plays the AOL-era intro before analysis |
 | `--demo` | Run against a built-in fixture set |
 | `--no-color` | Disable ANSI (auto-off when piping to a file) |
 | `--help`, `-h` | Full usage |
 | `--version`, `-V` | Print version |
+
+## BLIDs — content-addressed results
+
+Every analysis carries a **BLID**: a versioned sha256 over the normalized
+bits (`byteme/blid/v1`). Because every metric is a pure function of those
+bits, the BLID identifies the complete analysis. The key property is
+**convergence**: two independent routes to the same bits produce the same
+BLID —
+
+```
+$ byteme --blid Hi
+a2fc4a037c913df5
+$ byteme --blid 0100100001101001
+a2fc4a037c913df5
+```
+
+Use BLIDs to deduplicate analysis receipts, key caches, link results in
+work-state journals, and verify that independently produced results agree
+without exchanging payloads. The SHA-256 implementation is in-crate
+(zero dependencies) and gated by NIST FIPS 180-4 vectors — if those tests
+fail, the build fails.
+
+## The interdimensional loop
+
+`byteme --loop` imports the embedded booLang-hardening study set — 32
+`[a, b]` density observations with index-aligned scalars — and reports
+density, Bernoulli entropy, weighted score, and a BLID per entry plus a
+collective run BLID. Malformed rows and length mismatches are hard errors:
+partial imports are how stale counters survive five weeks.
 
 ## What it measures
 
