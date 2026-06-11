@@ -25,6 +25,10 @@ fn main() -> ExitCode {
         eprintln!("Run `byteme --help` for usage.");
         return ExitCode::from(1);
     }
+    if opts.key_missing_value {
+        eprintln!("error: --key requires a value");
+        return ExitCode::from(1);
+    }
 
     if opts.help {
         print!("{}", HELP_TEXT);
@@ -45,7 +49,16 @@ fn main() -> ExitCode {
 
     if opts.interloop {
         let run = interloop::study_run();
-        if opts.json {
+        if opts.blid_only {
+            // Compact exchange: the run BLID IS the message. Any
+            // implementation (any language, any machine code) that
+            // reproduces the canonical recipe from its own copy of the
+            // study converges on this line.
+            match &opts.key {
+                Some(k) => println!("{}", run.keyed_run_blid(k).short()),
+                None => println!("{}", run.run_blid_short),
+            }
+        } else if opts.json {
             print!("{}", output::format_loop_json(&run));
         } else {
             print!("{}", output::format_loop_table(&run, &theme));
@@ -95,7 +108,10 @@ fn run_once(input: &str, opts: &Options, theme: &Theme) -> Result<(), ExitCode> 
     };
 
     if opts.blid_only {
-        println!("{}", ingested.blid().short());
+        match &opts.key {
+            Some(k) => println!("{}", ingested.blid_keyed(k).short()),
+            None => println!("{}", ingested.blid().short()),
+        }
         return Ok(());
     }
 

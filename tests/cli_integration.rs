@@ -491,3 +491,43 @@ fn walk_composes_with_int_input() {
     assert_eq!(code, 0);
     assert!(stdout.contains("steps 2"));
 }
+
+// ---------- compact + keyed BLID exchange ----------
+
+#[test]
+fn loop_blid_compact_exchange_is_one_line() {
+    // The entire message to another implementation: 16 hex chars.
+    let (code, stdout, _) = run(&["--loop", "--blid"]);
+    assert_eq!(code, 0);
+    assert_eq!(stdout.trim(), "55669eccbbfc4cfa");
+    assert_eq!(stdout.lines().count(), 1);
+}
+
+#[test]
+fn keyed_blid_converges_for_key_holders_and_differs_from_public() {
+    let (_, public, _) = run(&["--loop", "--blid"]);
+    let (_, keyed1, _) = run(&["--loop", "--blid", "--key", "k"]);
+    let (_, keyed2, _) = run(&["--loop", "--blid", "--key", "k"]);
+    let (_, other, _) = run(&["--loop", "--blid", "--key", "k2"]);
+    assert_eq!(keyed1, keyed2, "same key must converge");
+    assert_ne!(keyed1, public, "keyed must differ from public");
+    assert_ne!(keyed1, other, "different keys must diverge");
+}
+
+#[test]
+fn keyed_input_blid_works_for_all_kinds() {
+    for input in ["8", "[25, 3319]", "0101", "Hi"] {
+        let (c, keyed, _) = run(&["--blid", "--key", "s", input]);
+        let (_, public, _) = run(&["--blid", input]);
+        assert_eq!(c, 0);
+        assert_ne!(keyed, public, "keyed==public for {:?}", input);
+        assert_eq!(keyed.trim().len(), 16);
+    }
+}
+
+#[test]
+fn key_without_value_is_usage_error() {
+    let (code, _, stderr) = run(&["--blid", "8", "--key"]);
+    assert_eq!(code, 1);
+    assert!(stderr.contains("--key requires a value"));
+}

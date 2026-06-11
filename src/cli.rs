@@ -13,6 +13,10 @@ pub struct Options {
     pub blid_only: bool,
     pub interloop: bool,
     pub walk: bool,
+    /// Secret for keyed (HMAC) BLIDs. None = public commitment mode.
+    pub key: Option<String>,
+    /// --key was given but no value followed it.
+    pub key_missing_value: bool,
     pub input: Option<String>,
     pub unknown: Vec<String>,
 }
@@ -20,8 +24,9 @@ pub struct Options {
 pub fn parse(args: impl IntoIterator<Item = String>) -> Options {
     let mut opts = Options::default();
     let mut input_parts: Vec<String> = Vec::new();
+    let mut args = args.into_iter();
 
-    for tok in args {
+    while let Some(tok) = args.next() {
         match tok.as_str() {
             "--help" | "-h" => opts.help = true,
             "--version" | "-V" => opts.version = true,
@@ -33,6 +38,10 @@ pub fn parse(args: impl IntoIterator<Item = String>) -> Options {
             "--blid" => opts.blid_only = true,
             "--loop" => opts.interloop = true,
             "--walk" | "--h2o" => opts.walk = true,
+            "--key" => match args.next() {
+                Some(k) => opts.key = Some(k),
+                None => opts.key_missing_value = true,
+            },
             s if s.starts_with("--") => opts.unknown.push(tok),
             s if s.starts_with('-')
                 && s.len() > 1
@@ -72,7 +81,13 @@ OPTIONS
   -v, --verbose       Include per-metric educational notes
       --demo          Run against a built-in fixture set instead of <input>
       --blid          Print only the BLID (content-addressed ID) of the
-                      input's normalized bits — pipe-friendly
+                      input's normalized bits — pipe-friendly. Combine
+                      with --loop for the study's run BLID alone.
+      --key <secret>  Keyed BLID (HMAC-SHA256). An unkeyed BLID is a
+                      PUBLIC commitment: low-entropy content can be
+                      brute-forced from it. With a shared key, two
+                      parties still converge but the BLID reveals
+                      nothing to anyone else.
       --loop          Import the embedded interdimensional-loop study set
                       (32 vector/scalar pairs from booLang-hardening) and
                       report density, entropy, weighted score and BLID per

@@ -117,6 +117,25 @@ pub struct LoopRun {
     pub run_blid_full: String,
 }
 
+impl LoopRun {
+    /// The canonical run record: one entry-BLID per line under the
+    /// loop-run/v1 header. Shared by keyed and unkeyed run BLIDs.
+    pub fn run_record(&self) -> String {
+        let mut rec = String::from("loop-run/v1\n");
+        for e in &self.entries {
+            rec.push_str(&e.blid_full);
+            rec.push('\n');
+        }
+        rec
+    }
+
+    /// Keyed (HMAC) run BLID: converges for key-holders, reveals nothing
+    /// to anyone else. The compact exchange for sensitive studies.
+    pub fn keyed_run_blid(&self, key: &str) -> Blid {
+        Blid::keyed_of_record(key, &self.run_record())
+    }
+}
+
 /// Binary (Bernoulli) entropy of probability `p`, in bits.
 /// Total: returns 0.0 outside (0,1) instead of NaN.
 pub fn bernoulli_entropy(p: f64) -> f64 {
