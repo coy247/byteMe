@@ -1,6 +1,6 @@
 [package]
 name = "byteme"
-version = "0.2.0-dev"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.75"
 description = "A playful binary string pattern analyzer"
