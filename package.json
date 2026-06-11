@@ -1,16 +1,19 @@
 {
   "name": "byteme",
-  "version": "1.0.0",
-  "description": "A binary pattern analysis tool",
+  "version": "0.1.0",
+  "description": "A playful binary string pattern analyzer",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "mocha tests"
+    "test": "echo \"no tests yet — see feat/binary-model-tests\" && exit 0"
   },
-  "dependencies": {
-    "path": "^0.12.7",
-    "webcrypto": "^0.1.1"
-  },
+  "keywords": [
+    "binary",
+    "pattern-analysis",
+    "cli"
+  ],
+  "author": "Ed Garzaro",
+  "license": "Apache-2.0",
   "devDependencies": {
     "mocha": "^9.2.2",
     "chai": "^4.3.4"

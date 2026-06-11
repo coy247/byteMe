@@ -107,17 +107,15 @@ bower_components/
 *.lib
 
 # Data and Analysis
+# Note: *.json/*.yaml are NOT globally ignored — package.json, lockfiles,
+# CI workflows and model seeds are tracked project files.
 *.csv
-*.json
-*.yaml
-*.yml
 *.dat
 *.db
 *.sqlite
 *.sqlite3
 
-# Documentation
-docs/
+# Documentation build output (docs/ source is tracked)
 docs/_build/
 _site/
 .jekyll-cache/
