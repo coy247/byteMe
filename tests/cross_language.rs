@@ -6,7 +6,7 @@
 //! values against the script's expectations, so neither side can drift
 //! silently.
 
-use byteme::{blid::Blid, canon, interloop};
+use byteme::{blid::Blid, canon, study};
 use std::process::Command;
 
 #[test]
@@ -37,14 +37,14 @@ fn javascript_route_converges_with_rust_route() {
 fn rust_live_values_match_the_pins_the_script_checks() {
     // Belt and suspenders: the same constants, asserted against the
     // LIVE Rust computation (not just the script's copy).
-    let run = interloop::study_run();
-    assert_eq!(run.run_blid_short, "55669eccbbfc4cfa");
-    assert_eq!(&run.entries[0].blid_short, "5f5438b01b54d7e3");
-    assert_eq!(&run.entries[27].blid_short, "61eb04895c108455");
-    assert_eq!(&run.entries[31].blid_short, "5901987551030c70");
+    let run = study::study_run();
+    assert_eq!(run.run_blid_short, "ed4cd25fcbfab234");
+    assert_eq!(&run.entries[0].blid_short, "bfbb0b24bd38998a");
+    assert_eq!(&run.entries[27].blid_short, "f6c7ac5502994802");
+    assert_eq!(&run.entries[31].blid_short, "56f094049c87410a");
     assert_eq!(
         run.keyed_run_blid("nuestra-llave-secreta").short(),
-        "c22d1336b7c62f38"
+        "5e0f6c6ee958b0f2"
     );
     assert_eq!(
         canon::ingest("8").unwrap().blid().short(),

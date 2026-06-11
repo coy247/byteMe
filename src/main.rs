@@ -2,9 +2,9 @@ use byteme::{
     binary::BinaryModel,
     canon::{self, Ingested},
     cli::{self, Options, HELP_TEXT},
-    hydro, interloop, intro, metrics, narrate,
+    concert, hydro, intro, metrics, narrate,
     output::{self, Theme},
-    patterns, VERSION,
+    patterns, study, VERSION,
 };
 use std::io::IsTerminal;
 use std::process::ExitCode;
@@ -52,7 +52,7 @@ fn main() -> ExitCode {
     };
 
     if opts.interloop {
-        let run = interloop::study_run();
+        let run = study::study_run();
         if opts.blid_only {
             // Compact exchange: the run BLID IS the message. Any
             // implementation (any language, any machine code) that
@@ -87,9 +87,68 @@ fn main() -> ExitCode {
         return ExitCode::from(1);
     };
 
+    if opts.concert {
+        return run_concert(input, &opts, &theme);
+    }
+
     match run_once(input, &opts, &theme) {
         Ok(()) => ExitCode::SUCCESS,
         Err(code) => code,
+    }
+}
+
+/// Join several whitespace-separated buckets into one concert identity.
+/// Each token is a bucket: `a/b` → an exact reduced ratio; otherwise the
+/// token is ingested (bits stay bits, numbers/text become their bits).
+fn run_concert(input: &str, opts: &Options, theme: &Theme) -> ExitCode {
+    use byteme::rational::Rational;
+    let mut buckets = Vec::new();
+    for tok in input.split_whitespace() {
+        if let Some((n, d)) = tok.split_once('/') {
+            match (n.parse::<i128>(), d.parse::<i128>()) {
+                (Ok(n), Ok(d)) => match Rational::new(n, d) {
+                    Some(r) => buckets.push(concert::Bucket::Ratio(r)),
+                    None => {
+                        eprintln!("error: bucket '{}' has zero denominator", tok);
+                        return ExitCode::from(2);
+                    }
+                },
+                _ => {
+                    eprintln!("error: bucket '{}' is not a valid a/b ratio", tok);
+                    return ExitCode::from(2);
+                }
+            }
+        } else {
+            match canon::ingest(tok) {
+                Ok(i) => buckets.push(concert::Bucket::Bits(i.bits().to_string())),
+                Err(e) => {
+                    eprintln!("error: bucket '{}': {}", tok, e);
+                    return ExitCode::from(2);
+                }
+            }
+        }
+    }
+    match concert::concert_blid(&buckets, opts.key.as_deref()) {
+        Ok(blid) => {
+            if opts.blid_only {
+                println!("{}", blid.short());
+            } else {
+                println!(
+                    "{}",
+                    theme.bold(&format!("concert of {} buckets", buckets.len()))
+                );
+                println!("BLID: {}", theme.green(blid.short()));
+                println!(
+                    "{}",
+                    theme.dim("all bits work in concert; dimensions reconciled via LCM")
+                );
+            }
+            ExitCode::SUCCESS
+        }
+        Err(e) => {
+            eprintln!("error: {}", e);
+            ExitCode::from(2)
+        }
     }
 }
 
