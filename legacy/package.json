@@ -16,7 +16,11 @@
   "author": "Ed Garzaro",
   "license": "Apache-2.0",
   "devDependencies": {
-    "mocha": "^11.7.6",
-    "chai": "^4.3.4"
+    "chai": "^4.3.4",
+    "mocha": "^11.7.6"
+  },
+  "overrides": {
+    "diff": "^8.0.3",
+    "serialize-javascript": "^7.0.5"
   }
 }
