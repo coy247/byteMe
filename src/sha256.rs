@@ -152,7 +152,8 @@ mod tests {
 
 /// HMAC-SHA256 (RFC 2104). Used for keyed BLIDs: a keyed digest reveals
 /// nothing about its content to anyone who lacks the key — unlike a bare
-/// hash, it cannot be brute-forced from low-entropy preimages.
+/// hash, it cannot be recovered by exhaustive search from low-entropy
+/// preimages.
 /// Correctness gated by the RFC 4231 vectors in the test module.
 pub fn hmac(key: &[u8], message: &[u8]) -> [u8; 32] {
     const BLOCK: usize = 64;
