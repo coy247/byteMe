@@ -1,0 +1,234 @@
+//! Output formatting. Two modes:
+//!   - formal: clean Unicode-bordered tables, intentional color, learnable
+//!   - json:   stable machine-readable JSON
+
+use crate::binary::BinaryAnalysis;
+use crate::metrics::Metrics;
+use crate::patterns::{PatternKind, PatternReport};
+
+pub struct Theme {
+    pub color: bool,
+}
+
+impl Theme {
+    pub fn fmt(&self, code: &str, body: &str) -> String {
+        if self.color {
+            format!("\x1b[{}m{}\x1b[0m", code, body)
+        } else {
+            body.to_string()
+        }
+    }
+    pub fn dim(&self, s: &str) -> String {
+        self.fmt("2", s)
+    }
+    pub fn bold(&self, s: &str) -> String {
+        self.fmt("1", s)
+    }
+    pub fn cyan(&self, s: &str) -> String {
+        self.fmt("36", s)
+    }
+    pub fn green(&self, s: &str) -> String {
+        self.fmt("32", s)
+    }
+    pub fn yellow(&self, s: &str) -> String {
+        self.fmt("33", s)
+    }
+}
+
+pub fn format_report(
+    input: &str,
+    binary: &str,
+    analysis: &BinaryAnalysis,
+    metrics: &Metrics,
+    patterns: &PatternReport,
+    verbose: bool,
+    theme: &Theme,
+) -> String {
+    let mut out = String::new();
+    let width = 60;
+    let border = "═".repeat(width - 2);
+
+    out.push_str(&theme.cyan(&format!("╔{}╗\n", border)));
+    out.push_str(&theme.cyan(&format!(
+        "║ {:<w$} ║\n",
+        theme.bold("ByteMe Analysis"),
+        w = width - 4 + theme.bold("ByteMe Analysis").len() - "ByteMe Analysis".len()
+    )));
+    out.push_str(&theme.cyan(&format!("╠{}╣\n", border)));
+
+    let show_bin = if binary.len() > 48 {
+        format!("{}…", &binary[..48])
+    } else {
+        binary.to_string()
+    };
+    out.push_str(&row(theme, "Input", input, width));
+    out.push_str(&row(theme, "Binary", &show_bin, width));
+    out.push_str(&row(
+        theme,
+        "Length",
+        &format!("{} bits", analysis.length),
+        width,
+    ));
+    out.push_str(&theme.cyan(&format!("╟{}╢\n", "─".repeat(width - 2))));
+
+    out.push_str(&row(
+        theme,
+        "Ones / Zeros",
+        &format!("{} / {}", analysis.ones, analysis.zeros),
+        width,
+    ));
+    out.push_str(&row(
+        theme,
+        "Ratio (1:0)",
+        &format_ratio(analysis.ratio),
+        width,
+    ));
+    out.push_str(&row(
+        theme,
+        "Entropy",
+        &format!("{:.4} bits", metrics.entropy),
+        width,
+    ));
+    out.push_str(&row(
+        theme,
+        "Longest run",
+        &format!("{} bits", metrics.longest_run),
+        width,
+    ));
+    out.push_str(&row(
+        theme,
+        "Distinct runs",
+        &format!("{}", metrics.runs),
+        width,
+    ));
+    out.push_str(&row(
+        theme,
+        "Alternating?",
+        if metrics.alternating { "yes" } else { "no" },
+        width,
+    ));
+    out.push_str(&row(
+        theme,
+        "Burstiness",
+        &format!("{:.4}", metrics.burstiness),
+        width,
+    ));
+    out.push_str(&row(
+        theme,
+        "Classification",
+        format_kind(&patterns.classification),
+        width,
+    ));
+
+    out.push_str(&theme.cyan(&format!("╚{}╝\n", border)));
+
+    if verbose {
+        out.push('\n');
+        out.push_str(&theme.bold("What these numbers mean\n"));
+        out.push_str(&theme.dim("  Entropy "));
+        out.push_str("near 1.0 = maximally unpredictable; near 0 = constant.\n");
+        out.push_str(&theme.dim("  Longest run "));
+        out.push_str("flags streaks (e.g. a long string of 1s).\n");
+        out.push_str(&theme.dim("  Distinct runs "));
+        out.push_str("counts how many times the bit flips, plus one.\n");
+        out.push_str(&theme.dim("  Burstiness "));
+        out.push_str("0 ≈ evenly mixed; closer to 1 = clumped.\n");
+        out.push_str(&theme.dim("  Classification "));
+        out.push_str("informs the predictor; 'mixed' is the interesting case.\n");
+    }
+
+    let one_liner = theme.green(&format!(
+        "→ {} input, classification: {}, entropy {:.2}\n",
+        if analysis.length < 16 {
+            "short"
+        } else {
+            "useful"
+        },
+        format_kind(&patterns.classification),
+        metrics.entropy
+    ));
+    out.push('\n');
+    out.push_str(&one_liner);
+    out
+}
+
+fn row(theme: &Theme, label: &str, value: &str, width: usize) -> String {
+    let inner = width - 4;
+    let label_w = 16;
+    let value_w = inner.saturating_sub(label_w + 1);
+    let v = truncate(value, value_w);
+    let padded = format!("{:<lw$} {:<vw$}", label, v, lw = label_w, vw = value_w);
+    theme.cyan(&format!("║ {} ║\n", padded))
+}
+
+fn truncate(s: &str, n: usize) -> String {
+    if s.chars().count() <= n {
+        s.to_string()
+    } else {
+        let mut out: String = s.chars().take(n.saturating_sub(1)).collect();
+        out.push('…');
+        out
+    }
+}
+
+fn format_ratio(r: f64) -> String {
+    if r.is_infinite() {
+        "∞ (all ones)".to_string()
+    } else if r == 0.0 {
+        "0 (no ones)".to_string()
+    } else {
+        format!("{:.3}", r)
+    }
+}
+
+fn format_kind(k: &PatternKind) -> &'static str {
+    match k {
+        PatternKind::Alternating => "alternating",
+        PatternKind::RunBased => "run-based",
+        PatternKind::Mixed => "mixed",
+        PatternKind::TooShort => "too short",
+    }
+}
+
+pub fn format_json(
+    input: &str,
+    binary: &str,
+    analysis: &BinaryAnalysis,
+    metrics: &Metrics,
+    patterns: &PatternReport,
+) -> String {
+    // Hand-rolled to avoid pulling in serde for this initial cut.
+    let ratio = if analysis.ratio.is_infinite() {
+        "null".to_string()
+    } else {
+        format!("{}", analysis.ratio)
+    };
+    let occ: Vec<String> = patterns
+        .occurrences
+        .iter()
+        .map(|(k, v)| format!("    \"{}\": {}", escape_json(k), v))
+        .collect();
+
+    format!(
+        "{{\n  \"input\": \"{}\",\n  \"binary\": \"{}\",\n  \"length\": {},\n  \"ones\": {},\n  \"zeros\": {},\n  \"ratio\": {},\n  \"entropy\": {},\n  \"longest_run\": {},\n  \"runs\": {},\n  \"alternating\": {},\n  \"burstiness\": {},\n  \"classification\": \"{}\",\n  \"occurrences\": {{\n{}\n  }}\n}}\n",
+        escape_json(input),
+        binary,
+        analysis.length,
+        analysis.ones,
+        analysis.zeros,
+        ratio,
+        metrics.entropy,
+        metrics.longest_run,
+        metrics.runs,
+        metrics.alternating,
+        metrics.burstiness,
+        format_kind(&patterns.classification),
+        occ.join(",\n"),
+    )
+}
+
+fn escape_json(s: &str) -> String {
+    s.replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n")
+}

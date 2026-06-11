@@ -55,6 +55,11 @@ $RECYCLE.BIN/
 notes/
 output/
 
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock.bak
+
 # Testing and Coverage
 coverage/
 .nyc_output/
