@@ -169,3 +169,4 @@ _site/
 .session/
 odysseus/*
 !odysseus/*.invitation.md
+!odysseus/*.convergence.md
