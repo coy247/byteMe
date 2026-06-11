@@ -16,6 +16,7 @@ pub mod blid;
 pub mod canon;
 pub mod cli;
 pub mod concert;
+pub mod contact;
 pub mod encode;
 pub mod hydro;
 pub mod intro;

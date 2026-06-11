@@ -15,6 +15,8 @@ pub struct Options {
     pub walk: bool,
     /// Join multiple whitespace-separated buckets into one concert BLID.
     pub concert: bool,
+    /// Run the Contact reading over the embedded study.
+    pub contact: bool,
     /// Secret for keyed (HMAC) BLIDs. None = public commitment mode.
     pub key: Option<String>,
     /// Send the analysis to the local Llama narrator endpoint.
@@ -47,6 +49,7 @@ pub fn parse(args: impl IntoIterator<Item = String>) -> Options {
             "--loop" => opts.interloop = true,
             "--walk" | "--h2o" => opts.walk = true,
             "--concert" => opts.concert = true,
+            "--contact" => opts.contact = true,
             "--key" => match args.next() {
                 Some(k) => opts.key = Some(k),
                 None => opts.key_missing_value = true,
@@ -117,6 +120,11 @@ OPTIONS
                       (reduced to lowest terms; rationals are lifted onto
                       the LCM of their denominators only where they
                       differ). Combine with --blid / --key.
+      --contact       Read the embedded study the way the film Contact
+                      decodes a signal: the prime handshake, then the
+                      Primer assembled across dimensions (entries fold as
+                      a hypercube). Honest — no invented message. Combine
+                      with --blid / --key.
       --narrate       Send the analysis to a local Llama narrator
                       (Ollama on your own hardware) and print its plain-
                       language narration. Decoration: analysis never
