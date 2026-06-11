@@ -7,6 +7,19 @@ use std::io::{self, Write};
 use std::thread;
 use std::time::{Duration, Instant};
 
+/// True when BYTEME_INTRO_FAST is set: every pause collapses to zero so
+/// tests (and impatient operators) get the full sequence instantly.
+fn fast() -> bool {
+    std::env::var_os("BYTEME_INTRO_FAST").is_some()
+}
+
+/// Sleep unless fast mode is on.
+fn nap(ms: u64) {
+    if !fast() {
+        thread::sleep(Duration::from_millis(ms));
+    }
+}
+
 const RESET: &str = "\x1b[0m";
 const GREEN: &str = "\x1b[32m";
 const CYAN: &str = "\x1b[36m";
@@ -124,7 +137,7 @@ fn type_out(text: &str, delay_ms: u64) {
     for ch in text.chars() {
         let _ = write!(out, "{}", ch);
         let _ = out.flush();
-        thread::sleep(Duration::from_millis(delay_ms));
+        nap(delay_ms);
     }
     let _ = writeln!(out);
 }
@@ -177,7 +190,7 @@ fn play_matrix_effect(duration: Duration) {
         }
         print!("{}{}", CURSOR_START, line);
         let _ = io::stdout().flush();
-        thread::sleep(Duration::from_millis(50));
+        nap(50);
     }
     print!("\x1Bc{}", SHOW_CURSOR); // clear screen, restore cursor
     let _ = io::stdout().flush();
@@ -208,13 +221,13 @@ fn simulate_retro_app() {
         );
         let _ = io::stdout().flush();
         progress = (progress + 1 + (rng.range(3) as u32)).min(100);
-        thread::sleep(Duration::from_millis(100));
+        nap(100);
     }
     println!(
         "{}{}{}✓ {} {}{}",
         CLEAR_LINE, CURSOR_START, GREEN, app.name, msg, RESET
     );
-    thread::sleep(Duration::from_millis(1500));
+    nap(1500);
     print!("{}", SHOW_CURSOR);
     let _ = io::stdout().flush();
 }
@@ -222,15 +235,15 @@ fn simulate_retro_app() {
 fn play_boot_sequence() {
     for msg in BIOS_LINES {
         type_out(&format!("{}[BOOT] {}{}", CYAN, msg, RESET), 25);
-        thread::sleep(Duration::from_millis(200));
+        nap(200);
     }
     for (idx, sys) in SUBSYSTEMS.iter().enumerate() {
         let progress = (idx + 1) as f64 / SUBSYSTEMS.len() as f64;
         print!("{}Initializing {}... {}", YELLOW, sys, RESET);
         let _ = io::stdout().flush();
-        thread::sleep(Duration::from_millis(400));
+        nap(400);
         println!("{}", loading_bar(progress, 30));
-        thread::sleep(Duration::from_millis(150));
+        nap(150);
         println!("{}✓ {} Online{}", GREEN, sys, RESET);
     }
 }
@@ -254,14 +267,14 @@ pub fn play() {
         &format!("{}Welcome to ByteMe Analysis System{}", YELLOW, RESET),
         30,
     );
-    thread::sleep(Duration::from_millis(300));
+    nap(300);
 
-    play_matrix_effect(Duration::from_millis(2500));
+    play_matrix_effect(Duration::from_millis(if fast() { 0 } else { 2500 }));
     simulate_retro_app();
     play_boot_sequence();
 
     type_out(&format!("{}System Ready{}", GREEN, RESET), 20);
-    thread::sleep(Duration::from_millis(600));
+    nap(600);
     print!("\x1Bc");
     let _ = io::stdout().flush();
 }
