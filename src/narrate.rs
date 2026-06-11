@@ -1,17 +1,26 @@
 //! Local-LLM narrator: send the analysis to a Meta Llama model served on
-//! the operator's own hardware (LM Studio / Ollama on Apple Silicon) via
-//! the OpenAI-compatible chat-completions endpoint, and print the
-//! returned narration.
+//! the operator's own hardware (Ollama on Apple Silicon — lightweight
+//! daemon, not a GUI app) via the OpenAI-compatible chat-completions
+//! endpoint, and print the returned narration.
 //!
 //! Design constraints, in order:
-//! - **Local-only by intent.** Default endpoint is LM Studio's
-//!   `http://localhost:1234/v1/chat/completions`. Nothing is sent
-//!   anywhere unless the operator passes `--narrate`; the analysis never
-//!   requires it. Narration is decoration, exactly like the retro intro.
+//! - **Local-only by default.** Default endpoint is Ollama's
+//!   `http://localhost:11434/v1/chat/completions` — chosen over LM
+//!   Studio (a memory-hungry Electron app that slows the host machine).
+//!   Nothing is sent anywhere unless the operator passes `--narrate`;
+//!   the analysis never requires it. Narration is decoration, exactly
+//!   like the retro intro.
+//! - **Cloud-capable when needed.** `--endpoint <url>` or
+//!   `BYTEME_NARRATOR` point at any OpenAI-compatible endpoint
+//!   (api.openai.com, Anthropic-compatible proxies, etc.). Local is the
+//!   default because cloud is rarely necessary for narration.
 //! - **Zero dependencies.** A hand-rolled HTTP/1.1 client over
 //!   `std::net::TcpStream` — plain `http://` only, which is correct for
-//!   a loopback endpoint (TLS would add a dependency to encrypt traffic
-//!   to the same machine).
+//!   a loopback endpoint. Cloud endpoints typically require `https://`,
+//!   which this client deliberately rejects: TLS would pull in a
+//!   dependency just to talk to a remote service that is itself optional.
+//!   If you need cloud, terminate TLS locally (a tiny proxy on
+//!   loopback) and point `--endpoint` at that.
 //! - **Graceful offline.** If the narrator is unreachable the analysis
 //!   still succeeds (exit 0) and stderr reports
 //!   `narrator offline — narration unavailable`, echoing the dashboard
@@ -26,7 +35,7 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::time::Duration;
 
-pub const DEFAULT_ENDPOINT: &str = "http://localhost:1234/v1/chat/completions";
+pub const DEFAULT_ENDPOINT: &str = "http://localhost:11434/v1/chat/completions";
 pub const ENDPOINT_ENV: &str = "BYTEME_NARRATOR";
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
@@ -266,7 +275,7 @@ pub fn narrate(endpoint_url: &str, summary: &str) -> Result<String, NarrateError
         .ok_or_else(|| NarrateError::Protocol("no content field in response".into()))
 }
 
-/// Resolve the endpoint: explicit flag > env var > LM Studio default.
+/// Resolve the endpoint: explicit flag > env var > Ollama default.
 pub fn resolve_endpoint(flag: Option<&str>) -> String {
     if let Some(e) = flag {
         return e.to_string();
@@ -336,5 +345,17 @@ mod tests {
         assert_eq!(resolve_endpoint(None), {
             std::env::var(ENDPOINT_ENV).unwrap_or_else(|_| DEFAULT_ENDPOINT.to_string())
         });
+    }
+
+    #[test]
+    fn default_endpoint_is_ollama_not_lm_studio() {
+        // Pinned: the default targets Ollama's lightweight daemon (port
+        // 11434), NOT LM Studio (port 1234, GUI app, RAM-hungry).
+        // Changing this default is a deliberate decision: update the
+        // operator-facing docs in the same commit.
+        let e = parse_endpoint(DEFAULT_ENDPOINT).unwrap();
+        assert_eq!(e.port, 11434, "default must point at Ollama");
+        assert_eq!(e.host, "localhost");
+        assert_eq!(e.path, "/v1/chat/completions");
     }
 }

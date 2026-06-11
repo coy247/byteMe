@@ -1,8 +1,8 @@
 //! Narrator integration — complete-solution tests. The test spins its
 //! own OpenAI-compatible mock server on a loopback port; nobody needs a
-//! real LM Studio running, here or in CI. When the operator's Apple
-//! Silicon box has Llama up, the same code path lights up against the
-//! real endpoint.
+//! real Ollama running, here or in CI. When the operator's Apple
+//! Silicon box has `ollama serve` up, the same code path lights up
+//! against the real endpoint with no changes.
 
 use std::io::{Read, Write};
 use std::net::TcpListener;

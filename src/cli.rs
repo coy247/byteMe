@@ -109,12 +109,15 @@ OPTIONS
                       weighted as oxygen (x-2) against hydrogen (x+1) so
                       constant signals neutralize to zero like H2O
       --narrate       Send the analysis to a local Llama narrator
-                      (LM Studio / Ollama on your own hardware) and print
-                      its plain-language narration. Decoration: analysis
-                      never depends on it; offline degrades gracefully.
-      --endpoint <url> Narrator endpoint (default LM Studio:
-                      http://localhost:1234/v1/chat/completions;
-                      env BYTEME_NARRATOR also respected)
+                      (Ollama on your own hardware) and print its plain-
+                      language narration. Decoration: analysis never
+                      depends on it; offline degrades gracefully.
+      --endpoint <url> Narrator endpoint. Default is Ollama:
+                      http://localhost:11434/v1/chat/completions.
+                      Env BYTEME_NARRATOR also respected. Cloud-capable
+                      via any OpenAI-compatible HTTP endpoint (see
+                      narrate module docs for the TLS-via-local-proxy
+                      pattern if you need https).
       --no-color      Disable ANSI colors (auto-off when not a TTY)
 
 EXAMPLES
