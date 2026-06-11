@@ -81,8 +81,18 @@ gpush() {
 # ── Phase 0: environment ────────────────────────────────────────────
 banner 0 "environment"
 for t in git cargo; do command -v "$t" >/dev/null || to_gladys 0 "command -v $t" "$t not found in PATH" error; done
+# Repo IDENTITY check — refuse to run anywhere but a byteMe clone with
+# the local publication branches. (Lesson from the 2026-06-11 Gladys
+# report: the script was executed inside booLang-hardening and failed at
+# cargo fmt with a confusing error. Wrong tree must fail here, clearly.)
+[ -f Cargo.toml ] && grep -q '^name = "byteme"' Cargo.toml \
+  || to_gladys 0 "repo identity" "This is not a byteMe clone: $(pwd) has no Cargo.toml with name=\"byteme\". cd into the byteMe clone that holds the local branches (develop, main, archive/*) and re-run." error
+for b in develop main; do
+  git show-ref --verify --quiet "refs/heads/$b" \
+    || to_gladys 0 "repo identity" "Local branch '$b' missing — this clone does not carry the publication state. Use the clone where the work was prepared." error
+done
 git ls-remote "$REMOTE" HEAD >/dev/null 2>&1 || to_gladys 0 "git ls-remote $REMOTE" "remote unreachable" error
-echo "  ✓ git, cargo present; $REMOTE readable"
+echo "  ✓ byteMe clone confirmed; git, cargo present; $REMOTE readable"
 
 # ── Phase 1: quality gate ───────────────────────────────────────────
 banner 1 "quality gate (postflight)"

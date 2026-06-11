@@ -49,6 +49,15 @@ push() {
   done
 }
 
+# ---- 0. repo identity (lesson from the Gladys report 2026-06-11) ----
+say "repo identity"
+[ -f Cargo.toml ] && grep -q '^name = "byteme"' Cargo.toml || {
+  echo "  ✗ not a byteMe clone: $(pwd). cd into the byteMe clone with the"
+  echo "    local branches (develop, main, archive/*) and re-run."; exit 2; }
+git show-ref --verify --quiet refs/heads/develop || {
+  echo "  ✗ local branch 'develop' missing — wrong clone."; exit 2; }
+echo "  ✓ byteMe clone confirmed"
+
 # ---- 1. quality gate ----
 say "quality gate"
 if ! bash verify/postflight.sh; then
