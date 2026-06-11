@@ -1,5 +1,7 @@
 # ByteMe 🔍
 
+[![CI](https://github.com/coy247/byteMe/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/coy247/byteMe/actions/workflows/ci.yml)
+
 > Empowering data exploration through binary analysis
 
 A playful and powerful tool for analyzing binary string patterns, decoding the mysteries hidden within your data.
