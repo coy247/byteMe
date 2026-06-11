@@ -12,12 +12,15 @@
 //!   not a bug)
 
 pub mod binary;
+pub mod blid;
 pub mod cli;
 pub mod encode;
+pub mod interloop;
 pub mod intro;
 pub mod metrics;
 pub mod output;
 pub mod patterns;
+pub mod sha256;
 
 pub use binary::{BinaryAnalysis, BinaryModel};
 

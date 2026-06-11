@@ -1,7 +1,8 @@
 use byteme::{
     binary::BinaryModel,
+    blid::Blid,
     cli::{self, Options, HELP_TEXT},
-    encode, intro, metrics,
+    encode, interloop, intro, metrics,
     output::{self, Theme},
     patterns, VERSION,
 };
@@ -42,6 +43,16 @@ fn main() -> ExitCode {
         color: !opts.no_color,
     };
 
+    if opts.interloop {
+        let run = interloop::study_run();
+        if opts.json {
+            print!("{}", output::format_loop_json(&run));
+        } else {
+            print!("{}", output::format_loop_table(&run, &theme));
+        }
+        return ExitCode::SUCCESS;
+    }
+
     if opts.demo {
         for input in DEMO_INPUTS {
             match run_once(input, &opts, &theme) {
@@ -75,6 +86,11 @@ fn run_once(input: &str, opts: &Options, theme: &Theme) -> Result<(), ExitCode> 
         );
         return Err(ExitCode::from(2));
     };
+
+    if opts.blid_only {
+        println!("{}", Blid::of_binary(&binary).short());
+        return Ok(());
+    }
     let m = metrics::compute(&binary);
     let p = patterns::report(&binary);
 

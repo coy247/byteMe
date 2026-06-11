@@ -3,6 +3,8 @@
 //!   - json:   stable machine-readable JSON
 
 use crate::binary::BinaryAnalysis;
+use crate::blid::Blid;
+use crate::interloop::LoopRun;
 use crate::metrics::Metrics;
 use crate::patterns::{PatternKind, PatternReport};
 
@@ -119,6 +121,7 @@ pub fn format_report(
         format_kind(&patterns.classification),
         width,
     ));
+    out.push_str(&row(theme, "BLID", Blid::of_binary(binary).short(), width));
 
     out.push_str(&theme.cyan(&format!("╚{}╝\n", border)));
 
@@ -209,8 +212,9 @@ pub fn format_json(
         .map(|(k, v)| format!("    \"{}\": {}", escape_json(k), v))
         .collect();
 
+    let blid = Blid::of_binary(binary);
     format!(
-        "{{\n  \"input\": \"{}\",\n  \"binary\": \"{}\",\n  \"length\": {},\n  \"ones\": {},\n  \"zeros\": {},\n  \"ratio\": {},\n  \"entropy\": {},\n  \"longest_run\": {},\n  \"runs\": {},\n  \"alternating\": {},\n  \"burstiness\": {},\n  \"classification\": \"{}\",\n  \"occurrences\": {{\n{}\n  }}\n}}\n",
+        "{{\n  \"input\": \"{}\",\n  \"binary\": \"{}\",\n  \"length\": {},\n  \"ones\": {},\n  \"zeros\": {},\n  \"ratio\": {},\n  \"entropy\": {},\n  \"longest_run\": {},\n  \"runs\": {},\n  \"alternating\": {},\n  \"burstiness\": {},\n  \"classification\": \"{}\",\n  \"blid\": \"{}\",\n  \"blid_sha256\": \"{}\",\n  \"occurrences\": {{\n{}\n  }}\n}}\n",
         escape_json(input),
         binary,
         analysis.length,
@@ -223,7 +227,62 @@ pub fn format_json(
         metrics.alternating,
         metrics.burstiness,
         format_kind(&patterns.classification),
+        blid.short(),
+        blid.full(),
         occ.join(",\n"),
+    )
+}
+
+/// Format an interdimensional loop run as a table.
+pub fn format_loop_table(run: &LoopRun, theme: &Theme) -> String {
+    let mut out = String::new();
+    out.push_str(&theme.bold("Interdimensional loop import — booLang-hardening study\n"));
+    out.push_str(
+        &theme
+            .dim("  idx  vector            density   entropy   scalar        weighted      blid\n"),
+    );
+    for e in &run.entries {
+        out.push_str(&format!(
+            "  {:>3}  {:>8}/{:<8} {:>8.5}  {:>8.5}  {:>12}  {:>12.5}  {}\n",
+            e.index,
+            e.a,
+            e.b,
+            e.density,
+            e.entropy,
+            format!("{}", e.scalar),
+            e.weighted,
+            theme.green(&e.blid_short),
+        ));
+    }
+    out.push('\n');
+    out.push_str(&theme.bold(&format!(
+        "run BLID: {}  ({} entries)\n",
+        theme.green(&run.run_blid_short),
+        run.entries.len()
+    )));
+    out.push_str(
+        &theme.dim("two independent imports of the same study converge on this run BLID\n"),
+    );
+    out
+}
+
+/// Format an interdimensional loop run as JSON.
+pub fn format_loop_json(run: &LoopRun) -> String {
+    let entries: Vec<String> = run
+        .entries
+        .iter()
+        .map(|e| {
+            format!(
+                "    {{\"index\": {}, \"vector\": [{}, {}], \"scalar\": {}, \"density\": {}, \"entropy\": {}, \"weighted\": {}, \"blid\": \"{}\"}}",
+                e.index, e.a, e.b, e.scalar, e.density, e.entropy, e.weighted, e.blid_short
+            )
+        })
+        .collect();
+    format!(
+        "{{\n  \"study\": \"booLang-hardening interdimensional loop\",\n  \"run_blid\": \"{}\",\n  \"run_blid_sha256\": \"{}\",\n  \"entries\": [\n{}\n  ]\n}}\n",
+        run.run_blid_short,
+        run.run_blid_full,
+        entries.join(",\n")
     )
 }
 

@@ -10,6 +10,8 @@ pub struct Options {
     pub verbose: bool,
     pub demo: bool,
     pub no_color: bool,
+    pub blid_only: bool,
+    pub interloop: bool,
     pub input: Option<String>,
     pub unknown: Vec<String>,
 }
@@ -27,6 +29,8 @@ pub fn parse(args: impl IntoIterator<Item = String>) -> Options {
             "--verbose" | "-v" => opts.verbose = true,
             "--demo" => opts.demo = true,
             "--no-color" => opts.no_color = true,
+            "--blid" => opts.blid_only = true,
+            "--loop" => opts.interloop = true,
             s if s.starts_with("--") => opts.unknown.push(tok),
             s if s.starts_with('-')
                 && s.len() > 1
@@ -65,6 +69,12 @@ OPTIONS
       --json          Emit machine-readable JSON (implies --no-color)
   -v, --verbose       Include per-metric educational notes
       --demo          Run against a built-in fixture set instead of <input>
+      --blid          Print only the BLID (content-addressed ID) of the
+                      input's normalized bits — pipe-friendly
+      --loop          Import the embedded interdimensional-loop study set
+                      (32 vector/scalar pairs from booLang-hardening) and
+                      report density, entropy, weighted score and BLID per
+                      entry plus a collective run BLID
       --no-color      Disable ANSI colors (auto-off when not a TTY)
 
 EXAMPLES
@@ -72,7 +82,16 @@ EXAMPLES
   byteme Hi                        auto-encode \"Hi\" → bits, then analyze
   byteme --verbose 11110000        analysis + plain-language explanations
   byteme --json 10101010 | jq .    pipe-safe JSON output
+  byteme --blid Hi                 just the content-addressed ID
+  byteme --loop --json             the loop study as JSON
   byteme --retro --demo            full retro showcase with fixtures
+
+BLIDs
+  A BLID identifies the *content* of an analysis: it is a versioned
+  sha256 over the normalized bits. Two independent routes to the same
+  bits converge on the same BLID — `byteme --blid Hi` equals
+  `byteme --blid 0100100001101001`. Use BLIDs to deduplicate receipts,
+  key caches, and verify that independent pipelines agree.
 
 EXIT CODES
   0    success
