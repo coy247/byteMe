@@ -570,3 +570,22 @@ fn concert_rejects_bad_ratio() {
     assert_eq!(code, 2);
     assert!(stderr.contains("zero denominator"));
 }
+
+#[test]
+fn retro_alone_is_the_standalone_introduction() {
+    // `byteme --retro` with no input plays the intro and exits 0 —
+    // the Rust heir of `npm run intro`. (Animation runs ~10s; the
+    // BYTEME_INTRO_FAST env keeps tests quick.)
+    let out = Command::new(env!("CARGO_BIN_EXE_byteme"))
+        .env("BYTEME_INTRO_FAST", "1")
+        .args(["--retro"])
+        .output()
+        .expect("binary runs");
+    assert_eq!(out.status.code(), Some(0), "intro alone must exit clean");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        !stderr.contains("no input"),
+        "must not demand input:\n{}",
+        stderr
+    );
+}
