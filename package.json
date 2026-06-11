@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "intro": "node src/intro.js",
     "test": "mocha tests/ --recursive"
   },
   "keywords": [
