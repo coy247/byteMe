@@ -228,11 +228,11 @@ fn prop_analyze_some_iff_validate() {
 #[test]
 fn stress_hundred_thousand_bits_completes() {
     let mut rng = Lcg::new(SEED);
-    let big = random_binary(&mut rng, 1);
-    let big: String = std::iter::repeat(big).take(100_000).collect::<String>();
-    let big = &big[..100_000.min(big.len())];
-    let a = BinaryModel::new(big).analyze().unwrap();
+    let big: String = (0..100_000)
+        .map(|_| if rng.next() & 1 == 0 { '0' } else { '1' })
+        .collect();
+    let a = BinaryModel::new(big.clone()).analyze().unwrap();
     assert_eq!(a.length, big.len());
-    let _ = metrics::compute(big);
-    let _ = patterns::report(big);
+    let _ = metrics::compute(&big);
+    let _ = patterns::report(&big);
 }

@@ -149,7 +149,7 @@ impl<'a> Json<'a> {
     }
     fn number(&mut self) -> bool {
         let start = self.i;
-        if self.eat(b'-') {}
+        let _ = self.eat(b'-');
         while self.peek().is_some_and(|c| c.is_ascii_digit()) {
             self.i += 1;
         }
