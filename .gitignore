@@ -6,7 +6,6 @@
 node_modules/
 .pnpm-store/
 .yarn/
-package-lock.json
 pnpm-lock.yaml
 .yarnrc
 .npmrc
@@ -48,10 +47,13 @@ $RECYCLE.BIN/
 *.lnk
 
 # Project Specific
-archive/
-models/model.json
-model.json
+# Note: archive/ is intentionally tracked — it holds historical reference code.
+# Only the root-level generated model.json files are ignored; the seed at
+# models/patterns/model.json is tracked.
+/model.json
+/models/model.json
 notes/
+output/
 
 # Testing and Coverage
 coverage/
