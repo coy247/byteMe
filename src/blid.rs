@@ -73,7 +73,7 @@ impl Blid {
     ///
     /// An UNKEYED blid is a public commitment — anyone can verify it, and
     /// for low-entropy content anyone can also recover the content by
-    /// brute force (hash "8", compare, done). It is NOT private. A keyed
+    /// exhaustive search (hash "8", compare, done). It is NOT private. A keyed
     /// blid reveals nothing without the key, while two parties sharing
     /// the key still converge route-independently.
     pub fn keyed_of_binary(key: &str, binary: &str) -> Self {
@@ -156,7 +156,7 @@ mod keyed_tests {
     #[test]
     fn keyed_differs_from_unkeyed() {
         let plain = Blid::of_binary("0101");
-        let keyed = Blid::keyed_of_binary("secreto", "0101");
+        let keyed = Blid::keyed_of_binary("example-demo-key", "0101");
         assert_ne!(plain, keyed);
     }
 

@@ -101,8 +101,8 @@ expect("int 8 BLID", blid("int/v1\n8"), "6979745b5e222ca3");
 // 5. Keyed exchange: HMAC route (OpenSSL) vs the Rust hand-rolled HMAC.
 expect(
   "keyed study run BLID",
-  blidKeyed("nuestra-llave-secreta", runRecord),
-  "5e0f6c6ee958b0f2"
+  blidKeyed("example-demo-key-not-a-secret", runRecord),
+  "61f9677de91ede0d"
 );
 
 // Report.

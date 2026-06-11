@@ -102,7 +102,7 @@ OPTIONS
                       with --loop for the study's run BLID alone.
       --key <secret>  Keyed BLID (HMAC-SHA256). An unkeyed BLID is a
                       PUBLIC commitment: low-entropy content can be
-                      brute-forced from it. With a shared key, two
+                      recovered by exhaustive search from it. With a shared key, two
                       parties still converge but the BLID reveals
                       nothing to anyone else.
       --loop          Import the embedded interdimensional-loop study set

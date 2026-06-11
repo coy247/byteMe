@@ -43,8 +43,8 @@ fn rust_live_values_match_the_pins_the_script_checks() {
     assert_eq!(&run.entries[27].blid_short, "f6c7ac5502994802");
     assert_eq!(&run.entries[31].blid_short, "56f094049c87410a");
     assert_eq!(
-        run.keyed_run_blid("nuestra-llave-secreta").short(),
-        "5e0f6c6ee958b0f2"
+        run.keyed_run_blid("example-demo-key-not-a-secret").short(),
+        "61f9677de91ede0d"
     );
     assert_eq!(
         canon::ingest("8").unwrap().blid().short(),
