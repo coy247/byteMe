@@ -15,15 +15,17 @@ pub mod binary;
 pub mod blid;
 pub mod canon;
 pub mod cli;
+pub mod concert;
 pub mod encode;
 pub mod hydro;
-pub mod interloop;
 pub mod intro;
 pub mod metrics;
 pub mod narrate;
 pub mod output;
 pub mod patterns;
+pub mod rational;
 pub mod sha256;
+pub mod study;
 
 pub use binary::{BinaryAnalysis, BinaryModel};
 

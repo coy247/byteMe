@@ -330,7 +330,7 @@ fn loop_study_run_blid_pinned() {
     let (code, stdout, _) = run(&["--loop", "--no-color"]);
     assert_eq!(code, 0);
     assert!(
-        stdout.contains("55669eccbbfc4cfa"),
+        stdout.contains("ed4cd25fcbfab234"),
         "run BLID drifted:\n{}",
         stdout
     );
@@ -343,7 +343,7 @@ fn loop_json_is_valid_and_complete() {
     assert_eq!(code, 0);
     assert!(is_valid_json(&stdout), "invalid JSON:\n{}", stdout);
     assert_eq!(stdout.matches("\"index\":").count(), 32);
-    assert!(stdout.contains("\"run_blid\": \"55669eccbbfc4cfa\""));
+    assert!(stdout.contains("\"run_blid\": \"ed4cd25fcbfab234\""));
 }
 
 #[test]
@@ -499,7 +499,7 @@ fn loop_blid_compact_exchange_is_one_line() {
     // The entire message to another implementation: 16 hex chars.
     let (code, stdout, _) = run(&["--loop", "--blid"]);
     assert_eq!(code, 0);
-    assert_eq!(stdout.trim(), "55669eccbbfc4cfa");
+    assert_eq!(stdout.trim(), "ed4cd25fcbfab234");
     assert_eq!(stdout.lines().count(), 1);
 }
 
@@ -530,4 +530,43 @@ fn key_without_value_is_usage_error() {
     let (code, _, stderr) = run(&["--blid", "8", "--key"]);
     assert_eq!(code, 1);
     assert!(stderr.contains("--key requires a value"));
+}
+
+// ---------- concert (multi-bucket identity) ----------
+
+#[test]
+fn concert_joins_buckets_into_one_blid() {
+    let (code, stdout, _) = run(&["--concert", "--blid", "0101 1010"]);
+    assert_eq!(code, 0);
+    assert_eq!(stdout.trim().len(), 16);
+    assert!(stdout.trim().chars().all(|c| c.is_ascii_hexdigit()));
+}
+
+#[test]
+fn concert_order_changes_identity() {
+    let (_, ab, _) = run(&["--concert", "--blid", "0101 1010"]);
+    let (_, ba, _) = run(&["--concert", "--blid", "1010 0101"]);
+    assert_ne!(ab, ba);
+}
+
+#[test]
+fn concert_ratio_buckets_are_dimension_invariant() {
+    // 1/2 and 2/4 reduce to the same identity — the concert converges.
+    let (_, half, _) = run(&["--concert", "--blid", "1/2 11"]);
+    let (_, twoquarters, _) = run(&["--concert", "--blid", "2/4 11"]);
+    assert_eq!(half, twoquarters, "scale leaked into concert identity");
+}
+
+#[test]
+fn concert_keyed_differs_from_public() {
+    let (_, public, _) = run(&["--concert", "--blid", "0101 1010"]);
+    let (_, keyed, _) = run(&["--concert", "--blid", "--key", "s", "0101 1010"]);
+    assert_ne!(public, keyed);
+}
+
+#[test]
+fn concert_rejects_bad_ratio() {
+    let (code, _, stderr) = run(&["--concert", "1/0 11"]);
+    assert_eq!(code, 2);
+    assert!(stderr.contains("zero denominator"));
 }

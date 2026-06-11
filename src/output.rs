@@ -5,9 +5,9 @@
 use crate::binary::BinaryAnalysis;
 use crate::blid::Blid;
 use crate::hydro::{Hydration, Walk};
-use crate::interloop::LoopRun;
 use crate::metrics::Metrics;
 use crate::patterns::{PatternKind, PatternReport};
+use crate::study::StudyRun;
 
 pub struct Theme {
     pub color: bool,
@@ -234,10 +234,10 @@ pub fn format_json(
     )
 }
 
-/// Format an interdimensional loop run as a table.
-pub fn format_loop_table(run: &LoopRun, theme: &Theme) -> String {
+/// Format a rational observation study run as a table.
+pub fn format_loop_table(run: &StudyRun, theme: &Theme) -> String {
     let mut out = String::new();
-    out.push_str(&theme.bold("Interdimensional loop import — booLang-hardening study\n"));
+    out.push_str(&theme.bold("Rational observation study — booLang-hardening set\n"));
     out.push_str(
         &theme
             .dim("  idx  vector            density   entropy   scalar        weighted      blid\n"),
@@ -250,7 +250,7 @@ pub fn format_loop_table(run: &LoopRun, theme: &Theme) -> String {
             e.b,
             e.density,
             e.entropy,
-            format!("{}", e.scalar),
+            e.scalar.canonical(),
             e.weighted,
             theme.green(&e.blid_short),
         ));
@@ -267,20 +267,22 @@ pub fn format_loop_table(run: &LoopRun, theme: &Theme) -> String {
     out
 }
 
-/// Format an interdimensional loop run as JSON.
-pub fn format_loop_json(run: &LoopRun) -> String {
+/// Format a rational observation study run as JSON. The scalar is
+/// emitted as its exact rational (numerator/denominator) so no float
+/// enters the machine-readable identity surface.
+pub fn format_loop_json(run: &StudyRun) -> String {
     let entries: Vec<String> = run
         .entries
         .iter()
         .map(|e| {
             format!(
-                "    {{\"index\": {}, \"vector\": [{}, {}], \"scalar\": {}, \"density\": {}, \"entropy\": {}, \"weighted\": {}, \"blid\": \"{}\"}}",
-                e.index, e.a, e.b, e.scalar, e.density, e.entropy, e.weighted, e.blid_short
+                "    {{\"index\": {}, \"vector\": [{}, {}], \"scalar\": {{\"num\": {}, \"den\": {}}}, \"density\": {}, \"entropy\": {}, \"weighted\": {}, \"blid\": \"{}\"}}",
+                e.index, e.a, e.b, e.scalar.num(), e.scalar.den(), e.density, e.entropy, e.weighted, e.blid_short
             )
         })
         .collect();
     format!(
-        "{{\n  \"study\": \"booLang-hardening interdimensional loop\",\n  \"run_blid\": \"{}\",\n  \"run_blid_sha256\": \"{}\",\n  \"entries\": [\n{}\n  ]\n}}\n",
+        "{{\n  \"study\": \"booLang-hardening rational observation study\",\n  \"run_blid\": \"{}\",\n  \"run_blid_sha256\": \"{}\",\n  \"entries\": [\n{}\n  ]\n}}\n",
         run.run_blid_short,
         run.run_blid_full,
         entries.join(",\n")

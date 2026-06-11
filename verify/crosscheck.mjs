@@ -39,43 +39,70 @@ const vectors = [
   [590, 1921], [3915, 9229], [7881, 86801], [937087, 1096491],
   [46423, 63041], [164674, 323067],
 ];
+// Scalars as EXACT decimal strings — never floats. This is the v2 fix:
+// "0.1" is exactly 1/10, not the lossy 0.1_f64. The value survives
+// translation between languages because no float is ever formatted.
 const scalars = [
-  -1977345647, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 0.1, 0.7, 0.8, 0.9113, 0.94, 3, 5.822, 128,
+  "-1977345647", "-1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1",
+  "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "0.1", "0.7",
+  "0.8", "0.9113", "0.94", "3", "5.822", "128",
 ];
 
-// JS String(Number) is shortest-roundtrip, same contract as Rust's {}.
-const entryRecord = (a, b, s) => `loop-entry/v1\n${a}/${b} ${String(s)}`;
+// Exact rational helpers — the dimension-invariant identity layer.
+const gcd = (a, b) => { a = a < 0n ? -a : a; b = b < 0n ? -b : b;
+  while (b) { [a, b] = [b, a % b]; } return a; };
+// Reduce a/b to lowest terms, denominator positive. Returns "num/den".
+const reduceRatio = (a, b) => {
+  let n = BigInt(a), d = BigInt(b);
+  let g = gcd(n, d) || 1n;
+  n /= g; d /= g;
+  if (d < 0n) { n = -n; d = -d; }
+  return `${n}/${d}`;
+};
+// Exact decimal string → "num/den" (no float).
+const decimalToRatio = (s) => {
+  s = s.trim();
+  const neg = s.startsWith("-");
+  const body = neg ? s.slice(1) : s.replace(/^\+/, "");
+  const [int = "", frac = ""] = body.split(".");
+  const digits = (int + frac).replace(/^0+(?=\d)/, "") || "0";
+  const num = (neg ? "-" : "") + digits;
+  const den = 10n ** BigInt(frac.length);
+  return reduceRatio(BigInt(num), den);
+};
+
+// v2 entry record: integer-only, exact, dimension-invariant.
+const entryRecord = (a, b, s) =>
+  `study-entry/v2\n${reduceRatio(a, b)} ${decimalToRatio(s)}`;
 
 const checks = [];
 const expect = (name, got, want) => checks.push({ name, got, want, ok: got === want });
 
-// 1. The interdimensional loop run BLID, recomputed from scratch.
+// 1. The study run BLID, recomputed from scratch (v2).
 const entryBlidsFull = vectors.map(([a, b], i) =>
   sha256hex(DOMAIN + entryRecord(a, b, scalars[i]))
 );
-const runRecord = "loop-run/v1\n" + entryBlidsFull.map((h) => h + "\n").join("");
-expect("loop run BLID", blid(runRecord), "55669eccbbfc4cfa");
+const runRecord = "study-run/v2\n" + entryBlidsFull.map((h) => h + "\n").join("");
+expect("study run BLID", blid(runRecord), "ed4cd25fcbfab234");
 
-// 2. Spot-check entry BLIDs (first, a float-scalar one, last).
-expect("entry 0 BLID", entryBlidsFull[0].slice(0, 16), "5f5438b01b54d7e3");
-expect("entry 27 BLID (scalar 0.9113)", entryBlidsFull[27].slice(0, 16), "61eb04895c108455");
-expect("entry 31 BLID", entryBlidsFull[31].slice(0, 16), "5901987551030c70");
+// 2. Spot-check entry BLIDs (first, the 0.9113-scalar one, last).
+expect("entry 0 BLID", entryBlidsFull[0].slice(0, 16), "bfbb0b24bd38998a");
+expect("entry 27 BLID (scalar 0.9113)", entryBlidsFull[27].slice(0, 16), "f6c7ac5502994802");
+expect("entry 31 BLID", entryBlidsFull[31].slice(0, 16), "56f094049c87410a");
 
-// 3. The bit-string route: "Hi" → UTF-8 bits.
+// 3. The bit-string route: "Hi" → UTF-8 bits (unchanged across versions).
 const toBits = (text) =>
   [...Buffer.from(text, "utf8")].map((b) => b.toString(2).padStart(8, "0")).join("");
 expect("bits BLID (Hi)", blid(toBits("Hi")), "a2fc4a037c913df5");
 
-// 4. The formula of eight: int canonical record.
+// 4. The formula of eight: int canonical record (unchanged).
 expect("int 8 BLID", blid("int/v1\n8"), "6979745b5e222ca3");
 
 // 5. Keyed exchange: HMAC route (OpenSSL) vs the Rust hand-rolled HMAC.
-//    Pinned from the live run with key "nuestra-llave-secreta".
 expect(
-  "keyed loop run BLID",
+  "keyed study run BLID",
   blidKeyed("nuestra-llave-secreta", runRecord),
-  "c22d1336b7c62f38"
+  "5e0f6c6ee958b0f2"
 );
 
 // Report.

@@ -13,6 +13,8 @@ pub struct Options {
     pub blid_only: bool,
     pub interloop: bool,
     pub walk: bool,
+    /// Join multiple whitespace-separated buckets into one concert BLID.
+    pub concert: bool,
     /// Secret for keyed (HMAC) BLIDs. None = public commitment mode.
     pub key: Option<String>,
     /// Send the analysis to the local Llama narrator endpoint.
@@ -44,6 +46,7 @@ pub fn parse(args: impl IntoIterator<Item = String>) -> Options {
             "--blid" => opts.blid_only = true,
             "--loop" => opts.interloop = true,
             "--walk" | "--h2o" => opts.walk = true,
+            "--concert" => opts.concert = true,
             "--key" => match args.next() {
                 Some(k) => opts.key = Some(k),
                 None => opts.key_missing_value = true,
@@ -108,6 +111,12 @@ OPTIONS
                       directions), and the first third of the charges is
                       weighted as oxygen (x-2) against hydrogen (x+1) so
                       constant signals neutralize to zero like H2O
+      --concert       Join several whitespace-separated buckets into ONE
+                      identity so all their bits work in concert. Each
+                      token is a bucket: a bit string, or a ratio a/b
+                      (reduced to lowest terms; rationals are lifted onto
+                      the LCM of their denominators only where they
+                      differ). Combine with --blid / --key.
       --narrate       Send the analysis to a local Llama narrator
                       (Ollama on your own hardware) and print its plain-
                       language narration. Decoration: analysis never
