@@ -2,7 +2,7 @@ use byteme::{
     binary::BinaryModel,
     canon::{self, Ingested},
     cli::{self, Options, HELP_TEXT},
-    concert, hydro, intro, metrics, narrate,
+    concert, contact, hydro, intro, metrics, narrate,
     output::{self, Theme},
     patterns, study, VERSION,
 };
@@ -66,6 +66,19 @@ fn main() -> ExitCode {
             print!("{}", output::format_loop_json(&run));
         } else {
             print!("{}", output::format_loop_table(&run, &theme));
+        }
+        return ExitCode::SUCCESS;
+    }
+
+    if opts.contact {
+        let reading = contact::read_study();
+        if opts.blid_only {
+            match &opts.key {
+                Some(k) => println!("{}", contact::reading_blid(&reading, Some(k)).short()),
+                None => println!("{}", contact::reading_blid(&reading, None).short()),
+            }
+        } else {
+            print!("{}", contact::verdict(&reading));
         }
         return ExitCode::SUCCESS;
     }
