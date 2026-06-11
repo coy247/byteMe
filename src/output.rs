@@ -227,8 +227,34 @@ pub fn format_json(
     )
 }
 
+/// Escape a string for embedding in a JSON string literal.
+/// Handles ALL control characters (U+0000..U+001F), not just newline —
+/// a raw tab or carriage return in the output would make it invalid JSON.
 fn escape_json(s: &str) -> String {
-    s.replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn escape_json_handles_all_control_chars() {
+        assert_eq!(escape_json("a\tb"), "a\\tb");
+        assert_eq!(escape_json("a\rb"), "a\\rb");
+        assert_eq!(escape_json("a\u{0001}b"), "a\\u0001b");
+        assert_eq!(escape_json("a\"b\\c"), "a\\\"b\\\\c");
+    }
 }
