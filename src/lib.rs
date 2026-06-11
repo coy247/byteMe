@@ -20,6 +20,7 @@ pub mod hydro;
 pub mod interloop;
 pub mod intro;
 pub mod metrics;
+pub mod narrate;
 pub mod output;
 pub mod patterns;
 pub mod sha256;
