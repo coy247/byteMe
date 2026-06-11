@@ -406,3 +406,88 @@ fn h2o_alias_works() {
     assert_eq!(c2, 0);
     assert_eq!(a, b, "--h2o must be an exact alias of --walk");
 }
+
+// ---------- universal input (canon) ----------
+
+#[test]
+fn eight_collectively_three_routes_one_blid_pinned() {
+    // La fórmula del ocho: 8 = 2^2+2^2 = 2^4−2^3. Three routes, one BLID.
+    let (_, a, _) = run(&["--blid", "8"]);
+    let (_, b, _) = run(&["--blid", "2^2+2^2"]);
+    let (_, c, _) = run(&["--blid", "2^4-2^3"]);
+    assert_eq!(a, b);
+    assert_eq!(a, c);
+    assert_eq!(a.trim(), "6979745b5e222ca3", "pinned int-8 BLID drifted");
+}
+
+#[test]
+fn number_eight_and_bitstring_1000_are_different_content() {
+    let (_, int8, _) = run(&["--blid", "8"]);
+    let (_, bits, _) = run(&["--blid", "1000"]);
+    assert_ne!(int8, bits, "domain separation violated");
+    assert_eq!(
+        bits.trim(),
+        "0996b7bbd5325656",
+        "pinned bits-1000 BLID drifted"
+    );
+}
+
+#[test]
+fn zero_and_one_keep_their_bit_meaning() {
+    // The zero-and-one guarantee, end to end.
+    let (c0, out0, _) = run(&["--no-color", "0"]);
+    assert_eq!(c0, 0);
+    assert!(out0.contains("Length           1 bits"));
+    let (c1, out1, _) = run(&["--no-color", "1"]);
+    assert_eq!(c1, 0);
+    assert!(out1.contains("Length           1 bits"));
+}
+
+#[test]
+fn int_input_shows_naf_with_subtraction() {
+    let (code, stdout, _) = run(&["--no-color", "7"]);
+    assert_eq!(code, 0);
+    assert!(
+        stdout.contains("NAF: +2^3 −2^0"),
+        "subtraction missing:\n{}",
+        stdout
+    );
+}
+
+#[test]
+fn array_input_ingests_loop_vector() {
+    let (code, stdout, _) = run(&["--no-color", "[25, 3319]"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("kind: array"));
+    assert!(stdout.contains("2 elements"));
+}
+
+#[test]
+fn malformed_array_exits_two() {
+    let (code, _, stderr) = run(&["[1, dos]"]);
+    assert_eq!(code, 2);
+    assert!(stderr.contains("malformed array"));
+}
+
+#[test]
+fn out_of_range_integer_exits_two() {
+    let huge = "9".repeat(60);
+    let (code, _, stderr) = run(&[&huge]);
+    assert_eq!(code, 2);
+    assert!(stderr.contains("out of i128 range"));
+}
+
+#[test]
+fn negative_number_works_and_differs_from_positive() {
+    let (_, neg, _) = run(&["--blid", "-5"]);
+    let (_, pos, _) = run(&["--blid", "5"]);
+    assert_ne!(neg, pos);
+}
+
+#[test]
+fn walk_composes_with_int_input() {
+    // --walk over the number 8 runs on its magnitude bits "1000".
+    let (code, stdout, _) = run(&["--walk", "--no-color", "8"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("steps 2"));
+}
