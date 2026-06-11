@@ -50,36 +50,50 @@ git push origin --delete intro patterns patternCodeVerify checkForSyntax \
   feature/system-verification
 ```
 
-## 4. The showcase PR (the one real PR artifact)
+## 4. The showcase PR (Rust rewrite, the real artifact)
 
 ```bash
-git push -u origin feature/typescript-conversion
-gh pr create --base develop --head feature/typescript-conversion \
-  --title "feat(ts): migrate codebase to TypeScript (incremental, @ts-nocheck pragma)" \
+git push -u origin feat/rust-rewrite
+gh pr create --base develop --head feat/rust-rewrite \
+  --title "feat(rust): rewrite byteme as a Rust crate; preserve JS as legacy/" \
   --body-file - <<'EOF'
 ## What
-File-level TypeScript migration: src/ and tests/ renamed to .ts via git mv,
-lenient tsconfig, ts-node runtime, CI now type-checks.
+Replaces the JS implementation with a Rust crate. Single static binary,
+no runtime dependencies. Library API + CLI with formal/verbose/json/retro
+modes. The JS code stays under legacy/ as historical reference.
 
 ## Why
-Build infrastructure for incremental typing without behavior change.
+TypeScript was an incremental wrap; Rust is the durable upgrade — type
+safety from day one, single-binary distribution, performance, and a
+forcing function for honest API design.
 
 ## How verified
-- npx tsc --noEmit → exit 0
-- npm test → 8/8 passing under ts-node/register
-- ts-node runs both the analyzer and the retro intro
+- cargo fmt --check → exit 0
+- cargo clippy --all-targets -D warnings → exit 0
+- cargo test → 29 passing
+- cargo build --release → ok
+- cd legacy && npm test → 8 passing (legacy smoke survives)
 
 ## What this PR does NOT cover
-No actual type coverage was added — every file carries @ts-nocheck.
-MIGRATION.md documents the de-nocheck order. dev/ and archive/ excluded.
+- Retro intro's SIGINT cleanup is best-effort (no ctrlc crate).
+- Pattern model.json seed (used by legacy) not yet ported to Rust.
+- No publish to crates.io (binary distribution via `cargo install --path .`).
 EOF
 ```
 
-Wait for CI green, then merge with a merge commit (not squash — preserve
-the rename commit):
+Wait for CI green, then merge with a merge commit (preserve topology):
 
 ```bash
 gh pr merge --merge --delete-branch
+```
+
+## 4b. Archive the abandoned TS exploration
+
+```bash
+# The feature/typescript-conversion branch is preserved as a record of
+# the path not taken. It does not get merged.
+git push origin feature/typescript-conversion:refs/heads/archive/typescript-exploration
+git push origin --delete feature/typescript-conversion
 ```
 
 ## 5. Release v0.2.0 (after PR merges)
@@ -87,14 +101,14 @@ gh pr merge --merge --delete-branch
 ```bash
 git checkout develop && git pull
 git checkout -b release/0.2.0
-# bump package.json version to 0.2.0, add CHANGELOG [0.2.0] entry:
-#   Added: TypeScript build infrastructure (tsconfig, ts-node, typecheck CI)
-#   Changed: runtime now executes via ts-node; mocha via ts-node/register
-npm version 0.2.0 --no-git-tag-version
-git add package.json package-lock.json CHANGELOG.md
+# Cargo.toml version is already 0.2.0-dev; bump to 0.2.0:
+sed -i 's/^version = "0.2.0-dev"/version = "0.2.0"/' Cargo.toml
+cargo build  # refresh Cargo.lock
+# CHANGELOG.md already has the [0.2.0] section from the rewrite commit
+git add Cargo.toml Cargo.lock
 git commit -m "chore(release): prepare v0.2.0"
 git checkout main && git merge --no-ff release/0.2.0
-git tag -a v0.2.0 -m "ByteMe v0.2.0 — TypeScript migration"
+git tag -a v0.2.0 -m "ByteMe v0.2.0 — Rust rewrite"
 git checkout develop && git merge --no-ff main
 git push origin main develop v0.2.0
 git push origin --delete release/0.2.0 2>/dev/null || true
