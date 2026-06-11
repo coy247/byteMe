@@ -27,8 +27,11 @@ jobs:
       - name: Clippy
         run: cargo clippy --all-targets -- -D warnings
 
-      - name: Test
+      - name: Test (includes cross-language convergence gate)
         run: cargo test --all-targets
+
+      - name: Cross-language convergence (standalone receipt)
+        run: node verify/crosscheck.mjs
 
       - name: Release build
         run: cargo build --release
