@@ -12,6 +12,7 @@ pub struct Options {
     pub no_color: bool,
     pub blid_only: bool,
     pub interloop: bool,
+    pub walk: bool,
     pub input: Option<String>,
     pub unknown: Vec<String>,
 }
@@ -31,6 +32,7 @@ pub fn parse(args: impl IntoIterator<Item = String>) -> Options {
             "--no-color" => opts.no_color = true,
             "--blid" => opts.blid_only = true,
             "--loop" => opts.interloop = true,
+            "--walk" | "--h2o" => opts.walk = true,
             s if s.starts_with("--") => opts.unknown.push(tok),
             s if s.starts_with('-')
                 && s.len() > 1
@@ -75,6 +77,11 @@ OPTIONS
                       (32 vector/scalar pairs from booLang-hardening) and
                       report density, entropy, weighted score and BLID per
                       entry plus a collective run BLID
+      --walk, --h2o   45-degree bipolar walk + thirds/water correction:
+                      bit pairs become diagonal steps (quarters as
+                      directions), and the first third of the charges is
+                      weighted as oxygen (x-2) against hydrogen (x+1) so
+                      constant signals neutralize to zero like H2O
       --no-color      Disable ANSI colors (auto-off when not a TTY)
 
 EXAMPLES

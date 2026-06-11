@@ -4,6 +4,7 @@
 
 use crate::binary::BinaryAnalysis;
 use crate::blid::Blid;
+use crate::hydro::{Hydration, Walk};
 use crate::interloop::LoopRun;
 use crate::metrics::Metrics;
 use crate::patterns::{PatternKind, PatternReport};
@@ -303,6 +304,114 @@ fn escape_json(s: &str) -> String {
         }
     }
     out
+}
+
+/// Format the 45° walk + hydration as a table section.
+pub fn format_walk_table(
+    binary: &str,
+    w: &Walk,
+    h: &Hydration,
+    verbose: bool,
+    theme: &Theme,
+) -> String {
+    let mut out = String::new();
+    out.push_str(&theme.bold("45° bipolar walk\n"));
+    out.push_str(&format!(
+        "  steps {}{}\n",
+        w.steps,
+        if w.odd_bit_dropped {
+            "  (odd trailing bit dropped)"
+        } else {
+            ""
+        }
+    ));
+    out.push_str(&format!(
+        "  quarters  25%: {}   50%: {}   75%: {}   100%: {}\n",
+        w.quarter_counts[0], w.quarter_counts[1], w.quarter_counts[2], w.quarter_counts[3]
+    ));
+    match (w.angle_deg, w.quarter) {
+        (Some(a), Some(q)) => out.push_str(&format!(
+            "  displacement ({}, {})  magnitude {:.4}  angle {:.1}°  → {}{}\n",
+            w.x,
+            w.y,
+            w.magnitude,
+            a,
+            theme.green(&format!("{}%", q)),
+            ""
+        )),
+        _ => out.push_str("  displacement (0, 0) — the walk returned home; no direction\n"),
+    }
+
+    out.push('\n');
+    out.push_str(&theme.bold("Hydration (⅓ → H₂O)\n"));
+    out.push_str(&format!(
+        "  oxygen span   first {} of {} bits (×−2)\n",
+        h.oxygen_len,
+        binary.len()
+    ));
+    out.push_str(&format!(
+        "  hydrogen span remaining {} bits (×+1)\n",
+        h.hydrogen_len
+    ));
+    out.push_str(&format!("  raw charge      {:+}\n", h.raw_charge));
+    out.push_str(&format!(
+        "  hydrated charge {:+}  {}\n",
+        h.hydrated_charge,
+        if h.neutral {
+            theme.green("⊜ neutral — water balance")
+        } else {
+            theme.yellow("structure survives the neutralization")
+        }
+    ));
+    out.push_str(&format!("  correction      {:+}\n", h.correction));
+    out.push_str(&format!("  overflow (i8)   {:+}\n", h.overflow_i8));
+
+    if verbose {
+        out.push('\n');
+        out.push_str(&theme.dim("  Bipolar: 0→−1, 1→+1 — signed zero without zero; zero only\n"));
+        out.push_str(&theme.dim("  emerges as a sum. Pairs step diagonally (axes rotated 45°);\n"));
+        out.push_str(&theme.dim("  the four diagonals are the quarters 25/50/75/100%.\n"));
+        out.push_str(&theme.dim("  Water weighting: H₂O = 1 O (−2) + 2 H (+1) = 0. A constant\n"));
+        out.push_str(&theme.dim("  signal of length divisible by 3 neutralizes exactly; what\n"));
+        out.push_str(&theme.dim("  survives measures structure against the third boundary.\n"));
+    }
+    out
+}
+
+/// Format walk + hydration as JSON.
+pub fn format_walk_json(binary: &str, w: &Walk, h: &Hydration) -> String {
+    let blid = Blid::of_binary(binary);
+    let angle = match w.angle_deg {
+        Some(a) => format!("{}", a),
+        None => "null".to_string(),
+    };
+    let quarter = match w.quarter {
+        Some(q) => format!("{}", q),
+        None => "null".to_string(),
+    };
+    format!(
+        "{{\n  \"binary\": \"{}\",\n  \"blid\": \"{}\",\n  \"walk\": {{\n    \"steps\": {},\n    \"odd_bit_dropped\": {},\n    \"x\": {},\n    \"y\": {},\n    \"magnitude\": {},\n    \"angle_deg\": {},\n    \"quarter\": {},\n    \"quarter_counts\": {{\"q25\": {}, \"q50\": {}, \"q75\": {}, \"q100\": {}}}\n  }},\n  \"hydration\": {{\n    \"raw_charge\": {},\n    \"hydrated_charge\": {},\n    \"correction\": {},\n    \"oxygen_len\": {},\n    \"hydrogen_len\": {},\n    \"overflow_i8\": {},\n    \"neutral\": {}\n  }}\n}}\n",
+        binary,
+        blid.short(),
+        w.steps,
+        w.odd_bit_dropped,
+        w.x,
+        w.y,
+        w.magnitude,
+        angle,
+        quarter,
+        w.quarter_counts[0],
+        w.quarter_counts[1],
+        w.quarter_counts[2],
+        w.quarter_counts[3],
+        h.raw_charge,
+        h.hydrated_charge,
+        h.correction,
+        h.oxygen_len,
+        h.hydrogen_len,
+        h.overflow_i8,
+        h.neutral,
+    )
 }
 
 #[cfg(test)]

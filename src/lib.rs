@@ -15,6 +15,7 @@ pub mod binary;
 pub mod blid;
 pub mod cli;
 pub mod encode;
+pub mod hydro;
 pub mod interloop;
 pub mod intro;
 pub mod metrics;

@@ -2,7 +2,7 @@ use byteme::{
     binary::BinaryModel,
     blid::Blid,
     cli::{self, Options, HELP_TEXT},
-    encode, interloop, intro, metrics,
+    encode, hydro, interloop, intro, metrics,
     output::{self, Theme},
     patterns, VERSION,
 };
@@ -89,6 +89,20 @@ fn run_once(input: &str, opts: &Options, theme: &Theme) -> Result<(), ExitCode> 
 
     if opts.blid_only {
         println!("{}", Blid::of_binary(&binary).short());
+        return Ok(());
+    }
+
+    if opts.walk {
+        let w = hydro::walk(&binary);
+        let h = hydro::hydrate(&binary);
+        if opts.json {
+            print!("{}", output::format_walk_json(&binary, &w, &h));
+        } else {
+            print!(
+                "{}",
+                output::format_walk_table(&binary, &w, &h, opts.verbose, theme)
+            );
+        }
         return Ok(());
     }
     let m = metrics::compute(&binary);
