@@ -1,5 +1,7 @@
 # ByteMe 🔍
 
+[![CI](https://github.com/coy247/byteMe/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/coy247/byteMe/actions/workflows/ci.yml)
+
 > Empowering data exploration through binary analysis
 
 A playful and powerful tool for analyzing binary string patterns, decoding the mysteries hidden within your data.
@@ -39,11 +41,23 @@ ByteMe can be used in a variety of real-world scenarios:
 
 ## Getting Started
 
-Documentation and installation instructions coming soon!
+```bash
+npm install
+npm start "01001000 01101001"   # analyze any binary string
+npm run intro                    # boot up like it's 1995 🕹
+npm test                         # run the suite
+```
+
+## Contributing
+
+This repo doubles as a demonstration of disciplined git practice — see
+[CONTRIBUTING.md](CONTRIBUTING.md) for the gitflow-lite branching model and
+the Conventional Commits convention, and [docs/git-workflow.md](docs/git-workflow.md)
+for the full workflow diagram.
 
 ## License
 
-This project is open source. License details coming soon.
+Licensed under [Apache 2.0](LICENSE).
 
 ## Latest Features
 
