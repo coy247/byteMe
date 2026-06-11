@@ -1,16 +1,26 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S deno run
 // Cross-language convergence check — the second, independent route.
 //
 // This script re-implements the byteme BLID recipe in JavaScript with
-// ZERO shared code: the SHA-256/HMAC here come from Node's OpenSSL
-// bindings, while the Rust crate hand-rolls FIPS 180-4. If both routes
-// converge on the same BLIDs, the canonical recipe is reproducible
-// across languages and machine-code paths — which is the whole claim.
+// ZERO shared code: the SHA-256/HMAC here come from the runtime's
+// crypto (OpenSSL under Node, Rust ring/aws-lc under Deno), while the
+// byteme crate hand-rolls FIPS 180-4. If all routes converge on the
+// same BLIDs, the canonical recipe is reproducible across languages
+// and machine-code paths — which is the whole claim.
 //
-// Run: node verify/crosscheck.mjs        (exit 0 = convergence proven)
+// Preferred runtime: Deno, run with ZERO permission flags —
+//
+//   deno run verify/crosscheck.mjs
+//
+// Deno denies filesystem/network/env by default, so this verification
+// is *provably* incapable of touching anything outside its own math.
+// That sandboxing is itself part of the receipt. Node also works
+// (`node verify/crosscheck.mjs`) as the fallback runtime.
+//
 // CI runs this on every push; no human does anything.
 
 import { createHash, createHmac } from "node:crypto";
+import { Buffer } from "node:buffer";
 
 const DOMAIN = "byteme/blid/v1\n";
 

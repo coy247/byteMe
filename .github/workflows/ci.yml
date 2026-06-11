@@ -27,11 +27,16 @@ jobs:
       - name: Clippy
         run: cargo clippy --all-targets -- -D warnings
 
+      - name: Install Deno (sandboxed runtime for the convergence gate)
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
       - name: Test (includes cross-language convergence gate)
         run: cargo test --all-targets
 
-      - name: Cross-language convergence (standalone receipt)
-        run: node verify/crosscheck.mjs
+      - name: Cross-language convergence (zero-permission Deno receipt)
+        run: deno run verify/crosscheck.mjs
 
       - name: Release build
         run: cargo build --release

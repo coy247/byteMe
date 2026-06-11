@@ -11,15 +11,18 @@ use std::process::Command;
 
 #[test]
 fn javascript_route_converges_with_rust_route() {
-    let out = Command::new("node")
-        .arg(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/verify/crosscheck.mjs"
-        ))
+    let script = concat!(env!("CARGO_MANIFEST_DIR"), "/verify/crosscheck.mjs");
+
+    // Preferred runtime: Deno with ZERO permission flags — denied-by-
+    // default sandboxing means the verification provably cannot touch
+    // fs/net/env. Falls back to Node where Deno isn't installed.
+    let out = Command::new("deno")
+        .args(["run", script])
         .output()
+        .or_else(|_| Command::new("node").arg(script).output())
         .expect(
-            "node is required for the cross-language gate (present on \
-             GitHub ubuntu runners and the dev sandbox)",
+            "deno or node is required for the cross-language gate \
+             (both available on CI; deno preferred)",
         );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
