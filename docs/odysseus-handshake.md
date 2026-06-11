@@ -9,7 +9,7 @@
 
 Floating-point identity is **lossy**: `0.9113`, `0.9113000000000001`, and
 `9113/10000` look "the same" to a human but the first two differ in the
-54th bit and any system that hashes them will see different IDs. A
+53rd-bit boundary of IEEE 754 double precision and any system that hashes them will see different IDs. A
 counter that drifts five weeks unnoticed is the failure mode at scale.
 
 The protocol below replaces floats with **exact rationals** (`a/b`,
@@ -44,10 +44,10 @@ in the canonical record.
 
 ```
 # A single observation
-loop-entry/v1\n<a>/<b> <num>/<den>
+study-entry/v2\n<a>/<b> <num>/<den>
 
 # A whole run (32 entries here, but works for any N)
-loop-run/v1\n<entry-blid-full>\n<entry-blid-full>\n... (one per line)
+study-run/v2\n<entry-blid-full>\n<entry-blid-full>\n... (one per line)
 ```
 
 ### Keyed variant (HMAC) for private convergence
@@ -122,6 +122,14 @@ byteme --loop --blid                     # → ed4cd25fcbfab234   (run BLID)
 byteme --blid Hi                         # → a2fc4a037c913df5   (bits)
 byteme --blid '[25, 3319]'               # → 82a5e075841b143c   (array)
 byteme --blid --key <SECRET> --loop      # keyed run BLID
+```
+
+> ⚠️ Passing a secret on the command line exposes it via `ps`,
+> shell history, and process listings on shared systems. For
+> production use, pass the key via stdin or an environment
+> variable read inside the process (see `SECURITY.md`).
+
+```bash
 deno run verify/crosscheck.mjs           # second route, must agree
 ```
 

@@ -23,7 +23,7 @@ It is offered, not imposed.
 ## What is on the table
 
 1. **The full spec**, frozen and reproducible:
-   `https://github.com/coy247/byteMe/blob/main/docs/odysseus-handshake.md`
+   <https://github.com/coy247/byteMe/blob/main/docs/odysseus-handshake.md>
 2. **The reference implementation** (Rust, zero-dependency, NIST/RFC
    gated): `src/sha256.rs`, `src/canon.rs`, `src/study.rs`.
 3. **A second independent implementation** (TypeScript, OpenSSL/ring
@@ -54,8 +54,16 @@ form, byteMe can be invoked as a subprocess:
 
 ```bash
 byteme --loop --blid                          # the run BLID, one line
-byteme --blid --key <secret> '[a, b]'         # private BLID per pair
+byteme --blid --key <SECRET> '[a, b]'         # private BLID per pair
 byteme --json --loop > study.json             # full breakdown
+```
+
+> ⚠️ The `--key` on the command line is visible via `ps` and shell
+> history. On shared systems pipe the key via stdin or an env var
+> read inside the process. See `SECURITY.md` in the repo.
+
+```bash
+# (continued)
 ```
 
 The binary is a single static file (`cargo install --path .` or
@@ -82,7 +90,7 @@ coordinator bots (full table in the spec):
 ```
 BLID-CONVERGE <hex>            "I claim this content; do you agree?"
 BLID-OK <hex>                  "Yes — same bits, same canonical record."
-BLID-DIVERGE <mine> vs <theirs>"Computed differently; diff our inputs."
+BLID-DIVERGE <mine> vs <theirs>  "Computed differently; diff our inputs."
 BLID-RECIPE-MISMATCH <ver>     "Different protocol versions."
 ```
 
@@ -105,6 +113,6 @@ The operator can route a `BLID-CONVERGE <hex>` from your side to this
 one and we close the handshake in one exchange. Until then this is a
 documented offer, sitting in `odysseus/` where you find your reports.
 
-— from the byteMe side, on `main @ a551e4f` (v0.3.0)
+— from the byteMe side, on `main` at tag `v0.3.0` (commit `a551e4f`)
    `coy247/byteMe`, public, Apache-2.0
    2026-06-11
