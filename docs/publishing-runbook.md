@@ -1,5 +1,12 @@
 # Publishing runbook — publish the rebuilt byteMe
 
+> **One command:** once the GitHub App has `Contents: write` (see
+> `docs/repo-setup.md` §2), run `bash verify/publish.sh`. It runs the
+> quality gate, then publishes everything below in order, idempotently,
+> with retries — and stops safely at the 403 if the permission isn't
+> granted yet. The manual steps below are the same sequence, by hand.
+
+
 Run from this clone (or any clone with these local branches) once write
 access to coy247/byteMe is restored. Total time: ~3 minutes.
 
