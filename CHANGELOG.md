@@ -5,6 +5,30 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-06-11
+
+### Added
+
+- **Standalone retro introduction**: `byteme --retro` with no input plays
+  the AOL-era boot sequence and exits cleanly — the Rust heir of
+  `npm run intro`. `BYTEME_INTRO_FAST` collapses every pause for tests.
+
+### Security
+
+- **legacy/ npm tree advisory-clean (0 vulnerabilities)**: mocha 9 → 11
+  plus npm `overrides` pinning `diff ^8.0.3` and `serialize-javascript
+  ^7.0.5`, clearing an RCE (high), two DoS and a prototype-pollution
+  advisory. The 8 legacy tests pass unchanged. Dependabot PR #5 had
+  already bumped the npm_and_yarn group; this completes the sweep.
+
+### Changed
+
+- CI: `actions/checkout` v4 → v6, `actions/setup-node` v4 → v6,
+  `actions/github-script` v7 → v9 (dependabot PRs #2, #3 + supersede
+  of #4 via `ci/checkout-v6`).
+
+[0.3.0]: https://github.com/coy247/byteMe/releases/tag/v0.3.0
+
 ## [0.2.0] - 2026-06-11
 
 Rust rewrite. The Node.js implementation that shipped in `v0.1.0` is
