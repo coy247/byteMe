@@ -17,8 +17,16 @@ pub enum PatternKind {
 }
 
 /// Count all sliding-window substrings of the given lengths.
+///
+/// Total over arbitrary input: non-binary strings (anything other than
+/// ASCII `0`/`1`) return an empty map instead of panicking on multibyte
+/// char boundaries. Callers that want an error should validate first via
+/// [`crate::binary::BinaryModel::validate`].
 pub fn occurrences(binary: &str, window_sizes: &[usize]) -> BTreeMap<String, usize> {
     let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+    if !binary.bytes().all(|b| b == b'0' || b == b'1') {
+        return counts;
+    }
     for &w in window_sizes {
         if w == 0 || w > binary.len() {
             continue;

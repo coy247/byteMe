@@ -1,0 +1,300 @@
+//! Integration tests against the REAL compiled binary — not the library.
+//! Uses the CARGO_BIN_EXE_byteme path cargo provides to integration tests.
+//!
+//! Includes a dependency-free recursive-descent JSON validator so "the
+//! --json output is valid JSON" is *checked*, not eyeballed.
+
+use std::process::Command;
+
+fn run(args: &[&str]) -> (i32, String, String) {
+    let out = Command::new(env!("CARGO_BIN_EXE_byteme"))
+        .args(args)
+        .output()
+        .expect("binary should execute");
+    (
+        out.status.code().unwrap_or(-1),
+        String::from_utf8_lossy(&out.stdout).into_owned(),
+        String::from_utf8_lossy(&out.stderr).into_owned(),
+    )
+}
+
+// ---------- minimal JSON validator (no serde) ----------
+
+struct Json<'a> {
+    b: &'a [u8],
+    i: usize,
+}
+
+impl<'a> Json<'a> {
+    fn new(s: &'a str) -> Self {
+        Self {
+            b: s.as_bytes(),
+            i: 0,
+        }
+    }
+    fn ws(&mut self) {
+        while self.i < self.b.len() && matches!(self.b[self.i], b' ' | b'\n' | b'\r' | b'\t') {
+            self.i += 1;
+        }
+    }
+    fn peek(&self) -> Option<u8> {
+        self.b.get(self.i).copied()
+    }
+    fn eat(&mut self, c: u8) -> bool {
+        if self.peek() == Some(c) {
+            self.i += 1;
+            true
+        } else {
+            false
+        }
+    }
+    fn value(&mut self) -> bool {
+        self.ws();
+        match self.peek() {
+            Some(b'{') => self.object(),
+            Some(b'[') => self.array(),
+            Some(b'"') => self.string(),
+            Some(b't') => self.lit(b"true"),
+            Some(b'f') => self.lit(b"false"),
+            Some(b'n') => self.lit(b"null"),
+            Some(c) if c == b'-' || c.is_ascii_digit() => self.number(),
+            _ => false,
+        }
+    }
+    fn lit(&mut self, s: &[u8]) -> bool {
+        if self.b[self.i..].starts_with(s) {
+            self.i += s.len();
+            true
+        } else {
+            false
+        }
+    }
+    fn object(&mut self) -> bool {
+        if !self.eat(b'{') {
+            return false;
+        }
+        self.ws();
+        if self.eat(b'}') {
+            return true;
+        }
+        loop {
+            self.ws();
+            if !self.string() {
+                return false;
+            }
+            self.ws();
+            if !self.eat(b':') {
+                return false;
+            }
+            if !self.value() {
+                return false;
+            }
+            self.ws();
+            if self.eat(b',') {
+                continue;
+            }
+            return self.eat(b'}');
+        }
+    }
+    fn array(&mut self) -> bool {
+        if !self.eat(b'[') {
+            return false;
+        }
+        self.ws();
+        if self.eat(b']') {
+            return true;
+        }
+        loop {
+            if !self.value() {
+                return false;
+            }
+            self.ws();
+            if self.eat(b',') {
+                continue;
+            }
+            return self.eat(b']');
+        }
+    }
+    fn string(&mut self) -> bool {
+        if !self.eat(b'"') {
+            return false;
+        }
+        while let Some(c) = self.peek() {
+            match c {
+                b'"' => {
+                    self.i += 1;
+                    return true;
+                }
+                b'\\' => {
+                    self.i += 1;
+                    match self.peek() {
+                        Some(b'"' | b'\\' | b'/' | b'b' | b'f' | b'n' | b'r' | b't') => self.i += 1,
+                        Some(b'u') => {
+                            self.i += 1;
+                            for _ in 0..4 {
+                                if !self.peek().is_some_and(|h| h.is_ascii_hexdigit()) {
+                                    return false;
+                                }
+                                self.i += 1;
+                            }
+                        }
+                        _ => return false,
+                    }
+                }
+                0x00..=0x1F => return false, // raw control char = invalid
+                _ => self.i += 1,
+            }
+        }
+        false
+    }
+    fn number(&mut self) -> bool {
+        let start = self.i;
+        if self.eat(b'-') {}
+        while self.peek().is_some_and(|c| c.is_ascii_digit()) {
+            self.i += 1;
+        }
+        if self.eat(b'.') {
+            while self.peek().is_some_and(|c| c.is_ascii_digit()) {
+                self.i += 1;
+            }
+        }
+        if matches!(self.peek(), Some(b'e' | b'E')) {
+            self.i += 1;
+            if matches!(self.peek(), Some(b'+' | b'-')) {
+                self.i += 1;
+            }
+            while self.peek().is_some_and(|c| c.is_ascii_digit()) {
+                self.i += 1;
+            }
+        }
+        self.i > start
+    }
+}
+
+fn is_valid_json(s: &str) -> bool {
+    let mut p = Json::new(s);
+    if !p.value() {
+        return false;
+    }
+    p.ws();
+    p.i == p.b.len()
+}
+
+#[test]
+fn json_validator_self_test() {
+    assert!(is_valid_json(r#"{"a": 1, "b": [true, null, "x\ty"]}"#));
+    assert!(!is_valid_json("{"));
+    assert!(!is_valid_json(r#"{"a": }"#));
+    assert!(!is_valid_json("{\"a\": \"raw\ttab\"}")); // raw control char
+}
+
+// ---------- actual binary behavior ----------
+
+#[test]
+fn exit_zero_on_valid_input_with_table_output() {
+    let (code, stdout, _) = run(&["01001000"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("ByteMe Analysis"));
+    assert!(stdout.contains("Entropy"));
+}
+
+#[test]
+fn exit_one_on_missing_input() {
+    let (code, _, stderr) = run(&[]);
+    assert_eq!(code, 1);
+    assert!(stderr.contains("no input"));
+}
+
+#[test]
+fn exit_one_on_unknown_flag() {
+    let (code, _, stderr) = run(&["--bogus", "0101"]);
+    assert_eq!(code, 1);
+    assert!(stderr.contains("--bogus"));
+}
+
+#[test]
+fn exit_two_on_empty_input() {
+    let (code, _, _) = run(&[""]);
+    assert_eq!(code, 2);
+}
+
+#[test]
+fn json_output_is_actually_valid_json() {
+    let (code, stdout, _) = run(&["--json", "10101010"]);
+    assert_eq!(code, 0);
+    assert!(is_valid_json(&stdout), "invalid JSON:\n{}", stdout);
+}
+
+#[test]
+fn json_with_hostile_input_is_still_valid() {
+    // Tab, quote, backslash in the input string — all must be escaped.
+    let (code, stdout, _) = run(&["--json", "a\tb\"c\\d"]);
+    assert_eq!(code, 0);
+    assert!(is_valid_json(&stdout), "invalid JSON:\n{}", stdout);
+}
+
+#[test]
+fn json_all_ones_ratio_is_null_not_infinity_token() {
+    let (code, stdout, _) = run(&["--json", "1111"]);
+    assert_eq!(code, 0);
+    assert!(is_valid_json(&stdout), "invalid JSON:\n{}", stdout);
+    assert!(
+        stdout.contains("\"ratio\": null"),
+        "expected null ratio:\n{}",
+        stdout
+    );
+    assert!(!stdout.contains("inf"), "bare Infinity leaked:\n{}", stdout);
+}
+
+#[test]
+fn version_flag_prints_semver() {
+    let (code, stdout, _) = run(&["--version"]);
+    assert_eq!(code, 0);
+    assert!(stdout.starts_with("byteme "));
+}
+
+#[test]
+fn help_flag_exits_zero() {
+    let (code, stdout, _) = run(&["--help"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("USAGE"));
+}
+
+#[test]
+fn demo_runs_all_fixtures() {
+    let (code, stdout, _) = run(&["--demo"]);
+    assert_eq!(code, 0);
+    assert_eq!(stdout.matches("ByteMe Analysis").count(), 3);
+}
+
+#[test]
+fn no_color_output_has_no_ansi_escapes() {
+    let (code, stdout, _) = run(&["--no-color", "0101"]);
+    assert_eq!(code, 0);
+    assert!(
+        !stdout.contains('\x1b'),
+        "ANSI escapes leaked:\n{:?}",
+        stdout
+    );
+}
+
+#[test]
+fn piped_json_has_no_ansi_escapes() {
+    let (_, stdout, _) = run(&["--json", "0101"]);
+    assert!(!stdout.contains('\x1b'));
+}
+
+#[test]
+fn text_and_equivalent_binary_inputs_converge() {
+    // "Hi" encodes to 0100100001101001 — both routes must produce the
+    // same analysis (two routes, one result).
+    let (_, via_text, _) = run(&["--json", "--no-color", "Hi"]);
+    let (_, via_bits, _) = run(&["--json", "--no-color", "0100100001101001"]);
+    let strip = |s: &str| {
+        s.lines()
+            .filter(|l| !l.contains("\"input\""))
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+    assert_eq!(strip(&via_text), strip(&via_bits));
+}
