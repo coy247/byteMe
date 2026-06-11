@@ -149,3 +149,68 @@ mod tests {
         }
     }
 }
+
+/// HMAC-SHA256 (RFC 2104). Used for keyed BLIDs: a keyed digest reveals
+/// nothing about its content to anyone who lacks the key — unlike a bare
+/// hash, it cannot be brute-forced from low-entropy preimages.
+/// Correctness gated by the RFC 4231 vectors in the test module.
+pub fn hmac(key: &[u8], message: &[u8]) -> [u8; 32] {
+    const BLOCK: usize = 64;
+    let mut k = [0u8; BLOCK];
+    if key.len() > BLOCK {
+        k[..32].copy_from_slice(&digest(key));
+    } else {
+        k[..key.len()].copy_from_slice(key);
+    }
+    let mut ipad = [0x36u8; BLOCK];
+    let mut opad = [0x5cu8; BLOCK];
+    for i in 0..BLOCK {
+        ipad[i] ^= k[i];
+        opad[i] ^= k[i];
+    }
+    let mut inner = Vec::with_capacity(BLOCK + message.len());
+    inner.extend_from_slice(&ipad);
+    inner.extend_from_slice(message);
+    let inner_hash = digest(&inner);
+    let mut outer = Vec::with_capacity(BLOCK + 32);
+    outer.extend_from_slice(&opad);
+    outer.extend_from_slice(&inner_hash);
+    digest(&outer)
+}
+
+#[cfg(test)]
+mod hmac_tests {
+    use super::*;
+
+    // RFC 4231 test vectors — if these fail, no keyed BLID may be trusted.
+
+    #[test]
+    fn rfc4231_test_case_1() {
+        let key = [0x0bu8; 20];
+        assert_eq!(
+            hex(&hmac(&key, b"Hi There")),
+            "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7"
+        );
+    }
+
+    #[test]
+    fn rfc4231_test_case_2() {
+        assert_eq!(
+            hex(&hmac(b"Jefe", b"what do ya want for nothing?")),
+            "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843"
+        );
+    }
+
+    #[test]
+    fn rfc4231_test_case_6_long_key() {
+        // 131-byte key forces the hash-the-key path.
+        let key = [0xaau8; 131];
+        assert_eq!(
+            hex(&hmac(
+                &key,
+                b"Test Using Larger Than Block-Size Key - Hash Key First"
+            )),
+            "60e431591ee0b67f0d8a26aacbf5b77f8e0bc6213728c5140546040f0ee37f54"
+        );
+    }
+}

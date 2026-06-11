@@ -259,14 +259,32 @@ impl Ingested {
             Ingested::Bits { bits } => Blid::of_binary(bits),
             Ingested::Text { bits, .. } => Blid::of_binary(bits),
             Ingested::Int { value, .. } => Blid::of_record(&format!("int/v1\n{}", value)),
+            Ingested::Array { values, .. } => Blid::of_record(&Self::array_record(values)),
+        }
+    }
+
+    /// Keyed (HMAC) variant of [`Self::blid`]: same canonical records,
+    /// but the resulting ID reveals nothing without the key. Use for
+    /// content that must stay private even if the BLID is discovered.
+    pub fn blid_keyed(&self, key: &str) -> Blid {
+        match self {
+            Ingested::Bits { bits } => Blid::keyed_of_binary(key, bits),
+            Ingested::Text { bits, .. } => Blid::keyed_of_binary(key, bits),
+            Ingested::Int { value, .. } => {
+                Blid::keyed_of_record(key, &format!("int/v1\n{}", value))
+            }
             Ingested::Array { values, .. } => {
-                let mut rec = format!("array/v1\n{}\n", values.len());
-                for v in values {
-                    rec.push_str(&format!("{}\n", v));
-                }
-                Blid::of_record(&rec)
+                Blid::keyed_of_record(key, &Self::array_record(values))
             }
         }
+    }
+
+    fn array_record(values: &[i128]) -> String {
+        let mut rec = format!("array/v1\n{}\n", values.len());
+        for v in values {
+            rec.push_str(&format!("{}\n", v));
+        }
+        rec
     }
 }
 

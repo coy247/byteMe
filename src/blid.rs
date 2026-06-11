@@ -68,6 +68,34 @@ impl Blid {
     }
 }
 
+impl Blid {
+    /// Keyed BLID over a binary string: HMAC-SHA256 under the v1 domain.
+    ///
+    /// An UNKEYED blid is a public commitment — anyone can verify it, and
+    /// for low-entropy content anyone can also recover the content by
+    /// brute force (hash "8", compare, done). It is NOT private. A keyed
+    /// blid reveals nothing without the key, while two parties sharing
+    /// the key still converge route-independently.
+    pub fn keyed_of_binary(key: &str, binary: &str) -> Self {
+        let mut msg = Vec::with_capacity(DOMAIN_V1.len() + binary.len());
+        msg.extend_from_slice(DOMAIN_V1);
+        msg.extend_from_slice(binary.as_bytes());
+        Self {
+            hex: sha256::hex(&sha256::hmac(key.as_bytes(), &msg)),
+        }
+    }
+
+    /// Keyed BLID over an arbitrary canonical record.
+    pub fn keyed_of_record(key: &str, record: &str) -> Self {
+        let mut msg = Vec::with_capacity(DOMAIN_V1.len() + record.len());
+        msg.extend_from_slice(DOMAIN_V1);
+        msg.extend_from_slice(record.as_bytes());
+        Self {
+            hex: sha256::hex(&sha256::hmac(key.as_bytes(), &msg)),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -118,5 +146,39 @@ mod tests {
         // Self-consistency: recompute from first principles.
         let expect = sha256::hex(&sha256::digest(b"byteme/blid/v1\n0101"));
         assert_eq!(b.full(), expect);
+    }
+}
+
+#[cfg(test)]
+mod keyed_tests {
+    use super::*;
+
+    #[test]
+    fn keyed_differs_from_unkeyed() {
+        let plain = Blid::of_binary("0101");
+        let keyed = Blid::keyed_of_binary("secreto", "0101");
+        assert_ne!(plain, keyed);
+    }
+
+    #[test]
+    fn same_key_same_content_converges() {
+        assert_eq!(
+            Blid::keyed_of_binary("k1", "0101"),
+            Blid::keyed_of_binary("k1", "0101")
+        );
+    }
+
+    #[test]
+    fn different_keys_diverge() {
+        assert_ne!(
+            Blid::keyed_of_binary("k1", "0101"),
+            Blid::keyed_of_binary("k2", "0101")
+        );
+    }
+
+    #[test]
+    fn empty_key_is_still_keyed_mode_not_unkeyed() {
+        // HMAC with empty key ≠ bare hash — modes never collide.
+        assert_ne!(Blid::keyed_of_binary("", "0101"), Blid::of_binary("0101"));
     }
 }
