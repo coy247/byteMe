@@ -167,4 +167,5 @@ _site/
 !pnpm-lock.yaml
 !.github/*.yml
 .session/
-odysseus/
+odysseus/*
+!odysseus/*.invitation.md
