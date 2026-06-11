@@ -13,6 +13,7 @@
 
 pub mod binary;
 pub mod blid;
+pub mod canon;
 pub mod cli;
 pub mod encode;
 pub mod hydro;

@@ -1,8 +1,8 @@
 use byteme::{
     binary::BinaryModel,
-    blid::Blid,
+    canon::{self, Ingested},
     cli::{self, Options, HELP_TEXT},
-    encode, hydro, interloop, intro, metrics,
+    hydro, interloop, intro, metrics,
     output::{self, Theme},
     patterns, VERSION,
 };
@@ -77,7 +77,14 @@ fn main() -> ExitCode {
 }
 
 fn run_once(input: &str, opts: &Options, theme: &Theme) -> Result<(), ExitCode> {
-    let binary = encode::to_binary(input);
+    let ingested = match canon::ingest(input) {
+        Ok(i) => i,
+        Err(e) => {
+            eprintln!("error: {}", e);
+            return Err(ExitCode::from(2));
+        }
+    };
+    let binary = ingested.bits().to_string();
     let model = BinaryModel::new(binary.clone());
     let Some(analysis) = model.analyze() else {
         eprintln!(
@@ -88,8 +95,36 @@ fn run_once(input: &str, opts: &Options, theme: &Theme) -> Result<(), ExitCode> 
     };
 
     if opts.blid_only {
-        println!("{}", Blid::of_binary(&binary).short());
+        println!("{}", ingested.blid().short());
         return Ok(());
+    }
+
+    // For non-bit kinds, surface the canonical interpretation before the
+    // bit-level analysis so the exactness is visible.
+    if !opts.json {
+        match &ingested {
+            Ingested::Int { value, naf, .. } => {
+                println!(
+                    "{}",
+                    theme.dim(&format!(
+                        "kind: int   value: {}   NAF: {}",
+                        value,
+                        canon::naf_formula(naf)
+                    ))
+                );
+            }
+            Ingested::Array { values, .. } => {
+                println!(
+                    "{}",
+                    theme.dim(&format!(
+                        "kind: array   {} elements: {:?}",
+                        values.len(),
+                        values
+                    ))
+                );
+            }
+            _ => {}
+        }
     }
 
     if opts.walk {
