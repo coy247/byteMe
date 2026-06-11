@@ -95,3 +95,11 @@ JS smoke job (`legacy/ npm test`) must also stay green.
 
 Encouraged but not required. If you sign, make sure your key is published
 on your GitHub profile so the badge verifies.
+
+## Cross-system interoperability
+
+The protocol that lets byteMe converge with other systems on exact-rational
+BLIDs (used inside `booLang-hardening` to close the float-identity drift
+problem) is documented in [`docs/odysseus-handshake.md`](docs/odysseus-handshake.md).
+It is frozen at v1 with five reference vectors any implementation can
+self-verify against.
