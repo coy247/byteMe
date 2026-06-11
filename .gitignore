@@ -166,3 +166,4 @@ _site/
 !package.json
 !pnpm-lock.yaml
 !.github/*.yml
+.session/
