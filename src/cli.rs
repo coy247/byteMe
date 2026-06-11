@@ -15,6 +15,12 @@ pub struct Options {
     pub walk: bool,
     /// Secret for keyed (HMAC) BLIDs. None = public commitment mode.
     pub key: Option<String>,
+    /// Send the analysis to the local Llama narrator endpoint.
+    pub narrate: bool,
+    /// Narrator endpoint override (--endpoint). Env BYTEME_NARRATOR also works.
+    pub endpoint: Option<String>,
+    /// --endpoint was given but no value followed it.
+    pub endpoint_missing_value: bool,
     /// --key was given but no value followed it.
     pub key_missing_value: bool,
     pub input: Option<String>,
@@ -41,6 +47,11 @@ pub fn parse(args: impl IntoIterator<Item = String>) -> Options {
             "--key" => match args.next() {
                 Some(k) => opts.key = Some(k),
                 None => opts.key_missing_value = true,
+            },
+            "--narrate" => opts.narrate = true,
+            "--endpoint" => match args.next() {
+                Some(e) => opts.endpoint = Some(e),
+                None => opts.endpoint_missing_value = true,
             },
             s if s.starts_with("--") => opts.unknown.push(tok),
             s if s.starts_with('-')
@@ -97,6 +108,13 @@ OPTIONS
                       directions), and the first third of the charges is
                       weighted as oxygen (x-2) against hydrogen (x+1) so
                       constant signals neutralize to zero like H2O
+      --narrate       Send the analysis to a local Llama narrator
+                      (LM Studio / Ollama on your own hardware) and print
+                      its plain-language narration. Decoration: analysis
+                      never depends on it; offline degrades gracefully.
+      --endpoint <url> Narrator endpoint (default LM Studio:
+                      http://localhost:1234/v1/chat/completions;
+                      env BYTEME_NARRATOR also respected)
       --no-color      Disable ANSI colors (auto-off when not a TTY)
 
 EXAMPLES

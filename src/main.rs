@@ -2,7 +2,7 @@ use byteme::{
     binary::BinaryModel,
     canon::{self, Ingested},
     cli::{self, Options, HELP_TEXT},
-    hydro, interloop, intro, metrics,
+    hydro, interloop, intro, metrics, narrate,
     output::{self, Theme},
     patterns, VERSION,
 };
@@ -27,6 +27,10 @@ fn main() -> ExitCode {
     }
     if opts.key_missing_value {
         eprintln!("error: --key requires a value");
+        return ExitCode::from(1);
+    }
+    if opts.endpoint_missing_value {
+        eprintln!("error: --endpoint requires a value");
         return ExitCode::from(1);
     }
 
@@ -166,6 +170,41 @@ fn run_once(input: &str, opts: &Options, theme: &Theme) -> Result<(), ExitCode> 
             "{}",
             output::format_report(input, &binary, &analysis, &m, &p, opts.verbose, theme)
         );
+    }
+
+    if opts.narrate {
+        let endpoint = narrate::resolve_endpoint(opts.endpoint.as_deref());
+        let summary = format!(
+            "Input: {}. Binary ({} bits): {}. Ones: {}, zeros: {}. \
+             Entropy: {:.4} bits. Longest run: {}. Distinct runs: {}. \
+             Alternating: {}. Burstiness: {:.4}. Classification: {:?}.",
+            input,
+            analysis.length,
+            if binary.len() > 64 {
+                &binary[..64]
+            } else {
+                &binary
+            },
+            analysis.ones,
+            analysis.zeros,
+            m.entropy,
+            m.longest_run,
+            m.runs,
+            m.alternating,
+            m.burstiness,
+            p.classification,
+        );
+        match narrate::narrate(&endpoint, &summary) {
+            Ok(text) => {
+                println!("\n{}", theme.bold("🦙 narrator"));
+                println!("{}", text.trim());
+            }
+            Err(e) => {
+                // Narration is decoration: the analysis above already
+                // succeeded, so this is a warning, not a failure.
+                eprintln!("warning: {}", e);
+            }
+        }
     }
     Ok(())
 }
