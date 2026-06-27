@@ -27,6 +27,7 @@ pub mod patterns;
 pub mod rational;
 pub mod sha256;
 pub mod study;
+pub mod szero;
 
 pub use binary::{BinaryAnalysis, BinaryModel};
 

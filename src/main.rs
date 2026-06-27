@@ -4,7 +4,7 @@ use byteme::{
     cli::{self, Options, HELP_TEXT},
     concert, contact, hydro, intro, metrics, narrate,
     output::{self, Theme},
-    patterns, study, VERSION,
+    patterns, study, szero, VERSION,
 };
 use std::io::IsTerminal;
 use std::process::ExitCode;
@@ -90,6 +90,10 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
+    if opts.signed_zero {
+        return run_signed_zero(opts.input.as_deref(), &opts, &theme);
+    }
+
     if opts.demo {
         for input in DEMO_INPUTS {
             match run_once(input, &opts, &theme) {
@@ -170,6 +174,174 @@ fn run_concert(input: &str, opts: &Options, theme: &Theme) -> ExitCode {
             ExitCode::from(2)
         }
     }
+}
+
+/// Signed-zero rotational-channel corridor (Radio Shack v2.9.1).
+/// Optional input: phase numbers like "1 3", with an optional leading
+/// "z4"/"z8" token to pick the ring. No input → the canonical doctrine
+/// vector (two -0 witnesses at phases 1 and 3 in Z4 → +0 at ground).
+fn run_signed_zero(input: Option<&str>, opts: &Options, theme: &Theme) -> ExitCode {
+    let mut modulus = szero::Z4;
+    let mut phases: Vec<u8> = Vec::new();
+    if let Some(s) = input {
+        for tok in s.split_whitespace() {
+            match tok {
+                "z4" | "Z4" => modulus = szero::Z4,
+                "z8" | "Z8" => modulus = szero::Z8,
+                _ => match tok.parse::<u8>() {
+                    Ok(p) => phases.push(p),
+                    Err(_) => {
+                        eprintln!("error: '{}' is not a phase number or z4/z8", tok);
+                        return ExitCode::from(2);
+                    }
+                },
+            }
+        }
+    }
+    if phases.is_empty() {
+        phases = vec![1, 3]; // the canonical doctrine vector
+    }
+
+    let steps = szero::corridor(&phases, modulus);
+    // The emerging channel: last transport's output, or the seed channel
+    // when there was nothing to compose.
+    let out = steps
+        .last()
+        .map(|t| t.out)
+        .unwrap_or_else(|| szero::Channel::neg_zero(phases[0], modulus));
+
+    if opts.blid_only {
+        let blid = match steps.last() {
+            Some(t) => match &opts.key {
+                Some(k) => crate_blid_keyed(k, &t.canonical()),
+                None => t.blid(),
+            },
+            None => out.blid(),
+        };
+        println!("{}", blid.short());
+        return ExitCode::SUCCESS;
+    }
+
+    if opts.json {
+        print!("{}", szero_json(&phases, modulus, &steps, &out));
+        return ExitCode::SUCCESS;
+    }
+
+    // PASILLO view: tick by tick with real BLIDs.
+    println!(
+        "{}",
+        theme.bold(&format!(
+            "signed-zero corridor — Z{} (Radio Shack v2.9.1)",
+            modulus
+        ))
+    );
+    println!(
+        "{}",
+        theme.dim("two -0 witnesses compose to +0: sign = XOR, phase adds in Z_N")
+    );
+    let seed = szero::Channel::neg_zero(phases[0], modulus);
+    println!(
+        "  seed   {} {}",
+        channel_glyph(&seed),
+        theme.dim(seed.blid().short())
+    );
+    let mut acc_phase = phases[0];
+    for (i, t) in steps.iter().enumerate() {
+        acc_phase = t.out.phase;
+        println!(
+            "  T{:<2}    × -0@{}  ->  {}  z{}:[{},{}]->{}  {}",
+            i + 1,
+            t.in_b.phase,
+            channel_glyph(&t.out),
+            modulus,
+            t.in_a.phase,
+            t.in_b.phase,
+            t.out.phase,
+            theme.dim(t.blid().short()),
+        );
+    }
+    let _ = acc_phase;
+    let landing = if out.is_pure_rotation() && out.phase == 0 && out.sign == szero::Sign::Plus {
+        theme.green("+0 at ground (primary axis) — the witnesses cancelled")
+    } else {
+        theme.yellow(&format!(
+            "{} @ phase {} ({})",
+            if out.sign == szero::Sign::Plus {
+                "+"
+            } else {
+                "-"
+            },
+            out.phase,
+            chirality_label(&out),
+        ))
+    };
+    println!("  out    {}", landing);
+    ExitCode::SUCCESS
+}
+
+fn channel_glyph(c: &szero::Channel) -> String {
+    let s = if c.sign == szero::Sign::Plus {
+        "+"
+    } else {
+        "-"
+    };
+    format!("{}{}@{}", s, c.magnitude.canonical(), c.phase)
+}
+
+fn chirality_label(c: &szero::Channel) -> &'static str {
+    match c.chirality() {
+        szero::Chirality::Absolute => "absolute",
+        szero::Chirality::Forward => "forward",
+        szero::Chirality::Witness => "witness",
+    }
+}
+
+fn crate_blid_keyed(key: &str, record: &str) -> byteme::blid::Blid {
+    byteme::blid::Blid::keyed_of_record(key, record)
+}
+
+fn szero_json(
+    phases: &[u8],
+    modulus: u8,
+    steps: &[szero::Transport],
+    out: &szero::Channel,
+) -> String {
+    let mut s = String::from("{\n");
+    s.push_str(&format!("  \"ring\": \"Z{}\",\n", modulus));
+    s.push_str(&format!(
+        "  \"phases\": [{}],\n",
+        phases
+            .iter()
+            .map(|p| p.to_string())
+            .collect::<Vec<_>>()
+            .join(", ")
+    ));
+    s.push_str("  \"steps\": [\n");
+    let step_lines: Vec<String> = steps
+        .iter()
+        .map(|t| {
+            format!(
+                "    {{\"in_a_phase\": {}, \"in_b_phase\": {}, \"out_phase\": {}, \"out_sign\": \"{}\", \"blid\": \"{}\"}}",
+                t.in_a.phase,
+                t.in_b.phase,
+                t.out.phase,
+                if t.out.sign == szero::Sign::Plus { "+" } else { "-" },
+                t.blid().short(),
+            )
+        })
+        .collect();
+    s.push_str(&step_lines.join(",\n"));
+    s.push_str("\n  ],\n");
+    s.push_str(&format!(
+        "  \"out\": {{\"sign\": \"{}\", \"magnitude\": \"{}\", \"phase\": {}, \"chirality\": \"{}\", \"blid\": \"{}\"}}\n",
+        if out.sign == szero::Sign::Plus { "+" } else { "-" },
+        out.magnitude.canonical(),
+        out.phase,
+        chirality_label(out),
+        out.blid().short(),
+    ));
+    s.push_str("}\n");
+    s
 }
 
 fn run_once(input: &str, opts: &Options, theme: &Theme) -> Result<(), ExitCode> {
