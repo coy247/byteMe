@@ -596,7 +596,11 @@ fn retro_alone_is_the_standalone_introduction() {
 fn signed_zero_default_vector_lands_on_pos_zero_ground() {
     let (code, stdout, _) = run(&["--signed-zero", "--no-color"]);
     assert_eq!(code, 0);
-    assert!(stdout.contains("z4:[1,3]->0"), "missing phase fold:\n{}", stdout);
+    assert!(
+        stdout.contains("z4:[1,3]->0"),
+        "missing phase fold:\n{}",
+        stdout
+    );
     assert!(
         stdout.contains("+0 at ground"),
         "two -0 must cancel to +0:\n{}",
@@ -620,7 +624,11 @@ fn signed_zero_z8_engine_wraps_at_eight() {
     assert!(wraps.contains("z8:[5,3]->0"));
     assert!(wraps.contains("+0 at ground"));
     let (_, no_wrap, _) = run(&["--signed-zero", "--no-color", "z8 1 3"]);
-    assert!(no_wrap.contains("z8:[1,3]->4"), "Z8 1+3 must be 4:\n{}", no_wrap);
+    assert!(
+        no_wrap.contains("z8:[1,3]->4"),
+        "Z8 1+3 must be 4:\n{}",
+        no_wrap
+    );
 }
 
 #[test]
