@@ -589,3 +589,66 @@ fn retro_alone_is_the_standalone_introduction() {
         stderr
     );
 }
+
+// ── signed-zero rotational channels (Radio Shack v2.9.1) ─────────────
+
+#[test]
+fn signed_zero_default_vector_lands_on_pos_zero_ground() {
+    let (code, stdout, _) = run(&["--signed-zero", "--no-color"]);
+    assert_eq!(code, 0);
+    assert!(
+        stdout.contains("z4:[1,3]->0"),
+        "missing phase fold:\n{}",
+        stdout
+    );
+    assert!(
+        stdout.contains("+0 at ground"),
+        "two -0 must cancel to +0:\n{}",
+        stdout
+    );
+}
+
+#[test]
+fn signed_zero_blid_is_pinned() {
+    // The transport BLID for the canonical [1,3] Z4 vector. If this drifts,
+    // the canonical record changed — bump szero-transform/v1, don't edit.
+    let (code, stdout, _) = run(&["--signed-zero", "--blid"]);
+    assert_eq!(code, 0);
+    assert_eq!(stdout.trim(), "84512d00b67694a8");
+}
+
+#[test]
+fn signed_zero_z8_engine_wraps_at_eight() {
+    // In Z8, phases 5+3 wrap to the ground; 1+3 do not.
+    let (_, wraps, _) = run(&["--signed-zero", "--no-color", "z8 5 3"]);
+    assert!(wraps.contains("z8:[5,3]->0"));
+    assert!(wraps.contains("+0 at ground"));
+    let (_, no_wrap, _) = run(&["--signed-zero", "--no-color", "z8 1 3"]);
+    assert!(
+        no_wrap.contains("z8:[1,3]->4"),
+        "Z8 1+3 must be 4:\n{}",
+        no_wrap
+    );
+}
+
+#[test]
+fn signed_zero_json_is_valid() {
+    let (code, stdout, _) = run(&["--signed-zero", "--json", "z8 1 2 5"]);
+    assert_eq!(code, 0);
+    assert!(is_valid_json(&stdout), "invalid JSON:\n{}", stdout);
+    assert!(stdout.contains("\"ring\": \"Z8\""));
+}
+
+#[test]
+fn signed_zero_rejects_garbage_phase() {
+    let (code, _, stderr) = run(&["--signed-zero", "nine"]);
+    assert_eq!(code, 2);
+    assert!(stderr.contains("not a phase number"));
+}
+
+#[test]
+fn signed_zero_keyed_differs_from_public() {
+    let (_, public, _) = run(&["--signed-zero", "--blid"]);
+    let (_, keyed, _) = run(&["--signed-zero", "--blid", "--key", "rs"]);
+    assert_ne!(public.trim(), keyed.trim());
+}
