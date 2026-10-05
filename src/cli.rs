@@ -17,6 +17,8 @@ pub struct Options {
     pub concert: bool,
     /// Run the Contact reading over the embedded study.
     pub contact: bool,
+    /// Run the signed-zero rotational-channel corridor (Radio Shack v2.9.1).
+    pub signed_zero: bool,
     /// Secret for keyed (HMAC) BLIDs. None = public commitment mode.
     pub key: Option<String>,
     /// Send the analysis to the local Llama narrator endpoint.
@@ -50,6 +52,7 @@ pub fn parse(args: impl IntoIterator<Item = String>) -> Options {
             "--walk" | "--h2o" => opts.walk = true,
             "--concert" => opts.concert = true,
             "--contact" => opts.contact = true,
+            "--signed-zero" | "--szero" => opts.signed_zero = true,
             "--key" => match args.next() {
                 Some(k) => opts.key = Some(k),
                 None => opts.key_missing_value = true,
@@ -125,6 +128,13 @@ OPTIONS
                       Primer assembled across dimensions (entries fold as
                       a hypercube). Honest — no invented message. Combine
                       with --blid / --key.
+      --signed-zero   Run the signed-zero rotational-channel corridor
+        (--szero)     (booLang v2.9.1, Radio Shack edition). Two -0
+                      witnesses compose to +0 at the ground: sign is XOR,
+                      phase adds in Z_N (Z4 base, Z8 engine). Optional
+                      input: phases like '1 3', with a leading 'z8' to
+                      pick the ring. Each channel and transport gets a
+                      BLID. Combine with --blid / --json.
       --narrate       Send the analysis to a local Llama narrator
                       (Ollama on your own hardware) and print its plain-
                       language narration. Decoration: analysis never
